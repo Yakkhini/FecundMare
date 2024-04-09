@@ -1,0 +1,12 @@
+*
+!*/
+!*.sc
+!*.scala
+!*.cc
+!*.h
+!.gitignore
+!.scalafmt.conf
+!Justfile
+out
+build
+compile_commands.json
