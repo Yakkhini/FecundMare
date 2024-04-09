@@ -16,9 +16,10 @@ _compile:
     mkdir -p {{BUILD_DIR}}/bin
     VSRC=`find $NPC_CHISEL -name '*.sv' | tr '\n' ' '` # we use echo command latter cause dollar var will cause error
     CSRC=`find $NPC_CHISEL -name '*.cc' | tr '\n' ' '` # we use echo command latter cause dollar var will cause error
+    VLTRC=`find $NPC_CHISEL -name '*.vlt' | tr '\n' ' '` # we use echo command latter cause dollar var will cause error
     verilator --cc -Mdir {{BUILD_DIR}}/verilator \
     --top-module {{NPC_NAME}} \
-    --build -Wall -Wno-UNUSEDSIGNAL -Wno-DECLFILENAME `echo $CSRC` `echo $VSRC` \
+    --build -Wall -Wno-UNUSEDSIGNAL -Wno-DECLFILENAME `echo $VLTRC` `echo $CSRC` `echo $VSRC` \
     -CFLAGS -I{{BUILD_DIR}}/verilator -CFLAGS -I{{INC_DIR}} -CFLAGS -I{{CONFIG_DIR}} \
     -LDFLAGS -lreadline -LDFLAGS -lcapstone \
     --trace --exe -o {{BUILD_DIR}}/bin/{{NPC_NAME}}

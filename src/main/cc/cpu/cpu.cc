@@ -175,7 +175,7 @@ void cpu_exec(int n) {
 }
 
 void cpu_sync() {
-  // memcpy(cpu.regs, cpu.top->sriz->resgister_file->rf.m_storage, 32 * 4);
+  memcpy(cpu.regs, cpu.top->TaoHe->regFile->registers, 32 * 4);
   // if (cpu.top->sriz->resgister_file->wen) {
   //   cpu.regs[cpu.top->sriz->resgister_file->waddr] =
   //       cpu.top->sriz->resgister_file->regin;

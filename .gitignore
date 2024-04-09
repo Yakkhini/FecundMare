@@ -3,6 +3,7 @@
 !*.sc
 !*.scala
 !*.cc
+!verilator.vlt
 !*.h
 !.gitignore
 !.scalafmt.conf

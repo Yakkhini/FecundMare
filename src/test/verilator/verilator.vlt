@@ -1,0 +1,2 @@
+`verilator_config
+public -module "RegisterFile" -var "registers"
