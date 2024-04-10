@@ -11,3 +11,4 @@
 out
 build
 compile_commands.json
+config/config.h

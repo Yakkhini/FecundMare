@@ -23,6 +23,13 @@ class TaoHe extends Module {
   dontTouch(pc)
   dontTouch(pcIn)
 
+  val inst = Wire(UInt(32.W))
+  dontTouch(inst)
+
+  val instFetchUnit = Module(new IFU())
+  instFetchUnit.io.pc := pc
+  inst := instFetchUnit.io.inst
+
   val regFile = Module(new RegisterFile())
   regFile.io.readAddr1 := io.readAddr1
   regFile.io.readAddr2 := io.readAddr2

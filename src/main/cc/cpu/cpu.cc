@@ -1,6 +1,7 @@
-#include "VTaoHe.h"
-#include "VTaoHe__Syms.h"
-#include "sdb.h"
+#include <VTaoHe.h>
+#include <VTaoHe__Dpi.h>
+#include <VTaoHe__Syms.h>
+
 #include <common.h>
 #include <cpu/cpu.h>
 #include <cpu/difftest.h>
@@ -11,7 +12,7 @@
 CPU cpu;
 NPCState npc_state = SRIZ_INIT;
 
-static char *NPC_HOME = getenv("NPC_HOME");
+static char *NPC_CHISEL = getenv("NPC_CHISEL");
 static VerilatedContext *contextp;
 
 #if CONFIG_WAVE_RECORD
@@ -125,9 +126,9 @@ void cpu_init(int argc, char **argv) {
 
 #if CONFIG_WAVE_RECORD
   char wavefile_name[80];
-  strcpy(wavefile_name, NPC_HOME);
-  strcat(wavefile_name, "/build/waveform.vcd");
-  Log("Wave Path: %s.", wavefile_name);
+  strcpy(wavefile_name, NPC_CHISEL);
+  strcat(wavefile_name, "/out/waveform.vcd");
+  Log("Wave Path: `%s`.", wavefile_name);
 
   Verilated::traceEverOn(true);
   tfp = new VerilatedVcdC;
@@ -175,14 +176,14 @@ void cpu_exec(int n) {
 }
 
 void cpu_sync() {
-  memcpy(cpu.regs, cpu.top->TaoHe->regFile->registers, 32 * 4);
+  memcpy(cpu.regs, cpu.top->TaoHe->regFile->registers, sizeof(cpu.regs));
   // if (cpu.top->sriz->resgister_file->wen) {
   //   cpu.regs[cpu.top->sriz->resgister_file->waddr] =
   //       cpu.top->sriz->resgister_file->regin;
   // }
   cpu.pc_prev = cpu.pc;
   cpu.pc = cpu.top->TaoHe->pcIn;
-  // cpu.inst = cpu.top->sriz->inst;
+  cpu.inst = cpu.top->TaoHe->inst;
 }
 
 void cpu_check() {
