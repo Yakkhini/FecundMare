@@ -180,8 +180,8 @@ void cpu_sync() {
   //   cpu.regs[cpu.top->sriz->resgister_file->waddr] =
   //       cpu.top->sriz->resgister_file->regin;
   // }
-  // cpu.pc_prev = cpu.pc;
-  // cpu.pc = cpu.top->sriz->pc_reg->pcin;
+  cpu.pc_prev = cpu.pc;
+  cpu.pc = cpu.top->TaoHe->pcIn;
   // cpu.inst = cpu.top->sriz->inst;
 }
 

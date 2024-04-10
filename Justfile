@@ -6,7 +6,7 @@ CONFIG_DIR := "$NPC_CHISEL/config"
 NVBOARD_ARCHIVE := "$NVBOARD_HOME/build/nvboard.a"
 NPC_NAME := "TaoHe"
 
-verilog:
+sv:
     #!/usr/bin/env zsh
     mill -i build.run
     echo "SystemVerilog files are generated."
@@ -25,7 +25,7 @@ _compile:
     --trace --exe -o {{BUILD_DIR}}/bin/{{NPC_NAME}}
 
 
-sim: verilog _compile
+sim: sv _compile
 
 nju lab:
     just _common nju{{lab}}

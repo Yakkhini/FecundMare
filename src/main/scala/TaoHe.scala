@@ -16,6 +16,13 @@ class TaoHe extends Module {
     val readData2 = Output(UInt(32.W))
   })
 
+  val pc = RegInit("h80000000".U(32.W))
+  val pcIn = Wire(UInt(32.W))
+  pcIn := pc + 4.U
+  pc := pcIn
+  dontTouch(pc)
+  dontTouch(pcIn)
+
   val regFile = Module(new RegisterFile())
   regFile.io.readAddr1 := io.readAddr1
   regFile.io.readAddr2 := io.readAddr2

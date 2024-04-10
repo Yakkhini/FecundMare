@@ -1,2 +1,3 @@
 `verilator_config
+public -module "TaoHe" -var "pcIn"
 public -module "RegisterFile" -var "registers"
