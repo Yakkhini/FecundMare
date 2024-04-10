@@ -22,7 +22,7 @@ _compile:
     --build -Wall -Wno-UNUSEDSIGNAL -Wno-DECLFILENAME `echo $VLTRC` `echo $CSRC` `echo $VSRC` \
     -CFLAGS -I{{BUILD_DIR}}/verilator -CFLAGS -I{{INC_DIR}} -CFLAGS -I{{CONFIG_DIR}} \
     -LDFLAGS -lreadline -LDFLAGS -lcapstone \
-    --trace --exe -o {{BUILD_DIR}}/bin/{{NPC_NAME}}
+    --trace --exe -o {{BUILD_DIR}}/bin/taohe
 
 
 sim: sv _compile
