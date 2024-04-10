@@ -1,3 +1,5 @@
+// This file should rename to config.h to pass the compilation & configurate the NPC.
+
 // run in batch mode
 #define CONFIG_BATCH_MODE 0
 
