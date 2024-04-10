@@ -27,8 +27,8 @@ _compile:
 
 sim: sv _compile
 
-nju lab:
-    just _common nju{{lab}}
+wave:
+    gtkwave {{BUILD_DIR}}/waveform.vcd
 
 fmt:
     scalafmt
