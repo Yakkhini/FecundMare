@@ -28,6 +28,7 @@ class TaoHe extends Module {
 
   val instFetchUnit = Module(new IFU())
   instFetchUnit.io.pc := pc
+  instFetchUnit.io.reset := reset
   inst := instFetchUnit.io.inst
 
   val regFile = Module(new RegisterFile())
