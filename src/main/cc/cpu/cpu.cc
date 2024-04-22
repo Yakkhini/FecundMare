@@ -176,13 +176,14 @@ void cpu_exec(int n) {
 }
 
 void cpu_sync() {
-  memcpy(cpu.regs, cpu.top->TaoHe->regFile->registers, sizeof(cpu.regs));
-  // if (cpu.top->sriz->resgister_file->wen) {
-  //   cpu.regs[cpu.top->sriz->resgister_file->waddr] =
-  //       cpu.top->sriz->resgister_file->regin;
-  // }
+  memcpy(cpu.regs, cpu.top->TaoHe->registerFile->registers, sizeof(cpu.regs));
+  if (cpu.top->TaoHe->registerFile->io_withEXU_writeEnable &&
+      cpu.top->TaoHe->registerFile->io_fromIDU_writeAddr) {
+    cpu.regs[cpu.top->TaoHe->registerFile->io_fromIDU_writeAddr] =
+        cpu.top->TaoHe->registerFile->io_withEXU_writeData;
+  }
   cpu.pc_prev = cpu.pc;
-  cpu.pc = cpu.top->TaoHe->pcIn;
+  cpu.pc = cpu.top->TaoHe->pcIN;
   cpu.inst = cpu.top->TaoHe->inst;
 }
 
