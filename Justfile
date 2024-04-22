@@ -4,6 +4,7 @@ BUILD_DIR := "$NPC_CHISEL/out"
 INC_DIR := "$NPC_CHISEL/include"
 CONFIG_DIR := "$NPC_CHISEL/config"
 NVBOARD_ARCHIVE := "$NVBOARD_HOME/build/nvboard.a"
+YSYX_HOME := "$NEMU_HOME/.."
 NPC_NAME := "TaoHe"
 
 sv:
@@ -25,7 +26,12 @@ _compile:
     --trace --exe -o {{BUILD_DIR}}/bin/taohe
 
 
-sim: sv _compile
+sim: (trace "Build TaoHe Simulator Program Binary.") sv _compile
+
+trace msg:
+    #!/usr/bin/env zsh
+    flock {{YSYX_HOME}}/.git/ make -C {{YSYX_HOME}} .git_commit MSG='{{msg}}'
+    sync
 
 wave:
     gtkwave {{BUILD_DIR}}/waveform.vcd
