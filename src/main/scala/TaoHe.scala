@@ -1,44 +1,39 @@
 package taohe
 
-import chisel3._, chisel3.util._
-
-// _root_ disambiguates from package chisel3.util.circt if user imports chisel3.util._
-import _root_.circt.stage.ChiselStage
+import chisel3._
+import circt.stage.ChiselStage
+import chisel3.probe.Probe
 
 class TaoHe extends Module {
-  val io = IO(new Bundle {
-    val readAddr1 = Input(UInt(5.W))
-    val readAddr2 = Input(UInt(5.W))
-    val writeAddr = Input(UInt(5.W))
-    val writeData = Input(UInt(32.W))
-    val writeEnable = Input(Bool())
-    val readData1 = Output(UInt(32.W))
-    val readData2 = Output(UInt(32.W))
-  })
+  val io = IO(new Bundle {})
 
   val pc = RegInit("h80000000".U(32.W))
-  val pcIn = Wire(UInt(32.W))
-  pcIn := pc + 4.U
-  pc := pcIn
-  dontTouch(pc)
-  dontTouch(pcIn)
+  val pcIN = Wire(UInt(32.W))
+  pcIN := pc + 4.U
+  pc := pcIN
+  dontTouch(pcIN)
 
   val inst = Wire(UInt(32.W))
   dontTouch(inst)
 
   val instFetchUnit = Module(new IFU())
-  instFetchUnit.io.pc := pc
   instFetchUnit.io.reset := reset
+  instFetchUnit.io.pc := pc
   inst := instFetchUnit.io.inst
 
-  val regFile = Module(new RegisterFile())
-  regFile.io.readAddr1 := io.readAddr1
-  regFile.io.readAddr2 := io.readAddr2
-  regFile.io.writeAddr := io.writeAddr
-  regFile.io.writeData := io.writeData
-  regFile.io.writeEnable := io.writeEnable
-  io.readData1 := regFile.io.readData1
-  io.readData2 := regFile.io.readData2
+  val registerFile = Module(new RegisterFile())
+
+  val IDU = Module(new idu.IDU())
+  IDU.io.inst := inst
+  registerFile.io.fromIDU <> IDU.io.controlSignal.toRegisterFile
+
+  val EXU = Module(new EXU())
+  EXU.io.fromIDU <> IDU.io.controlSignal.toEXU
+  registerFile.io.withEXU <> EXU.io.withRegisterFile
+  EXU.io.currentPC := pc
+
+  dontTouch(EXU.io.withRegisterFile.writeData)
+  dontTouch(EXU.io.withRegisterFile.writeEnable)
 
 }
 
