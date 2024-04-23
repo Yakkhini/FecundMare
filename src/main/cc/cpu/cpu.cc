@@ -193,10 +193,12 @@ void cpu_check() {
   disassembler();
 #endif
 
-  // if (cpu.top->sriz->IDU->lut->hit == 0) {
-  //   Log("ERROR INST NOT SUPPORT: LUT HIT FAILED at pc = 0x%08X",
-  //   cpu.pc_prev); npc_state = TCHE_ABORT;
-  // }
+  if (cpu.top->TaoHe->IDU->decodeSupport == 0) {
+    Log(ANSI_FMT("ERROR INST NOT SUPPORT: ", ANSI_FG_RED) ANSI_FG_BLUE
+        "DECODE " ANSI_FMT("FIELD ", ANSI_FG_RED) ANSI_FG_BLUE "at pc = 0x%08X",
+        cpu.pc_prev);
+    npc_state = TCHE_ABORT;
+  }
 
 #if CONFIG_FTRACE
   ftrace_check();

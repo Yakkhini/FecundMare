@@ -6,6 +6,7 @@ import chisel3.util.experimental.decode.DecodePattern
 import chisel3.util.experimental.decode.DecodeField
 import chisel3.util.experimental.decode.DecodeTable
 import chisel3.util.experimental.decode.BoolDecodeField
+import upickle.default
 
 object InstType extends ChiselEnum {
   val R, I, S, B, U, J = Value
@@ -123,6 +124,13 @@ object BreakField extends BoolDecodeField[InstructionPattern] {
   }
 }
 
+object decodeSupportField extends DecodeField[InstructionPattern, Bool] {
+  def name: String = "decodeSupport"
+  def chiselType = Bool()
+  def genTable(op: InstructionPattern): BitPat = BitPat.Y(1)
+  override def default: BitPat = BitPat.N(1)
+}
+
 object IDUTable {
 
   val possiblePatterns = Seq(
@@ -140,7 +148,14 @@ object IDUTable {
     ) // EBREAK
   )
 
-  val allFields = Seq(ImmField, ALUOpField, Data1Field, Data2Field, BreakField)
+  val allFields = Seq(
+    decodeSupportField,
+    ImmField,
+    ALUOpField,
+    Data1Field,
+    Data2Field,
+    BreakField
+  )
 
   val decodeTable = new DecodeTable(possiblePatterns, allFields)
 }
