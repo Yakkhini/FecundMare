@@ -1,13 +1,13 @@
-#include <VTaoHe.h>
-#include <VTaoHe__Dpi.h>
-#include <VTaoHe__Syms.h>
-
 #include <common.h>
 #include <cpu/cpu.h>
 #include <cpu/difftest.h>
 #include <cpu/disasm.h>
 #include <cpu/ftrace.h>
 #include <memory/vaddr.h>
+
+#include <VTaoHe.h>
+#include <VTaoHe__Dpi.h>
+#include <VTaoHe__Syms.h>
 
 CPU cpu;
 NPCState npc_state = SRIZ_INIT;

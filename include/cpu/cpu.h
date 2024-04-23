@@ -26,6 +26,6 @@ void isa_reg_display();
 word_t isa_reg_str2val(const char *s, bool *success);
 int return_status();
 
-void halt(int code);
+extern "C" void halt(int code);
 
 #endif
