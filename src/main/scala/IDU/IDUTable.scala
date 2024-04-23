@@ -5,6 +5,7 @@ import chisel3.util.BitPat
 import chisel3.util.experimental.decode.DecodePattern
 import chisel3.util.experimental.decode.DecodeField
 import chisel3.util.experimental.decode.DecodeTable
+import chisel3.util.experimental.decode.BoolDecodeField
 
 object InstType extends ChiselEnum {
   val R, I, S, B, U, J = Value
@@ -109,6 +110,19 @@ object Data2Field extends DecodeField[InstructionPattern, UInt] {
 
 }
 
+object BreakField extends BoolDecodeField[InstructionPattern] {
+  def name: String = "break"
+
+  // Only EBREAK has a break signal
+  def genTable(op: InstructionPattern): BitPat = {
+    if (
+      op.pattern == BitPat.dontCare(11) ## BitPat
+        .Y(1) ## BitPat.dontCare(13) ## BitPat("b1110011")
+    ) BitPat(true.B)
+    else BitPat(false.B)
+  }
+}
+
 object IDUTable {
 
   val possiblePatterns = Seq(
@@ -126,7 +140,7 @@ object IDUTable {
     ) // EBREAK
   )
 
-  val allFields = Seq(ImmField, ALUOpField, Data1Field, Data2Field)
+  val allFields = Seq(ImmField, ALUOpField, Data1Field, Data2Field, BreakField)
 
   val decodeTable = new DecodeTable(possiblePatterns, allFields)
 }

@@ -18,6 +18,7 @@ class ControlSignalToEXUBundle extends Bundle {
   val data1Type = Output(UInt(Data1Type.getWidth.W))
   val data2Type = Output(UInt(Data2Type.getWidth.W))
   val aluOp = Output(UInt(ALUOpType.getWidth.W))
+  val break = Output(Bool())
   val imm = Output(UInt(32.W))
 }
 

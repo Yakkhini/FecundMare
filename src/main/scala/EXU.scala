@@ -40,4 +40,9 @@ class EXU extends Module {
 
   io.withRegisterFile.writeData := result
   io.withRegisterFile.writeEnable := true.B
+
+  val powerManager = Module(new PowerManager())
+  powerManager.io.reset := reset
+  powerManager.io.breakSignal := io.fromIDU.break
+  powerManager.io.code := data1
 }

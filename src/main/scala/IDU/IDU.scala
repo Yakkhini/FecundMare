@@ -33,11 +33,16 @@ class IDU extends Module {
     )
   )
 
-  io.controlSignal.toRegisterFile.readAddr1 := io.inst(19, 15)
+  io.controlSignal.toRegisterFile.readAddr1 := Mux(
+    decodeResult(BreakField),
+    10.U,
+    io.inst(19, 15)
+  )
   io.controlSignal.toRegisterFile.readAddr2 := io.inst(24, 20)
   io.controlSignal.toRegisterFile.writeAddr := io.inst(11, 7)
 
   io.controlSignal.toEXU.data1Type := decodeResult(Data1Field)
   io.controlSignal.toEXU.data2Type := decodeResult(Data2Field)
   io.controlSignal.toEXU.aluOp := decodeResult(ALUOpField)
+  io.controlSignal.toEXU.break := decodeResult(BreakField)
 }
