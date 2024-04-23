@@ -1,4 +1,3 @@
-// #include "Vsriz__Dpi.h"
 #include <common.h>
 #include <cpu/cpu.h>
 #include <cpu/difftest.h>

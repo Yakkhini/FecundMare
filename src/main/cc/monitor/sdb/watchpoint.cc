@@ -127,7 +127,7 @@ void check_wp() {
     }
 
     if (!pass) {
-      npc_state = SRIZ_PAUSE;
+      npc_state = TCHE_PAUSE;
     }
   }
 }

@@ -3,7 +3,7 @@
 
 #include <common.h>
 
-enum NPCState { SRIZ_INIT, SRIZ_RUNNING, SRIZ_PAUSE, SRIZ_HALT, SRIZ_ABORT };
+enum NPCState { TCHE_INIT, TCHE_RUNNING, TCHE_PAUSE, TCHE_HALT, TCHE_ABORT };
 
 typedef struct cpu {
   VTaoHe *top;

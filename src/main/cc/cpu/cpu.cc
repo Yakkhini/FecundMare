@@ -10,7 +10,7 @@
 #include <VTaoHe__Syms.h>
 
 CPU cpu;
-NPCState npc_state = SRIZ_INIT;
+NPCState npc_state = TCHE_INIT;
 
 static char *NPC_CHISEL = getenv("NPC_CHISEL");
 static VerilatedContext *contextp;
@@ -21,13 +21,13 @@ static VerilatedVcdC *tfp;
 
 void finish();
 void halt(int code) {
-  if (npc_state == SRIZ_RUNNING || npc_state == SRIZ_PAUSE) {
+  if (npc_state == TCHE_RUNNING || npc_state == TCHE_PAUSE) {
     switch (code) {
     case 0:
-      npc_state = SRIZ_HALT;
+      npc_state = TCHE_HALT;
       break;
     default:
-      npc_state = SRIZ_ABORT;
+      npc_state = TCHE_ABORT;
       break;
     }
   }
@@ -35,9 +35,9 @@ void halt(int code) {
 
 int return_status() {
   switch (npc_state) {
-  case SRIZ_HALT:
+  case TCHE_HALT:
     return 0;
-  case SRIZ_ABORT:
+  case TCHE_ABORT:
     return 1;
   default:
     return 2;
@@ -110,7 +110,7 @@ void reset() {
   cpu_sync();
   cpu_check();
 
-  Log("SRIZ reset done.");
+  Log("TCHE reset done.");
 }
 
 void cpu_init(int argc, char **argv) {
@@ -122,7 +122,7 @@ void cpu_init(int argc, char **argv) {
   contextp->commandArgs(argc, argv);
 
   cpu.top = new VTaoHe(contextp);
-  Log("Welcome to SuanChou Processor Core Verilating Model.");
+  Log("Welcome to TaoHe Processor Core Verilating Model.");
 
 #if CONFIG_WAVE_RECORD
   char wavefile_name[80];
@@ -142,31 +142,31 @@ void cpu_init(int argc, char **argv) {
 
 void cpu_exec(int n) {
   switch (npc_state) {
-  case SRIZ_INIT:
+  case TCHE_INIT:
     reset();
-    npc_state = SRIZ_RUNNING;
+    npc_state = TCHE_RUNNING;
     break;
-  case SRIZ_HALT:
+  case TCHE_HALT:
     Log("Program already finished!");
     return;
-  case SRIZ_ABORT:
+  case TCHE_ABORT:
     Log("Program already aborted!");
     return;
   default:
     break;
   }
 
-  npc_state = SRIZ_RUNNING;
+  npc_state = TCHE_RUNNING;
 
   switch (n) {
   case -1:
-    while (npc_state == SRIZ_RUNNING) {
+    while (npc_state == TCHE_RUNNING) {
       single_clock();
     }
     break;
   default:
     for (int i = 0; i < n; i++) {
-      if (npc_state != SRIZ_RUNNING) {
+      if (npc_state != TCHE_RUNNING) {
         break;
       }
       single_clock();
@@ -195,7 +195,7 @@ void cpu_check() {
 
   // if (cpu.top->sriz->IDU->lut->hit == 0) {
   //   Log("ERROR INST NOT SUPPORT: LUT HIT FAILED at pc = 0x%08X",
-  //   cpu.pc_prev); npc_state = SRIZ_ABORT;
+  //   cpu.pc_prev); npc_state = TCHE_ABORT;
   // }
 
 #if CONFIG_FTRACE
@@ -221,13 +221,13 @@ int inst_fetch(int pc) { return vaddr_ifetch(pc); }
 
 void finish() {
   switch (npc_state) {
-  case SRIZ_ABORT:
-    Log("SRIZ: " ANSI_FMT("ABORT", ANSI_FG_RED) ANSI_FG_BLUE
+  case TCHE_ABORT:
+    Log("TCHE: " ANSI_FMT("ABORT", ANSI_FG_RED) ANSI_FG_BLUE
         " at pc = 0x%08X " ANSI_FMT("HIT BAD TRAP", ANSI_FG_RED),
         cpu.pc);
     return;
-  case SRIZ_HALT:
-    Log("SRIZ: " ANSI_FMT("QUIT", ANSI_FG_GREEN) ANSI_FG_BLUE
+  case TCHE_HALT:
+    Log("TCHE: " ANSI_FMT("QUIT", ANSI_FG_GREEN) ANSI_FG_BLUE
         " at pc = 0x%08X " ANSI_FMT("HIT GOOD TRAP", ANSI_FG_GREEN),
         cpu.pc);
     return;

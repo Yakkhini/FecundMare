@@ -17,7 +17,7 @@ static char *rl_gets() {
     line_read = NULL;
   }
 
-  line_read = readline("\%sriz-npc > ");
+  line_read = readline("\%taohe-npc > ");
 
   if (line_read && *line_read) {
     add_history(line_read);
@@ -116,7 +116,7 @@ static struct {
     {"help", "Display information about all supported commands", cmd_help},
     {"c", "Continue the execution of the program", cmd_c},
     {"d", "Free watchpoint", cmd_d},
-    {"q", "Exit SRIZ Simulator", cmd_q},
+    {"q", "Exit TCHE Simulator", cmd_q},
     {"p", "Caculate expression and output value.", cmd_p},
     {"si", "Execute program by step", cmd_si},
     {"info", "Print register info", cmd_info},
