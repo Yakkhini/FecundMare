@@ -74,6 +74,9 @@ object ALUOpField extends DecodeField[InstructionPattern, UInt] {
           case "???" => BitPat(ALUOpType.ADD.litValue.U(ALUOpType.getWidth.W))
         }
       }
+
+      case InstType.U => BitPat(ALUOpType.ADD.litValue.U(ALUOpType.getWidth.W))
+
     }
   }
 }
@@ -134,6 +137,16 @@ object decodeSupportField extends DecodeField[InstructionPattern, Bool] {
 object IDUTable {
 
   val possiblePatterns = Seq(
+    InstructionPattern(
+      InstType.U,
+      opcode = BitPat("b0110111")
+    ), // LUI
+
+    InstructionPattern(
+      InstType.U,
+      opcode = BitPat("b0010111")
+    ), // AUIPC
+
     InstructionPattern(
       InstType.I,
       func3 = BitPat("b000"),
