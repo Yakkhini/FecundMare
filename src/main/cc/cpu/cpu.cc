@@ -195,7 +195,8 @@ void cpu_check() {
 
   if (cpu.top->TaoHe->IDU->decodeSupport == 0) {
     Log(ANSI_FMT("ERROR INST NOT SUPPORT: ", ANSI_FG_RED) ANSI_FG_BLUE
-        "DECODE " ANSI_FMT("FIELD ", ANSI_FG_RED) ANSI_FG_BLUE "at pc = 0x%08X",
+        "DECODE " ANSI_FMT("FAILED ", ANSI_FG_RED) ANSI_FG_BLUE
+        "at pc = 0x%08X",
         cpu.pc_prev);
     npc_state = TCHE_ABORT;
   }
