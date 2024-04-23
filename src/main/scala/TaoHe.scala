@@ -17,16 +17,21 @@ class TaoHe extends Module {
   inst := instFetchUnit.io.inst
 
   val registerFile = Module(new RegisterFile())
+  val memory = Module(new Memory())
+  memory.io.clock := clock
+  memory.io.reset := reset
 
   val IDU = Module(new idu.IDU())
   IDU.io.inst := inst
+  memory.io.valid := IDU.io.memoryValid
   registerFile.io.fromIDU <> IDU.io.controlSignal.toRegisterFile
 
   val EXU = Module(new EXU())
-  EXU.io.fromIDU <> IDU.io.controlSignal.toEXU
-  registerFile.io.withEXU <> EXU.io.withRegisterFile
   EXU.io.currentPC := pc
   pc := EXU.io.nextPC
+  EXU.io.fromIDU <> IDU.io.controlSignal.toEXU
+  registerFile.io.withEXU <> EXU.io.withRegisterFile
+  memory.io.withEXU <> EXU.io.withMemory
 
   dontTouch(pc)
   dontTouch(inst)

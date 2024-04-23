@@ -5,10 +5,15 @@ import chisel3.util.MuxLookup
 
 import taohe.util.EXUBundle
 import taohe.idu.{Data1Type, Data2Type, ImmType, InstType, ALUOpType}
-import chisel3.probe.Probe
 
 class EXU extends Module {
   val io = IO(new EXUBundle)
+
+  io.withMemory.address := io.withRegisterFile.readData1 + io.fromIDU.imm
+  io.withMemory.lenth := io.fromIDU.memoryLenth
+  io.withMemory.writeData := io.withRegisterFile.readData2
+  io.withMemory.writeEnable := (io.fromIDU.instructionType === InstType.S.asUInt)
+  dontTouch(io.withMemory.readData)
 
   val data1 = MuxLookup(io.fromIDU.data1Type, 0.U(32.W))(
     Seq(
@@ -16,6 +21,7 @@ class EXU extends Module {
       Data1Type.PC.asUInt -> io.currentPC
     )
   )
+
   val data2 = MuxLookup(io.fromIDU.data2Type, 0.U(32.W))(
     Seq(
       Data2Type.RS2.asUInt -> io.withRegisterFile.readData2,
@@ -37,13 +43,18 @@ class EXU extends Module {
       ALUOpType.SLTU.asUInt -> (data1 < data2).asUInt
     )
   )
+
   io.nextPC := Mux(io.fromIDU.jump, result, io.currentPC + 4.U)
   io.withRegisterFile.writeData := Mux(
     io.fromIDU.jump,
     io.currentPC + 4.U,
     result
   )
-  io.withRegisterFile.writeEnable := true.B
+  io.withRegisterFile.writeEnable := Mux(
+    (io.fromIDU.instructionType === InstType.S.asUInt) || (io.fromIDU.instructionType === InstType.B.asUInt),
+    false.B,
+    true.B
+  )
 
   val powerManager = Module(new PowerManager())
   powerManager.io.reset := reset

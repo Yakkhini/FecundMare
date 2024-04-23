@@ -28,6 +28,12 @@ object Data2Type extends ChiselEnum {
   val IMM, RS2 = Value
 }
 
+object MemLen extends ChiselEnum {
+  val B = Value(1.U)
+  val H = Value(2.U)
+  val W = Value(4.U)
+}
+
 case class InstructionPattern(
     val instType: InstType.Type,
     val func7: BitPat = BitPat.dontCare(7),
@@ -44,6 +50,15 @@ case class InstructionPattern(
 
   val pattern = if (manual) manualPattern else genPattern
 
+}
+
+object InstTypeField extends DecodeField[InstructionPattern, UInt] {
+  def name: String = "instType"
+  def chiselType = UInt(InstType.getWidth.W)
+
+  def genTable(op: InstructionPattern): BitPat = BitPat(
+    op.instType.litValue.U(InstType.getWidth.W)
+  )
 }
 
 object ImmField extends DecodeField[InstructionPattern, UInt] {
@@ -74,6 +89,9 @@ object ALUOpField extends DecodeField[InstructionPattern, UInt] {
           case "???" => BitPat(ALUOpType.ADD.litValue.U(ALUOpType.getWidth.W))
         }
       }
+
+      case InstType.S => BitPat(ALUOpType.ADD.litValue.U(ALUOpType.getWidth.W))
+      case InstType.B => BitPat(ALUOpType.ADD.litValue.U(ALUOpType.getWidth.W))
 
       case InstType.U => BitPat(ALUOpType.ADD.litValue.U(ALUOpType.getWidth.W))
       case InstType.J => BitPat(ALUOpType.ADD.litValue.U(ALUOpType.getWidth.W))
@@ -113,6 +131,33 @@ object Data2Field extends DecodeField[InstructionPattern, UInt] {
     }
   }
 
+}
+
+object MemLenField extends DecodeField[InstructionPattern, UInt] {
+  def name: String = "memoryLenth"
+  def chiselType = UInt(MemLen.getWidth.W)
+  def genTable(op: InstructionPattern): BitPat = {
+    op.func3.rawString match {
+      // Maybe we should just use 2 bits for this field? Whatever, espresso will optimize it.
+      case "000" => BitPat(MemLen.B.litValue.U(MemLen.getWidth.W))
+      case "001" => BitPat(MemLen.H.litValue.U(MemLen.getWidth.W))
+      case "010" => BitPat(MemLen.W.litValue.U(MemLen.getWidth.W))
+      case "100" => BitPat(MemLen.B.litValue.U(MemLen.getWidth.W)) // LBU
+      case "101" => BitPat(MemLen.H.litValue.U(MemLen.getWidth.W)) // LHU
+      case "???" => BitPat(MemLen.B.litValue.U(MemLen.getWidth.W))
+    }
+  }
+}
+
+object MemValidField extends BoolDecodeField[InstructionPattern] {
+  def name: String = "memoryValid"
+  def genTable(op: InstructionPattern): BitPat = {
+    op.instType match {
+      case InstType.S => BitPat(true.B)
+      case InstType.B => BitPat(true.B)
+      case _          => BitPat(false.B)
+    }
+  }
 }
 
 object JumpField extends BoolDecodeField[InstructionPattern] {
@@ -162,6 +207,24 @@ object IDUTable {
     ), // JAL
 
     InstructionPattern(
+      InstType.S,
+      func3 = BitPat("b000"),
+      opcode = BitPat("b0100011")
+    ), // SB
+
+    InstructionPattern(
+      InstType.S,
+      func3 = BitPat("b001"),
+      opcode = BitPat("b0100011")
+    ), // SH
+
+    InstructionPattern(
+      InstType.S,
+      func3 = BitPat("b010"),
+      opcode = BitPat("b0100011")
+    ), // SW
+
+    InstructionPattern(
       InstType.I,
       func3 = BitPat("b000"),
       opcode = BitPat("b0010011")
@@ -177,10 +240,13 @@ object IDUTable {
 
   val allFields = Seq(
     decodeSupportField,
+    InstTypeField,
     ImmField,
     ALUOpField,
     Data1Field,
     Data2Field,
+    MemLenField,
+    MemValidField,
     JumpField,
     BreakField
   )

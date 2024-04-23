@@ -1,11 +1,12 @@
 package taohe.idu
 
 import chisel3._
+import chisel3.util.Fill
 import chisel3.util.MuxLookup
+
 import taohe.idu.ImmType.S
 import taohe.idu.ImmType.U
 import taohe.util.IDUBundle
-import chisel3.util.Fill
 
 class IDU extends Module {
   val io = IO(new IDUBundle)
@@ -45,8 +46,12 @@ class IDU extends Module {
   io.controlSignal.toRegisterFile.readAddr2 := io.inst(24, 20)
   io.controlSignal.toRegisterFile.writeAddr := io.inst(11, 7)
 
+  io.memoryValid := decodeResult(MemValidField)
+
+  io.controlSignal.toEXU.instructionType := decodeResult(InstTypeField)
   io.controlSignal.toEXU.data1Type := decodeResult(Data1Field)
   io.controlSignal.toEXU.data2Type := decodeResult(Data2Field)
+  io.controlSignal.toEXU.memoryLenth := decodeResult(MemLenField)
   io.controlSignal.toEXU.aluOp := decodeResult(ALUOpField)
   io.controlSignal.toEXU.jump := decodeResult(JumpField)
   io.controlSignal.toEXU.break := decodeResult(BreakField)

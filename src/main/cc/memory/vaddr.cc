@@ -3,6 +3,8 @@
 #include <memory/paddr.h>
 #include <memory/vaddr.h>
 
+#include <VTaoHe__Dpi.h>
+
 #if CONFIG_MTRACE
 enum MemTraceType { MEM_TRACE_READ, MEM_TRACE_WRITE };
 
@@ -19,14 +21,13 @@ static MTRACERecord mtrace_record;
 
 word_t vaddr_ifetch(vaddr_t addr) { return paddr_ifetch(addr); }
 
-int vaddr_read(int addr, int *len) {
+int vaddr_read(int addr, int lenth, int valid) {
 
-  int ret = 0;
-  // int vaddr_read(int addr, const svBitVecVal *len) {
-  //   int plen = *len;
-  //   if (plen == 3)
-  //     plen = 4;
-  //   int ret = paddr_read(addr, plen);
+  if (!valid) {
+    return 0;
+  }
+
+  int ret = paddr_read(addr, lenth);
 
 #if CONFIG_MTRACE
   mtrace_record = (MTRACERecord){.trace_on = true,
@@ -39,12 +40,12 @@ int vaddr_read(int addr, int *len) {
   return ret;
 }
 
-void vaddr_write(int addr, int *len, int data) {
-  // void vaddr_write(int addr, const svBitVecVal *len, int data) {
-  //   int plen = *len;
-  //   if (plen == 3)
-  //     plen = 4;
-  //   paddr_write(addr, plen, data);
+void vaddr_write(int addr, int lenth, int data, int valid) {
+  paddr_write(addr, lenth, data);
+
+  if (!valid) {
+    return;
+  }
 
 #if CONFIG_MTRACE
   mtrace_record = (MTRACERecord){.trace_on = true,
