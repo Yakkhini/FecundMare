@@ -37,8 +37,12 @@ class EXU extends Module {
       ALUOpType.SLTU.asUInt -> (data1 < data2).asUInt
     )
   )
-
-  io.withRegisterFile.writeData := result
+  io.nextPC := Mux(io.fromIDU.jump, result, io.currentPC + 4.U)
+  io.withRegisterFile.writeData := Mux(
+    io.fromIDU.jump,
+    io.currentPC + 4.U,
+    result
+  )
   io.withRegisterFile.writeEnable := true.B
 
   val powerManager = Module(new PowerManager())

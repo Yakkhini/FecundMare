@@ -183,7 +183,7 @@ void cpu_sync() {
         cpu.top->TaoHe->registerFile->io_withEXU_writeData;
   }
   cpu.pc_prev = cpu.pc;
-  cpu.pc = cpu.top->TaoHe->pcIN;
+  cpu.pc = cpu.top->TaoHe->EXU->io_nextPC;
   cpu.inst = cpu.top->TaoHe->inst;
 }
 

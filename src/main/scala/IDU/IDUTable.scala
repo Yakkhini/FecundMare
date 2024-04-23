@@ -76,6 +76,7 @@ object ALUOpField extends DecodeField[InstructionPattern, UInt] {
       }
 
       case InstType.U => BitPat(ALUOpType.ADD.litValue.U(ALUOpType.getWidth.W))
+      case InstType.J => BitPat(ALUOpType.ADD.litValue.U(ALUOpType.getWidth.W))
 
     }
   }
@@ -114,6 +115,14 @@ object Data2Field extends DecodeField[InstructionPattern, UInt] {
 
 }
 
+object JumpField extends BoolDecodeField[InstructionPattern] {
+  def name: String = "jump"
+  def genTable(op: InstructionPattern): BitPat = {
+    if (op.opcode == BitPat("b1101111")) BitPat(true.B)
+    else BitPat(false.B)
+  }
+}
+
 object BreakField extends BoolDecodeField[InstructionPattern] {
   def name: String = "break"
 
@@ -148,6 +157,11 @@ object IDUTable {
     ), // AUIPC
 
     InstructionPattern(
+      InstType.J,
+      opcode = BitPat("b1101111")
+    ), // JAL
+
+    InstructionPattern(
       InstType.I,
       func3 = BitPat("b000"),
       opcode = BitPat("b0010011")
@@ -167,6 +181,7 @@ object IDUTable {
     ALUOpField,
     Data1Field,
     Data2Field,
+    JumpField,
     BreakField
   )
 

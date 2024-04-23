@@ -18,6 +18,7 @@ class ControlSignalToEXUBundle extends Bundle {
   val data1Type = Output(UInt(Data1Type.getWidth.W))
   val data2Type = Output(UInt(Data2Type.getWidth.W))
   val aluOp = Output(UInt(ALUOpType.getWidth.W))
+  val jump = Output(Bool())
   val break = Output(Bool())
   val imm = Output(UInt(32.W))
 }
@@ -41,6 +42,7 @@ class IDUBundle extends Bundle {
 
 class EXUBundle extends Bundle {
   val currentPC = Input(UInt(32.W))
+  val nextPC = Output(UInt(32.W))
   val fromIDU = Flipped(new ControlSignalToEXUBundle)
   val withRegisterFile = Flipped(new RegisterFileEXUBundle)
 }

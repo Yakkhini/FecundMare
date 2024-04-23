@@ -48,6 +48,7 @@ class IDU extends Module {
   io.controlSignal.toEXU.data1Type := decodeResult(Data1Field)
   io.controlSignal.toEXU.data2Type := decodeResult(Data2Field)
   io.controlSignal.toEXU.aluOp := decodeResult(ALUOpField)
+  io.controlSignal.toEXU.jump := decodeResult(JumpField)
   io.controlSignal.toEXU.break := decodeResult(BreakField)
 
   val decodeSupport = Wire(Bool())

@@ -1,8 +1,8 @@
 `verilator_config
-public -module "TaoHe" -var "pcIN"
 public -module "TaoHe" -var "inst"
 public -module "RegisterFile" -var "registers"
 public -module "RegisterFile" -var "*writeAddr"
 public -module "RegisterFile" -var "*writeData"
 public -module "RegisterFile" -var "*writeEnable"
 public -module "IDU" -var "decodeSupport"
+public -module "EXU" -var "*nextPC"

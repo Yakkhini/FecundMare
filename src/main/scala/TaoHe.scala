@@ -8,13 +8,8 @@ class TaoHe extends Module {
   val io = IO(new Bundle {})
 
   val pc = RegInit("h80000000".U(32.W))
-  val pcIN = Wire(UInt(32.W))
-  pcIN := pc + 4.U
-  pc := pcIN
-  dontTouch(pcIN)
 
   val inst = Wire(UInt(32.W))
-  dontTouch(inst)
 
   val instFetchUnit = Module(new IFU())
   instFetchUnit.io.reset := reset
@@ -31,7 +26,10 @@ class TaoHe extends Module {
   EXU.io.fromIDU <> IDU.io.controlSignal.toEXU
   registerFile.io.withEXU <> EXU.io.withRegisterFile
   EXU.io.currentPC := pc
+  pc := EXU.io.nextPC
 
+  dontTouch(pc)
+  dontTouch(inst)
   dontTouch(EXU.io.withRegisterFile.writeData)
   dontTouch(EXU.io.withRegisterFile.writeEnable)
 
