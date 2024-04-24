@@ -153,11 +153,16 @@ object MemValidField extends BoolDecodeField[InstructionPattern] {
   def name: String = "memoryValid"
   def genTable(op: InstructionPattern): BitPat = {
     op.instType match {
+      case InstType.I => {
+        if (op.opcode == BitPat("b0000011")) BitPat(true.B)
+        else BitPat(false.B)
+      }
       case InstType.S => BitPat(true.B)
-      case InstType.B => BitPat(true.B)
       case _          => BitPat(false.B)
     }
   }
+
+  override def default: BitPat = BitPat(false.B)
 }
 
 object JumpField extends BoolDecodeField[InstructionPattern] {
