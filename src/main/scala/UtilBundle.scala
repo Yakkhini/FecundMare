@@ -1,7 +1,15 @@
 package taohe.util
 
 import chisel3._
-import taohe.idu.{ALUOpType, Data1Type, Data2Type, MemLen, ImmType, InstType}
+import taohe.idu.{
+  ALUOpType,
+  Data1Type,
+  Data2Type,
+  RegWriteDataType,
+  MemLen,
+  ImmType,
+  InstType
+}
 
 class RegisterFileBundle extends Bundle {
   val fromIDU = Flipped(new ControlSignalToRegisterFileBundle)
@@ -18,6 +26,7 @@ class ControlSignalToEXUBundle extends Bundle {
   val instructionType = Output(UInt(InstType.getWidth.W))
   val data1Type = Output(UInt(Data1Type.getWidth.W))
   val data2Type = Output(UInt(Data2Type.getWidth.W))
+  val registerWriteType = Output(UInt(RegWriteDataType.getWidth.W))
   val memoryLenth = Output(UInt(MemLen.getWidth.W))
   val aluOp = Output(UInt(ALUOpType.getWidth.W))
   val jump = Output(Bool())

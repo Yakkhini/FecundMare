@@ -4,7 +4,14 @@ import chisel3._
 import chisel3.util.MuxLookup
 
 import taohe.util.EXUBundle
-import taohe.idu.{Data1Type, Data2Type, ImmType, InstType, ALUOpType}
+import taohe.idu.{
+  Data1Type,
+  Data2Type,
+  RegWriteDataType,
+  ImmType,
+  InstType,
+  ALUOpType
+}
 
 class EXU extends Module {
   val io = IO(new EXUBundle)
@@ -13,7 +20,6 @@ class EXU extends Module {
   io.withMemory.lenth := io.fromIDU.memoryLenth
   io.withMemory.writeData := io.withRegisterFile.readData2
   io.withMemory.writeEnable := (io.fromIDU.instructionType === InstType.S.asUInt)
-  dontTouch(io.withMemory.readData)
 
   val data1 = MuxLookup(io.fromIDU.data1Type, 0.U(32.W))(
     Seq(
@@ -44,12 +50,18 @@ class EXU extends Module {
     )
   )
 
-  io.withRegisterFile.writeData := Mux(
-    io.fromIDU.jump,
-    io.currentPC + 4.U,
-    result
   io.nextPC := Mux(io.fromIDU.jump, result & (~1.U(32.W)), io.currentPC + 4.U)
+  io.withRegisterFile.writeData := MuxLookup(
+    io.fromIDU.registerWriteType,
+    0.U(32.W)
+  )(
+    Seq(
+      RegWriteDataType.RESULT.asUInt -> result,
+      RegWriteDataType.NEXTPC.asUInt -> (io.currentPC + 4.U),
+      RegWriteDataType.MEMREAD.asUInt -> io.withMemory.readData
+    )
   )
+
   io.withRegisterFile.writeEnable := Mux(
     (io.fromIDU.instructionType === InstType.S.asUInt) || (io.fromIDU.instructionType === InstType.B.asUInt),
     false.B,

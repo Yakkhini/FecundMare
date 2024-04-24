@@ -28,6 +28,10 @@ object Data2Type extends ChiselEnum {
   val IMM, RS2 = Value
 }
 
+object RegWriteDataType extends ChiselEnum {
+  val RESULT, NEXTPC, MEMREAD = Value
+}
+
 object MemLen extends ChiselEnum {
   val B = Value(1.U)
   val H = Value(2.U)
@@ -133,6 +137,39 @@ object Data2Field extends DecodeField[InstructionPattern, UInt] {
 
 }
 
+object RegWriteDataTypeField extends DecodeField[InstructionPattern, UInt] {
+  def name: String = "regWriteDataType"
+  def chiselType = UInt(RegWriteDataType.getWidth.W)
+  def genTable(op: InstructionPattern): BitPat = {
+    op.instType match {
+      case InstType.R =>
+        BitPat(RegWriteDataType.RESULT.litValue.U(RegWriteDataType.getWidth.W))
+      case InstType.I => {
+        op.opcode.rawString match {
+          case "1100111" =>
+            BitPat(
+              RegWriteDataType.NEXTPC.litValue.U(RegWriteDataType.getWidth.W)
+            )
+          case "0000011" =>
+            BitPat(
+              RegWriteDataType.MEMREAD.litValue.U(RegWriteDataType.getWidth.W)
+            )
+          case _ =>
+            BitPat(
+              RegWriteDataType.RESULT.litValue.U(RegWriteDataType.getWidth.W)
+            )
+        }
+      }
+
+      case InstType.J =>
+        BitPat(RegWriteDataType.NEXTPC.litValue.U(RegWriteDataType.getWidth.W))
+
+      case _ =>
+        BitPat(RegWriteDataType.RESULT.litValue.U(RegWriteDataType.getWidth.W))
+    }
+  }
+}
+
 object MemLenField extends DecodeField[InstructionPattern, UInt] {
   def name: String = "memoryLenth"
   def chiselType = UInt(MemLen.getWidth.W)
@@ -219,6 +256,36 @@ object IDUTable {
     ), // JALR
 
     InstructionPattern(
+      InstType.I,
+      func3 = BitPat("b000"),
+      opcode = BitPat("b0000011")
+    ), // LB
+
+    InstructionPattern(
+      InstType.I,
+      func3 = BitPat("b001"),
+      opcode = BitPat("b0000011")
+    ), // LH
+
+    InstructionPattern(
+      InstType.I,
+      func3 = BitPat("b010"),
+      opcode = BitPat("b0000011")
+    ), // LW
+
+    InstructionPattern(
+      InstType.I,
+      func3 = BitPat("b100"),
+      opcode = BitPat("b0000011")
+    ), // LBU
+
+    InstructionPattern(
+      InstType.I,
+      func3 = BitPat("b101"),
+      opcode = BitPat("b0000011")
+    ), // LHU
+
+    InstructionPattern(
       InstType.S,
       func3 = BitPat("b000"),
       opcode = BitPat("b0100011")
@@ -257,6 +324,7 @@ object IDUTable {
     ALUOpField,
     Data1Field,
     Data2Field,
+    RegWriteDataTypeField,
     MemLenField,
     MemValidField,
     JumpField,
