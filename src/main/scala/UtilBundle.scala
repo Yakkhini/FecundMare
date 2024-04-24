@@ -31,6 +31,7 @@ class ControlSignalToEXUBundle extends Bundle {
   val memoryLenth = Output(UInt(MemLen.getWidth.W))
   val aluOp = Output(UInt(ALUOpType.getWidth.W))
   val compareOp = Output(UInt(CompareOpType.getWidth.W))
+  val unsigned = Output(Bool())
   val jump = Output(Bool())
   val break = Output(Bool())
   val imm = Output(UInt(32.W))

@@ -267,6 +267,17 @@ object MemValidField extends BoolDecodeField[InstructionPattern] {
   override def default: BitPat = BitPat(false.B)
 }
 
+object UnsignField extends BoolDecodeField[InstructionPattern] {
+  def name: String = "unsign"
+  def genTable(op: InstructionPattern): BitPat = {
+    // Currently we only care about memory load unsigned
+    // Maybe we should support some unsigned ALU operation in the future
+    if (op.opcode == BitPat("b0000011") && op.func3(2) == BitPat("b1"))
+      BitPat(true.B)
+    else BitPat(false.B)
+  }
+}
+
 object JumpField extends BoolDecodeField[InstructionPattern] {
   def name: String = "jump"
   def genTable(op: InstructionPattern): BitPat = {
@@ -554,6 +565,7 @@ object IDUTable {
     RegWriteDataTypeField,
     MemLenField,
     MemValidField,
+    UnsignField,
     JumpField,
     BreakField
   )

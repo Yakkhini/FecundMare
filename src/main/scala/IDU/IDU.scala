@@ -57,6 +57,7 @@ class IDU extends Module {
   io.controlSignal.toEXU.memoryLenth := decodeResult(MemLenField)
   io.controlSignal.toEXU.aluOp := decodeResult(ALUOpField)
   io.controlSignal.toEXU.compareOp := decodeResult(CompareOpField)
+  io.controlSignal.toEXU.unsigned := decodeResult(UnsignField)
   io.controlSignal.toEXU.jump := decodeResult(JumpField)
   io.controlSignal.toEXU.break := decodeResult(BreakField)
 

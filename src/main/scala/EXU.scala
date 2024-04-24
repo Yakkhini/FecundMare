@@ -9,10 +9,12 @@ import taohe.idu.{
   Data2Type,
   RegWriteDataType,
   ImmType,
+  MemLen,
   InstType,
   ALUOpType,
   CompareOpType
 }
+import chisel3.util.Fill
 
 class EXU extends Module {
   val io = IO(new EXUBundle)
@@ -33,6 +35,20 @@ class EXU extends Module {
     Seq(
       Data2Type.RS2.asUInt -> io.withRegisterFile.readData2,
       Data2Type.IMM.asUInt -> io.fromIDU.imm
+    )
+  )
+
+  val memoryReadData = MuxLookup(io.fromIDU.memoryLenth, 0.U(32.W))(
+    Seq(
+      MemLen.B.asUInt -> Fill(
+        24,
+        io.withMemory.readData(7) & ~io.fromIDU.unsigned
+      ) ## io.withMemory.readData(7, 0),
+      MemLen.H.asUInt -> Fill(
+        16,
+        io.withMemory.readData(15) & ~io.fromIDU.unsigned
+      ) ## io.withMemory.readData(15, 0),
+      MemLen.W.asUInt -> io.withMemory.readData
     )
   )
 
@@ -85,7 +101,7 @@ class EXU extends Module {
     Seq(
       RegWriteDataType.RESULT.asUInt -> result,
       RegWriteDataType.NEXTPC.asUInt -> (io.currentPC + 4.U),
-      RegWriteDataType.MEMREAD.asUInt -> io.withMemory.readData
+      RegWriteDataType.MEMREAD.asUInt -> memoryReadData
     )
   )
 
