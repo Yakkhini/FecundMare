@@ -168,7 +168,8 @@ object MemValidField extends BoolDecodeField[InstructionPattern] {
 object JumpField extends BoolDecodeField[InstructionPattern] {
   def name: String = "jump"
   def genTable(op: InstructionPattern): BitPat = {
-    if (op.opcode == BitPat("b1101111")) BitPat(true.B)
+    if ((op.opcode == BitPat("b1101111")) || (op.opcode == BitPat("b1100111")))
+      BitPat(true.B)
     else BitPat(false.B)
   }
 }
@@ -210,6 +211,12 @@ object IDUTable {
       InstType.J,
       opcode = BitPat("b1101111")
     ), // JAL
+
+    InstructionPattern(
+      InstType.I,
+      func3 = BitPat("b000"),
+      opcode = BitPat("b1100111")
+    ), // JALR
 
     InstructionPattern(
       InstType.S,

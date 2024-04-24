@@ -44,11 +44,11 @@ class EXU extends Module {
     )
   )
 
-  io.nextPC := Mux(io.fromIDU.jump, result, io.currentPC + 4.U)
   io.withRegisterFile.writeData := Mux(
     io.fromIDU.jump,
     io.currentPC + 4.U,
     result
+  io.nextPC := Mux(io.fromIDU.jump, result & (~1.U(32.W)), io.currentPC + 4.U)
   )
   io.withRegisterFile.writeEnable := Mux(
     (io.fromIDU.instructionType === InstType.S.asUInt) || (io.fromIDU.instructionType === InstType.B.asUInt),
