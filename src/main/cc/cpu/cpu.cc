@@ -4,6 +4,7 @@
 #include <cpu/disasm.h>
 #include <cpu/ftrace.h>
 #include <memory/vaddr.h>
+#include <sdb.h>
 
 #include <VTaoHe.h>
 #include <VTaoHe__Dpi.h>
