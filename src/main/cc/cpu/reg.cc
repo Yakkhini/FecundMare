@@ -27,7 +27,11 @@ word_t isa_reg_str2val(const char *s, bool *success) {
   if ((strcmp(s, "$0") == 0) || strcmp(s, "$zero") == 0) {
     *success = true;
     return 0;
+  } else if ((strcmp(s, "$pc") == 0)) {
+    *success = true;
+    return cpu.pc;
   }
+
   s += 1;
   for (int i = 1; i < 30; i++) {
     if (strcmp(s, regs_name[i]) == 0) {
