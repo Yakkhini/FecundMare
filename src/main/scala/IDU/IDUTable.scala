@@ -86,7 +86,7 @@ object ALUOpField extends DecodeField[InstructionPattern, UInt] {
       case InstType.I => {
         op.func3.rawString match {
           case "000" => BitPat(ALUOpType.ADD.litValue.U(ALUOpType.getWidth.W))
-          case "???" => BitPat(ALUOpType.ADD.litValue.U(ALUOpType.getWidth.W))
+          case _     => BitPat(ALUOpType.ADD.litValue.U(ALUOpType.getWidth.W))
         }
       }
 
