@@ -175,7 +175,11 @@ object Data1Field extends DecodeField[InstructionPattern, UInt] {
       case InstType.I => BitPat(Data1Type.RS1.litValue.U(Data1Type.getWidth.W))
       case InstType.S => BitPat(Data1Type.RS1.litValue.U(Data1Type.getWidth.W))
       case InstType.B => BitPat(Data1Type.RS1.litValue.U(Data1Type.getWidth.W))
-      case InstType.U => BitPat(Data1Type.PC.litValue.U(Data1Type.getWidth.W))
+      case InstType.U => {
+        if (op.opcode == BitPat("b0010111"))
+          BitPat(Data1Type.PC.litValue.U(Data1Type.getWidth.W))
+        else BitPat(Data1Type.RS1.litValue.U(Data1Type.getWidth.W))
+      }
       case InstType.J => BitPat(Data1Type.PC.litValue.U(Data1Type.getWidth.W))
     }
   }
