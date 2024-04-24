@@ -10,7 +10,8 @@ import taohe.idu.{
   RegWriteDataType,
   ImmType,
   InstType,
-  ALUOpType
+  ALUOpType,
+  CompareOpType
 }
 
 class EXU extends Module {
@@ -50,7 +51,33 @@ class EXU extends Module {
     )
   )
 
-  io.nextPC := Mux(io.fromIDU.jump, result & (~1.U(32.W)), io.currentPC + 4.U)
+  val compareCheck = MuxLookup(io.fromIDU.compareOp, false.B)(
+    Seq(
+      CompareOpType.EQ.asUInt -> (data1 === data2),
+      CompareOpType.NE.asUInt -> (data1 =/= data2),
+      CompareOpType.LT.asUInt -> (data1.asSInt < data2.asSInt),
+      CompareOpType.GE.asUInt -> (data1.asSInt >= data2.asSInt),
+      CompareOpType.LTU.asUInt -> (data1 < data2),
+      CompareOpType.GEU.asUInt -> (data1 >= data2)
+    )
+  )
+
+  val branchTarget = Wire(UInt(32.W))
+  val pcJumpTarget = Wire(UInt(32.W))
+
+  branchTarget := Mux(
+    compareCheck,
+    io.currentPC + io.fromIDU.imm,
+    io.currentPC + 4.U
+  )
+
+  pcJumpTarget := Mux(
+    (io.fromIDU.instructionType === InstType.B.asUInt),
+    branchTarget,
+    result & (~1.U(32.W))
+  )
+
+  io.nextPC := Mux(io.fromIDU.jump, pcJumpTarget, io.currentPC + 4.U)
   io.withRegisterFile.writeData := MuxLookup(
     io.fromIDU.registerWriteType,
     0.U(32.W)

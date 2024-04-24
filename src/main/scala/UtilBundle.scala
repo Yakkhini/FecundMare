@@ -3,6 +3,7 @@ package taohe.util
 import chisel3._
 import taohe.idu.{
   ALUOpType,
+  CompareOpType,
   Data1Type,
   Data2Type,
   RegWriteDataType,
@@ -29,6 +30,7 @@ class ControlSignalToEXUBundle extends Bundle {
   val registerWriteType = Output(UInt(RegWriteDataType.getWidth.W))
   val memoryLenth = Output(UInt(MemLen.getWidth.W))
   val aluOp = Output(UInt(ALUOpType.getWidth.W))
+  val compareOp = Output(UInt(CompareOpType.getWidth.W))
   val jump = Output(Bool())
   val break = Output(Bool())
   val imm = Output(UInt(32.W))

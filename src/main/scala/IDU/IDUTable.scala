@@ -20,6 +20,10 @@ object ALUOpType extends ChiselEnum {
   val ADD, SUB, AND, OR, XOR, SLL, SRL, SRA, SLT, SLTU = Value
 }
 
+object CompareOpType extends ChiselEnum {
+  val EQ, NE, LT, GE, LTU, GEU = Value
+}
+
 object Data1Type extends ChiselEnum {
   val PC, RS1 = Value
 }
@@ -131,12 +135,32 @@ object ALUOpField extends DecodeField[InstructionPattern, UInt] {
         }
       }
 
-      case InstType.S => BitPat(ALUOpType.ADD.litValue.U(ALUOpType.getWidth.W))
-      case InstType.B => BitPat(ALUOpType.ADD.litValue.U(ALUOpType.getWidth.W))
+      case _ => BitPat(ALUOpType.ADD.litValue.U(ALUOpType.getWidth.W))
 
-      case InstType.U => BitPat(ALUOpType.ADD.litValue.U(ALUOpType.getWidth.W))
-      case InstType.J => BitPat(ALUOpType.ADD.litValue.U(ALUOpType.getWidth.W))
+    }
+  }
+}
 
+object CompareOpField extends DecodeField[InstructionPattern, UInt] {
+  def name: String = "compareOpType"
+  def chiselType = UInt(CompareOpType.getWidth.W)
+
+  def genTable(op: InstructionPattern): BitPat = {
+    op.func3.rawString match {
+      case "000" =>
+        BitPat(CompareOpType.EQ.litValue.U(CompareOpType.getWidth.W))
+      case "001" =>
+        BitPat(CompareOpType.NE.litValue.U(CompareOpType.getWidth.W))
+      case "100" =>
+        BitPat(CompareOpType.LT.litValue.U(CompareOpType.getWidth.W))
+      case "101" =>
+        BitPat(CompareOpType.GE.litValue.U(CompareOpType.getWidth.W))
+      case "110" =>
+        BitPat(CompareOpType.LTU.litValue.U(CompareOpType.getWidth.W))
+      case "111" =>
+        BitPat(CompareOpType.GEU.litValue.U(CompareOpType.getWidth.W))
+      case _: String =>
+        BitPat(CompareOpType.EQ.litValue.U(CompareOpType.getWidth.W))
     }
   }
 }
@@ -242,7 +266,11 @@ object MemValidField extends BoolDecodeField[InstructionPattern] {
 object JumpField extends BoolDecodeField[InstructionPattern] {
   def name: String = "jump"
   def genTable(op: InstructionPattern): BitPat = {
-    if ((op.opcode == BitPat("b1101111")) || (op.opcode == BitPat("b1100111")))
+    if (
+      (op.opcode == BitPat("b1101111")) || (op.opcode == BitPat(
+        "b1100111"
+      )) || (op.opcode == BitPat("b1100011"))
+    )
       BitPat(true.B)
     else BitPat(false.B)
   }
@@ -291,6 +319,42 @@ object IDUTable {
       func3 = BitPat("b000"),
       opcode = BitPat("b1100111")
     ), // JALR
+
+    InstructionPattern(
+      InstType.B,
+      func3 = BitPat("b000"),
+      opcode = BitPat("b1100011")
+    ), // BEQ
+
+    InstructionPattern(
+      InstType.B,
+      func3 = BitPat("b001"),
+      opcode = BitPat("b1100011")
+    ), // BNE
+
+    InstructionPattern(
+      InstType.B,
+      func3 = BitPat("b100"),
+      opcode = BitPat("b1100011")
+    ), // BLT
+
+    InstructionPattern(
+      InstType.B,
+      func3 = BitPat("b101"),
+      opcode = BitPat("b1100011")
+    ), // BGE
+
+    InstructionPattern(
+      InstType.B,
+      func3 = BitPat("b110"),
+      opcode = BitPat("b1100011")
+    ), // BLTU
+
+    InstructionPattern(
+      InstType.B,
+      func3 = BitPat("b111"),
+      opcode = BitPat("b1100011")
+    ), // BGEU
 
     InstructionPattern(
       InstType.I,
@@ -480,6 +544,7 @@ object IDUTable {
     InstTypeField,
     ImmField,
     ALUOpField,
+    CompareOpField,
     Data1Field,
     Data2Field,
     RegWriteDataTypeField,
