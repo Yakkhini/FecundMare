@@ -71,6 +71,8 @@ object ImmField extends DecodeField[InstructionPattern, UInt] {
 
   def genTable(op: InstructionPattern): BitPat = {
     op.instType match {
+      // R type doesn't have imm, meaningless
+      case InstType.R => BitPat(ImmType.I.litValue.U(ImmType.getWidth.W))
       case InstType.I => BitPat(ImmType.I.litValue.U(ImmType.getWidth.W))
       case InstType.S => BitPat(ImmType.S.litValue.U(ImmType.getWidth.W))
       case InstType.B => BitPat(ImmType.B.litValue.U(ImmType.getWidth.W))
@@ -87,10 +89,45 @@ object ALUOpField extends DecodeField[InstructionPattern, UInt] {
 
   def genTable(op: InstructionPattern): BitPat = {
     op.instType match {
+      case InstType.R => {
+        op.func3.rawString match {
+          case "000" => {
+            if (op.func7.rawString == "0000000")
+              BitPat(ALUOpType.ADD.litValue.U(ALUOpType.getWidth.W))
+            else BitPat(ALUOpType.SUB.litValue.U(ALUOpType.getWidth.W))
+          }
+          case "001" => BitPat(ALUOpType.SLL.litValue.U(ALUOpType.getWidth.W))
+          case "010" => BitPat(ALUOpType.SLT.litValue.U(ALUOpType.getWidth.W))
+          case "011" => BitPat(ALUOpType.SLTU.litValue.U(ALUOpType.getWidth.W))
+          case "100" => BitPat(ALUOpType.XOR.litValue.U(ALUOpType.getWidth.W))
+          case "101" => {
+            if (op.func7.rawString == "0000000")
+              BitPat(ALUOpType.SRL.litValue.U(ALUOpType.getWidth.W))
+            else BitPat(ALUOpType.SRA.litValue.U(ALUOpType.getWidth.W))
+          }
+          case "110" => BitPat(ALUOpType.OR.litValue.U(ALUOpType.getWidth.W))
+          case "111" => BitPat(ALUOpType.AND.litValue.U(ALUOpType.getWidth.W))
+          case _: String =>
+            BitPat(ALUOpType.ADD.litValue.U(ALUOpType.getWidth.W))
+        }
+      }
       case InstType.I => {
         op.func3.rawString match {
           case "000" => BitPat(ALUOpType.ADD.litValue.U(ALUOpType.getWidth.W))
-          case _     => BitPat(ALUOpType.ADD.litValue.U(ALUOpType.getWidth.W))
+          case "010" => BitPat(ALUOpType.SLT.litValue.U(ALUOpType.getWidth.W))
+          case "011" => BitPat(ALUOpType.SLTU.litValue.U(ALUOpType.getWidth.W))
+          case "100" => BitPat(ALUOpType.XOR.litValue.U(ALUOpType.getWidth.W))
+          case "110" => BitPat(ALUOpType.OR.litValue.U(ALUOpType.getWidth.W))
+          case "111" => BitPat(ALUOpType.AND.litValue.U(ALUOpType.getWidth.W))
+          case "001" => BitPat(ALUOpType.SLL.litValue.U(ALUOpType.getWidth.W))
+          case "101" => {
+            if (op.func7.rawString == "0000000")
+              BitPat(ALUOpType.SRL.litValue.U(ALUOpType.getWidth.W))
+            else BitPat(ALUOpType.SRA.litValue.U(ALUOpType.getWidth.W))
+          }
+
+          case _: String =>
+            BitPat(ALUOpType.ADD.litValue.U(ALUOpType.getWidth.W))
         }
       }
 
@@ -181,7 +218,7 @@ object MemLenField extends DecodeField[InstructionPattern, UInt] {
       case "010" => BitPat(MemLen.W.litValue.U(MemLen.getWidth.W))
       case "100" => BitPat(MemLen.B.litValue.U(MemLen.getWidth.W)) // LBU
       case "101" => BitPat(MemLen.H.litValue.U(MemLen.getWidth.W)) // LHU
-      case "???" => BitPat(MemLen.B.litValue.U(MemLen.getWidth.W))
+      case _     => BitPat(MemLen.B.litValue.U(MemLen.getWidth.W))
     }
   }
 }
@@ -308,6 +345,127 @@ object IDUTable {
       func3 = BitPat("b000"),
       opcode = BitPat("b0010011")
     ), // ADDI
+
+    InstructionPattern(
+      InstType.I,
+      func3 = BitPat("b010"),
+      opcode = BitPat("b0010011")
+    ), // SLTI
+
+    InstructionPattern(
+      InstType.I,
+      func3 = BitPat("b011"),
+      opcode = BitPat("b0010011")
+    ), // SLTIU
+
+    InstructionPattern(
+      InstType.I,
+      func3 = BitPat("b100"),
+      opcode = BitPat("b0010011")
+    ), // XORI
+
+    InstructionPattern(
+      InstType.I,
+      func3 = BitPat("b110"),
+      opcode = BitPat("b0010011")
+    ), // ORI
+
+    InstructionPattern(
+      InstType.I,
+      func3 = BitPat("b111"),
+      opcode = BitPat("b0010011")
+    ), // ANDI
+
+    InstructionPattern(
+      InstType.I,
+      func7 = BitPat("b0000000"),
+      func3 = BitPat("b001"),
+      opcode = BitPat("b0010011")
+    ), // SLLI
+
+    InstructionPattern(
+      InstType.I,
+      func7 = BitPat("b0000000"),
+      func3 = BitPat("b101"),
+      opcode = BitPat("b0010011")
+    ), // SRLI
+
+    InstructionPattern(
+      InstType.I,
+      func7 = BitPat("b0100000"),
+      func3 = BitPat("b101"),
+      opcode = BitPat("b0010011")
+    ), // SRAI
+
+    InstructionPattern(
+      InstType.R,
+      func3 = BitPat("b000"),
+      func7 = BitPat("b0000000"),
+      opcode = BitPat("b0110011")
+    ), // ADD
+
+    InstructionPattern(
+      InstType.R,
+      func3 = BitPat("b000"),
+      func7 = BitPat("b0100000"),
+      opcode = BitPat("b0110011")
+    ), // SUB
+
+    InstructionPattern(
+      InstType.R,
+      func3 = BitPat("b001"),
+      func7 = BitPat("b0000000"),
+      opcode = BitPat("b0110011")
+    ), // SLL
+
+    InstructionPattern(
+      InstType.R,
+      func3 = BitPat("b010"),
+      func7 = BitPat("b0000000"),
+      opcode = BitPat("b0110011")
+    ), // SLT
+
+    InstructionPattern(
+      InstType.R,
+      func3 = BitPat("b011"),
+      func7 = BitPat("b0000000"),
+      opcode = BitPat("b0110011")
+    ), // SLTU
+
+    InstructionPattern(
+      InstType.R,
+      func3 = BitPat("b100"),
+      func7 = BitPat("b0000000"),
+      opcode = BitPat("b0110011")
+    ), // XOR
+
+    InstructionPattern(
+      InstType.R,
+      func3 = BitPat("b101"),
+      func7 = BitPat("b0000000"),
+      opcode = BitPat("b0110011")
+    ), // SRL
+
+    InstructionPattern(
+      InstType.R,
+      func3 = BitPat("b101"),
+      func7 = BitPat("b0100000"),
+      opcode = BitPat("b0110011")
+    ), // SRA
+
+    InstructionPattern(
+      InstType.R,
+      func3 = BitPat("b110"),
+      func7 = BitPat("b0000000"),
+      opcode = BitPat("b0110011")
+    ), // OR
+
+    InstructionPattern(
+      InstType.R,
+      func3 = BitPat("b111"),
+      func7 = BitPat("b0000000"),
+      opcode = BitPat("b0110011")
+    ), // AND
 
     InstructionPattern(
       InstType.I,
