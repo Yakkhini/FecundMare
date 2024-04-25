@@ -23,6 +23,7 @@ class EXU extends Module {
   io.withMemory.lenth := io.fromIDU.memoryLenth
   io.withMemory.writeData := io.withRegisterFile.readData2
   io.withMemory.writeEnable := (io.fromIDU.instructionType === InstType.S.asUInt)
+  io.withMemory.valid := io.fromIDU.memoryValid
 
   val data1 = MuxLookup(io.fromIDU.data1Type, 0.U(32.W))(
     Seq(

@@ -23,7 +23,6 @@ class TaoHe extends Module {
 
   val IDU = Module(new idu.IDU())
   IDU.io.inst := inst
-  memory.io.valid := IDU.io.memoryValid
   registerFile.io.fromIDU <> IDU.io.controlSignal.toRegisterFile
 
   val EXU = Module(new EXU())

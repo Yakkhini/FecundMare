@@ -1,5 +1,6 @@
 #include <common.h>
 #include <cpu/difftest.h>
+#include <device/device.h>
 #include <memory/paddr.h>
 #include <memory/vaddr.h>
 
@@ -101,11 +102,9 @@ void mtrace_reset() {
 
 void vaddr_difftest_skip_check(int addr) {
 #if CONFIG_DIFFTEST
-  if (in_pmem(addr)) {
-    difftest_skip_ref_cancel();
+  if (in_mmio(addr)) {
+    difftest_skip_ref();
   }
-
-  difftest_skip_ref();
 #endif
 }
 

@@ -29,6 +29,19 @@ void mmio_write(paddr_t addr, int len, word_t data) {
   return;
 }
 
+bool in_mmio(paddr_t addr) {
+  switch (addr) {
+  case CONFIG_RTC_MMIO:
+  case CONFIG_RTC_MMIO + 4:
+  case CONFIG_SERIAL_MMIO:
+    return true;
+    break;
+  default:
+    return false;
+    break;
+  }
+}
+
 void device_init() {
   timer_init();
   return;

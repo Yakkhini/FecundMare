@@ -46,8 +46,6 @@ class IDU extends Module {
   io.controlSignal.toRegisterFile.readAddr2 := io.inst(24, 20)
   io.controlSignal.toRegisterFile.writeAddr := io.inst(11, 7)
 
-  io.memoryValid := decodeResult(MemValidField)
-
   io.controlSignal.toEXU.instructionType := decodeResult(InstTypeField)
   io.controlSignal.toEXU.data1Type := decodeResult(Data1Field)
   io.controlSignal.toEXU.data2Type := decodeResult(Data2Field)
@@ -55,6 +53,7 @@ class IDU extends Module {
     RegWriteDataTypeField
   )
   io.controlSignal.toEXU.memoryLenth := decodeResult(MemLenField)
+  io.controlSignal.toEXU.memoryValid := decodeResult(MemValidField)
   io.controlSignal.toEXU.aluOp := decodeResult(ALUOpField)
   io.controlSignal.toEXU.compareOp := decodeResult(CompareOpField)
   io.controlSignal.toEXU.unsigned := decodeResult(UnsignField)

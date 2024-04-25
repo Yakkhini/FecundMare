@@ -13,7 +13,7 @@ class Memory extends BlackBox with HasBlackBoxInline {
         |module Memory(
         |  input bit clock,
         |  input bit reset,
-        |  input bit valid,
+        |  input bit withEXU_valid,
         |  input bit withEXU_writeEnable,
         |  input [31:0] withEXU_writeData,
         |  output [31:0] withEXU_readData,
@@ -34,14 +34,23 @@ class Memory extends BlackBox with HasBlackBoxInline {
         |    int valid
         |  );
         |
+        |  import "DPI-C" context function void vaddr_difftest_skip_check(int addr);
+        |  import "DPI-C" context function void vaddr_difftest_skip_cancel();
+        |
         |  always @(posedge clock) begin
         |    if(withEXU_writeEnable & !reset) begin
-        |      vaddr_write(withEXU_address, withEXU_lenth, withEXU_writeData, {31'b0, valid});
+        |      vaddr_write(withEXU_address, withEXU_lenth, withEXU_writeData, {31'b0, withEXU_valid});
         |    end
         |  end
         |
         |  always_comb begin
-        |    withEXU_readData = vaddr_read(withEXU_address, withEXU_lenth, {31'b0, valid});
+        |    if(withEXU_valid) begin
+        |      withEXU_readData = vaddr_read(withEXU_address, withEXU_lenth, {31'b0, withEXU_valid});
+        |      vaddr_difftest_skip_check(withEXU_address);
+        |    end else begin
+        |      withEXU_readData = 0;
+        |      vaddr_difftest_skip_cancel();
+        |    end
         |  end
         |
         |endmodule
