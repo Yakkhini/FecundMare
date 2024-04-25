@@ -65,6 +65,6 @@ class IDU extends Module {
   io.controlSignal.toEXU.break := decodeResult(BreakField)
 
   val decodeSupport = Wire(Bool())
-  decodeSupport := decodeResult(decodeSupportField)
+  decodeSupport := true.B // decodeResult(decodeSupportField)
   dontTouch(decodeSupport)
 }
