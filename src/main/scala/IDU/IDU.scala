@@ -38,10 +38,14 @@ class IDU extends Module {
     )
   )
 
-  io.controlSignal.toRegisterFile.readAddr1 := Mux(
-    decodeResult(BreakField),
-    10.U,
+  io.controlSignal.toRegisterFile.readAddr1 := MuxLookup(
+    io.inst(6, 0),
     io.inst(19, 15)
+  )(
+    Seq(
+      "b0110111".U -> 0.U,
+      "b1110011".U -> 10.U
+    )
   )
   io.controlSignal.toRegisterFile.readAddr2 := io.inst(24, 20)
   io.controlSignal.toRegisterFile.writeAddr := io.inst(11, 7)
