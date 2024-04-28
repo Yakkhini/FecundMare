@@ -72,7 +72,6 @@ class EXU extends Module {
   )
 
   val branchTarget = Wire(UInt(32.W))
-  val pcJumpTarget = Wire(UInt(32.W))
 
   branchTarget := Mux(
     compareCheck,
@@ -80,18 +79,12 @@ class EXU extends Module {
     io.currentPC + 4.U
   )
 
-  pcJumpTarget := Mux(
-    (io.fromIDU.instructionType === InstType.B.asUInt),
-    branchTarget,
-    result & (~1.U(32.W))
-  )
-
   io.nextPC := MuxLookup(
     io.fromIDU.nextPCType,
     0.U(32.W)
   )(
     Seq(
-      NextPCDataType.RESULT.asUInt -> result,
+      NextPCDataType.RESULT.asUInt -> (result & (~1.U(32.W))),
       NextPCDataType.BRANCH.asUInt -> branchTarget,
       NextPCDataType.CSRDATA.asUInt -> io.csrData,
       NextPCDataType.NORMAL.asUInt -> (io.currentPC + 4.U)
