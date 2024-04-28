@@ -4,16 +4,8 @@ import chisel3._
 import chisel3.util.MuxLookup
 
 import taohe.util.EXUBundle
-import taohe.idu.{
-  Data1Type,
-  Data2Type,
-  RegWriteDataType,
-  ImmType,
-  MemLen,
-  InstType,
-  ALUOpType,
-  CompareOpType
-}
+import taohe.util.enum._
+
 import chisel3.util.Fill
 
 class EXU extends Module {
@@ -94,7 +86,18 @@ class EXU extends Module {
     result & (~1.U(32.W))
   )
 
-  io.nextPC := Mux(io.fromIDU.jump, pcJumpTarget, io.currentPC + 4.U)
+  io.nextPC := MuxLookup(
+    io.fromIDU.nextPCType,
+    0.U(32.W)
+  )(
+    Seq(
+      NextPCDataType.RESULT.asUInt -> result,
+      NextPCDataType.BRANCH.asUInt -> branchTarget,
+      NextPCDataType.CSRDATA.asUInt -> io.csrData,
+      NextPCDataType.NORMAL.asUInt -> (io.currentPC + 4.U)
+    )
+  )
+
   io.withRegisterFile.writeData := MuxLookup(
     io.fromIDU.registerWriteType,
     0.U(32.W)
@@ -102,7 +105,8 @@ class EXU extends Module {
     Seq(
       RegWriteDataType.RESULT.asUInt -> result,
       RegWriteDataType.NEXTPC.asUInt -> (io.currentPC + 4.U),
-      RegWriteDataType.MEMREAD.asUInt -> memoryReadData
+      RegWriteDataType.MEMREAD.asUInt -> memoryReadData,
+      RegWriteDataType.CSRDATA.asUInt -> io.csrData
     )
   )
 

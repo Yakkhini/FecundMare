@@ -21,13 +21,20 @@ class TaoHe extends Module {
   memory.io.clock := clock
   memory.io.reset := reset
 
+  val csr = Module(new CSR())
+  csr.io.currentPC := pc
+  csr.io.rs1data := registerFile.io.withEXU.readData1
+
   val IDU = Module(new idu.IDU())
   IDU.io.inst := inst
   registerFile.io.fromIDU <> IDU.io.controlSignal.toRegisterFile
+  csr.io.address := IDU.io.csrAddress
+  csr.io.csrOperation := IDU.io.csrOperation
 
   val EXU = Module(new EXU())
   EXU.io.currentPC := pc
   pc := EXU.io.nextPC
+  EXU.io.csrData := csr.io.readData
   EXU.io.fromIDU <> IDU.io.controlSignal.toEXU
   registerFile.io.withEXU <> EXU.io.withRegisterFile
   memory.io.withEXU <> EXU.io.withMemory
@@ -36,6 +43,7 @@ class TaoHe extends Module {
   dontTouch(inst)
   dontTouch(EXU.io.withRegisterFile.writeData)
   dontTouch(EXU.io.withRegisterFile.writeEnable)
+  dontTouch(csr.io.readData)
 
 }
 

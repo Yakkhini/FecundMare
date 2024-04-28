@@ -6,41 +6,8 @@ import chisel3.util.experimental.decode.DecodePattern
 import chisel3.util.experimental.decode.DecodeField
 import chisel3.util.experimental.decode.DecodeTable
 import chisel3.util.experimental.decode.BoolDecodeField
-import upickle.default
 
-object InstType extends ChiselEnum {
-  val R, I, S, B, U, J = Value
-}
-
-object ImmType extends ChiselEnum {
-  val I, S, B, U, J = Value
-}
-
-object ALUOpType extends ChiselEnum {
-  val ADD, SUB, AND, OR, XOR, SLL, SRL, SRA, SLT, SLTU = Value
-}
-
-object CompareOpType extends ChiselEnum {
-  val EQ, NE, LT, GE, LTU, GEU = Value
-}
-
-object Data1Type extends ChiselEnum {
-  val PC, RS1 = Value
-}
-
-object Data2Type extends ChiselEnum {
-  val IMM, RS2 = Value
-}
-
-object RegWriteDataType extends ChiselEnum {
-  val RESULT, NEXTPC, MEMREAD = Value
-}
-
-object MemLen extends ChiselEnum {
-  val B = Value(1.U)
-  val H = Value(2.U)
-  val W = Value(4.U)
-}
+import taohe.util.enum._
 
 case class InstructionPattern(
     val instType: InstType.Type,
@@ -215,6 +182,21 @@ object RegWriteDataTypeField extends DecodeField[InstructionPattern, UInt] {
             BitPat(
               RegWriteDataType.NEXTPC.litValue.U(RegWriteDataType.getWidth.W)
             )
+          case "1110011" =>
+            op.func3.rawString match {
+              case "000" =>
+                BitPat(
+                  RegWriteDataType.RESULT.litValue.U(
+                    RegWriteDataType.getWidth.W
+                  )
+                )
+              case _ =>
+                BitPat(
+                  RegWriteDataType.CSRDATA.litValue.U(
+                    RegWriteDataType.getWidth.W
+                  )
+                )
+            }
           case "0000011" =>
             BitPat(
               RegWriteDataType.MEMREAD.litValue.U(RegWriteDataType.getWidth.W)
@@ -231,6 +213,48 @@ object RegWriteDataTypeField extends DecodeField[InstructionPattern, UInt] {
 
       case _ =>
         BitPat(RegWriteDataType.RESULT.litValue.U(RegWriteDataType.getWidth.W))
+    }
+  }
+}
+
+object NextPCDataTypeField extends DecodeField[InstructionPattern, UInt] {
+  def name: String = "nextPCDataType"
+  def chiselType = UInt(NextPCDataType.getWidth.W)
+  def genTable(op: InstructionPattern): BitPat = {
+    op.instType match {
+      case InstType.J =>
+        BitPat(NextPCDataType.RESULT.litValue.U(NextPCDataType.getWidth.W))
+      case InstType.I => {
+        op.opcode.rawString match {
+          case "1100111" =>
+            BitPat(NextPCDataType.RESULT.litValue.U(NextPCDataType.getWidth.W))
+          case "1110011" =>
+            op.func3.rawString match {
+              case "000" => {
+                if (op.pattern(31, 20).rawString == "000000000001")
+                  BitPat(
+                    NextPCDataType.NORMAL.litValue.U(NextPCDataType.getWidth.W)
+                  )
+                else
+                  BitPat(
+                    NextPCDataType.CSRDATA.litValue.U(NextPCDataType.getWidth.W)
+                  )
+              }
+              case _ =>
+                BitPat(
+                  NextPCDataType.NORMAL.litValue.U(NextPCDataType.getWidth.W)
+                )
+            }
+          case _ =>
+            BitPat(NextPCDataType.NORMAL.litValue.U(NextPCDataType.getWidth.W))
+        }
+      }
+
+      case InstType.B =>
+        BitPat(NextPCDataType.BRANCH.litValue.U(NextPCDataType.getWidth.W))
+
+      case _ =>
+        BitPat(NextPCDataType.NORMAL.litValue.U(NextPCDataType.getWidth.W))
     }
   }
 }
@@ -264,7 +288,6 @@ object MemValidField extends BoolDecodeField[InstructionPattern] {
     }
   }
 
-  override def default: BitPat = BitPat(false.B)
 }
 
 object UnsignField extends BoolDecodeField[InstructionPattern] {
@@ -278,37 +301,48 @@ object UnsignField extends BoolDecodeField[InstructionPattern] {
   }
 }
 
-object JumpField extends BoolDecodeField[InstructionPattern] {
-  def name: String = "jump"
-  def genTable(op: InstructionPattern): BitPat = {
-    if (
-      (op.opcode == BitPat("b1101111")) || (op.opcode == BitPat(
-        "b1100111"
-      )) || (op.opcode == BitPat("b1100011"))
-    )
-      BitPat(true.B)
-    else BitPat(false.B)
-  }
-}
-
 object BreakField extends BoolDecodeField[InstructionPattern] {
   def name: String = "break"
 
   // Only EBREAK has a break signal
   def genTable(op: InstructionPattern): BitPat = {
     if (
-      op.pattern == BitPat.dontCare(11) ## BitPat
-        .Y(1) ## BitPat.dontCare(13) ## BitPat("b1110011")
+      op.pattern == BitPat.N(11) ## BitPat
+        .Y(1) ## BitPat.N(13) ## BitPat("b1110011")
     ) BitPat(true.B)
     else BitPat(false.B)
   }
 }
 
-object decodeSupportField extends DecodeField[InstructionPattern, Bool] {
+object DecodeSupportField extends DecodeField[InstructionPattern, Bool] {
   def name: String = "decodeSupport"
   def chiselType = Bool()
   def genTable(op: InstructionPattern): BitPat = BitPat.Y(1)
   override def default: BitPat = BitPat.N(1)
+}
+
+object CSROPTypeField extends DecodeField[InstructionPattern, UInt] {
+  def name: String = "csrOperation"
+  def chiselType = UInt(CSROPType.getWidth.W)
+  def genTable(op: InstructionPattern): BitPat = {
+    op.opcode.rawString match {
+      case "1110011" =>
+        op.func3.rawString match {
+          case "000" =>
+            op.pattern(31, 20).rawString match {
+              case "000000000000" =>
+                BitPat(CSROPType.CALL.litValue.U(CSROPType.getWidth.W))
+              case "001100000010" =>
+                BitPat(CSROPType.RET.litValue.U(CSROPType.getWidth.W))
+              case _ => BitPat(CSROPType.NONE.litValue.U(CSROPType.getWidth.W))
+            }
+          case "001" => BitPat(CSROPType.RW.litValue.U(CSROPType.getWidth.W))
+          case "010" => BitPat(CSROPType.RS.litValue.U(CSROPType.getWidth.W))
+          case _     => BitPat(CSROPType.NONE.litValue.U(CSROPType.getWidth.W))
+        }
+      case _ => BitPat(CSROPType.NONE.litValue.U(CSROPType.getWidth.W))
+    }
+  }
 }
 
 object IDUTable {
@@ -548,14 +582,44 @@ object IDUTable {
 
     InstructionPattern(
       InstType.I,
+      func3 = BitPat("b000"),
       opcode = BitPat("b1110011"),
       manual = true,
-      manualPrefix = BitPat.dontCare(11) ## BitPat.Y(1) ## BitPat.dontCare(13)
-    ) // EBREAK
+      manualPrefix = BitPat.N(11) ## BitPat.N(1) ## BitPat.N(13)
+    ), // ECALL
+
+    InstructionPattern(
+      InstType.I,
+      func3 = BitPat("b001"),
+      opcode = BitPat("b1110011")
+    ), // CSRRW
+
+    InstructionPattern(
+      InstType.I,
+      func3 = BitPat("b010"),
+      opcode = BitPat("b1110011")
+    ), // CSRRS
+
+    InstructionPattern(
+      InstType.I,
+      // EBREAK func3 will not use in pattern but useful in fields
+      func3 = BitPat("b000"),
+      opcode = BitPat("b1110011"),
+      manual = true,
+      manualPrefix = BitPat.N(11) ## BitPat.Y(1) ## BitPat.N(13)
+    ), // EBREAK
+
+    InstructionPattern(
+      InstType.I,
+      func3 = BitPat("b000"),
+      opcode = BitPat("b1110011"),
+      manual = true,
+      manualPrefix = BitPat("b00110000001") ## BitPat.N(1) ## BitPat.N(13)
+    ) // MRET
   )
 
   val allFields = Seq(
-    decodeSupportField,
+    DecodeSupportField,
     InstTypeField,
     ImmField,
     ALUOpField,
@@ -563,11 +627,12 @@ object IDUTable {
     Data1Field,
     Data2Field,
     RegWriteDataTypeField,
+    NextPCDataTypeField,
     MemLenField,
     MemValidField,
     UnsignField,
-    JumpField,
-    BreakField
+    BreakField,
+    CSROPTypeField
   )
 
   val decodeTable = new DecodeTable(possiblePatterns, allFields)

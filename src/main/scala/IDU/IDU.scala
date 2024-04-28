@@ -4,8 +4,7 @@ import chisel3._
 import chisel3.util.Fill
 import chisel3.util.MuxLookup
 
-import taohe.idu.ImmType.S
-import taohe.idu.ImmType.U
+import taohe.util.enum._
 import taohe.util.IDUBundle
 
 class IDU extends Module {
@@ -38,13 +37,22 @@ class IDU extends Module {
     )
   )
 
+  val breakReadAddr = MuxLookup(
+    io.inst(31, 20),
+    io.inst(19, 15)
+  )(
+    Seq(
+      "b000000000001".U -> 10.U
+    )
+  )
+
   io.controlSignal.toRegisterFile.readAddr1 := MuxLookup(
     io.inst(6, 0),
     io.inst(19, 15)
   )(
     Seq(
       "b0110111".U -> 0.U,
-      "b1110011".U -> 10.U
+      "b1110011".U -> breakReadAddr
     )
   )
   io.controlSignal.toRegisterFile.readAddr2 := io.inst(24, 20)
@@ -56,15 +64,18 @@ class IDU extends Module {
   io.controlSignal.toEXU.registerWriteType := decodeResult(
     RegWriteDataTypeField
   )
+  io.controlSignal.toEXU.nextPCType := decodeResult(NextPCDataTypeField)
   io.controlSignal.toEXU.memoryLenth := decodeResult(MemLenField)
   io.controlSignal.toEXU.memoryValid := decodeResult(MemValidField)
   io.controlSignal.toEXU.aluOp := decodeResult(ALUOpField)
   io.controlSignal.toEXU.compareOp := decodeResult(CompareOpField)
   io.controlSignal.toEXU.unsigned := decodeResult(UnsignField)
-  io.controlSignal.toEXU.jump := decodeResult(JumpField)
   io.controlSignal.toEXU.break := decodeResult(BreakField)
 
+  io.csrAddress := io.inst(31, 20)
+  io.csrOperation := decodeResult(CSROPTypeField)
+
   val decodeSupport = Wire(Bool())
-  decodeSupport := true.B // decodeResult(decodeSupportField)
+  decodeSupport := decodeResult(DecodeSupportField)
   dontTouch(decodeSupport)
 }
