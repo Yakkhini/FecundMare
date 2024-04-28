@@ -21,10 +21,12 @@ static MTRACERecord mtrace_record;
 #endif
 
 word_t vaddr_ifetch(vaddr_t addr) { return paddr_ifetch(addr); }
+void mtrace_reset();
 
 int vaddr_read(int addr, int lenth, int valid) {
 
   if (!valid) {
+    mtrace_reset();
     return 0;
   }
 
@@ -33,7 +35,7 @@ int vaddr_read(int addr, int lenth, int valid) {
 #if CONFIG_MTRACE
   mtrace_record = (MTRACERecord){.trace_on = true,
                                  .type = MEM_TRACE_READ,
-                                 .len = plen,
+                                 .len = lenth,
                                  .addr = addr,
                                  .data = ret};
 #endif
@@ -45,15 +47,17 @@ void vaddr_write(int addr, int lenth, int data, int valid) {
   paddr_write(addr, lenth, data);
 
   if (!valid) {
+    mtrace_reset();
     return;
   }
 
 #if CONFIG_MTRACE
   mtrace_record = (MTRACERecord){.trace_on = true,
                                  .type = MEM_TRACE_WRITE,
-                                 .len = plen,
+                                 .len = lenth,
                                  .addr = addr,
                                  .data = data};
+  mtrace();
 #endif
 }
 

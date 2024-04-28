@@ -36,6 +36,7 @@ class Memory extends BlackBox with HasBlackBoxInline {
         |
         |  import "DPI-C" context function void vaddr_difftest_skip_check(int addr);
         |  import "DPI-C" context function void vaddr_difftest_skip_cancel();
+        |  import "DPI-C" context function void mtrace_reset();
         |
         |  always @(posedge clock) begin
         |    if(withEXU_writeEnable & !reset) begin
@@ -45,11 +46,18 @@ class Memory extends BlackBox with HasBlackBoxInline {
         |
         |  always_comb begin
         |    if(withEXU_valid) begin
-        |      withEXU_readData = vaddr_read(withEXU_address, withEXU_lenth, {31'b0, withEXU_valid});
         |      vaddr_difftest_skip_check(withEXU_address);
         |    end else begin
-        |      withEXU_readData = 0;
         |      vaddr_difftest_skip_cancel();
+        |    end
+        |  end
+        |
+        |  always_comb begin
+        |    if(!withEXU_writeEnable & withEXU_valid) begin
+        |      withEXU_readData = vaddr_read(withEXU_address, withEXU_lenth, {31'b0, withEXU_valid});
+        |    end else begin
+        |      withEXU_readData = 0;
+        |      mtrace_reset();
         |    end
         |  end
         |
