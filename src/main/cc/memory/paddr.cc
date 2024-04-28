@@ -1,3 +1,4 @@
+#include "cpu/cpu.h"
 #include <common.h>
 #include <cpu/difftest.h>
 #include <device/device.h>
@@ -18,7 +19,16 @@ static void pmem_write(paddr_t addr, int len, word_t data) {
   host_write(guest_to_host(addr), len, data);
 }
 
-word_t paddr_ifetch(paddr_t addr) { return pmem_read(addr, 4); }
+word_t paddr_ifetch(paddr_t addr) {
+  if (in_pmem(addr)) {
+    return pmem_read(addr, 4);
+  }
+
+  Log(ANSI_FG_RED "Invalid instruction fetch at address 0x%08x", addr);
+  halt(1);
+
+  return 0x80000000;
+}
 
 word_t paddr_read(paddr_t addr, int len) {
   if (in_pmem(addr)) {
