@@ -20,7 +20,8 @@ _compile:
     VLTRC=`find $NPC_CHISEL -name '*.vlt' | tr '\n' ' '` # we use echo command latter cause dollar var will cause error
     verilator --cc -Mdir {{BUILD_DIR}}/verilator \
     --top-module {{NPC_NAME}} \
-    --build -Wall -Wno-UNUSEDSIGNAL -Wno-DECLFILENAME `echo $VLTRC` `echo $CSRC` `echo $VSRC` \
+    --x-assign fast --x-initial fast --noassert \
+    --build -j 6 -Wall -Wno-UNUSEDSIGNAL -Wno-DECLFILENAME `echo $VLTRC` `echo $CSRC` `echo $VSRC` \
     -CFLAGS -I{{BUILD_DIR}}/verilator -CFLAGS -I{{INC_DIR}} -CFLAGS -I{{CONFIG_DIR}} \
     -LDFLAGS -lreadline -LDFLAGS -lcapstone \
     --trace --exe -o {{BUILD_DIR}}/bin/taohe
