@@ -7,7 +7,7 @@
 void (*ref_difftest_memcpy)(paddr_t addr, void *buf, size_t n,
                             bool direction) = NULL;
 void (*ref_difftest_regcpy)(void *dut, bool direction) = NULL;
-void (*ref_difftest_pccpy)(void *pc) = NULL;
+void (*ref_difftest_pccpy)(void *pc, bool direction) = NULL;
 void (*ref_difftest_exec)(uint64_t n) = NULL;
 void (*ref_difftest_raise_intr)(uint64_t NO) = NULL;
 
@@ -60,7 +60,8 @@ void difftest_init(char *ref_so_file, long img_size, int port) {
       (void (*)(void *dut, bool direction))dlsym(handle, "difftest_regcpy");
   assert(ref_difftest_regcpy);
 
-  ref_difftest_pccpy = (void (*)(void *dut))dlsym(handle, "difftest_pccpy");
+  ref_difftest_pccpy =
+      (void (*)(void *pc, bool direction))dlsym(handle, "difftest_pccpy");
   assert(ref_difftest_pccpy);
 
   ref_difftest_exec = (void (*)(uint64_t n))dlsym(handle, "difftest_exec");
@@ -84,6 +85,7 @@ void difftest_init(char *ref_so_file, long img_size, int port) {
   ref_difftest_memcpy(RESET_VECTOR, guest_to_host(RESET_VECTOR), img_size,
                       DIFFTEST_TO_REF);
   ref_difftest_regcpy(&cpu.regs, DIFFTEST_TO_REF);
+  ref_difftest_pccpy(&cpu.pc, DIFFTEST_TO_REF);
 }
 
 bool isa_difftest_checkregs(CPU *ref_r, vaddr_t pc) {
@@ -92,6 +94,14 @@ bool isa_difftest_checkregs(CPU *ref_r, vaddr_t pc) {
       return false;
     }
   }
+
+  if (ref_r->pc != pc) {
+    Log("NEXT PC: " ANSI_FG_RED "0x%08X " ANSI_FG_BLUE
+        "in CPU while " ANSI_FG_RED "0x%08X " ANSI_FG_BLUE "in REF.",
+        pc, ref_r->pc);
+    return false;
+  }
+
   return true;
 }
 
@@ -105,6 +115,7 @@ static void diff_check(CPU *ref, vaddr_t pc) {
             i, cpu.regs[i], ref->regs[i]);
       }
     }
+
     halt(1);
   }
 }
@@ -114,9 +125,10 @@ void difftest_step(vaddr_t pc, vaddr_t npc) {
 
   if (skip_dut_nr_inst > 0) {
     ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
-    if (ref_r.pc == npc) {
+    ref_difftest_pccpy(&ref_r.pc, DIFFTEST_TO_DUT);
+    if (ref_r.pc == cpu.pc) {
       skip_dut_nr_inst = 0;
-      diff_check(&ref_r, npc);
+      diff_check(&ref_r, cpu.pc);
       return;
     }
     skip_dut_nr_inst--;
@@ -130,13 +142,14 @@ void difftest_step(vaddr_t pc, vaddr_t npc) {
     // to skip the checking of an instruction, just copy the reg state to
     // reference design
     ref_difftest_regcpy(&cpu.regs, DIFFTEST_TO_REF);
-    ref_difftest_pccpy(&cpu.pc);
+    ref_difftest_pccpy(&cpu.pc, DIFFTEST_TO_REF);
     is_skip_ref = false;
     return;
   }
 
   ref_difftest_exec(1);
   ref_difftest_regcpy(&ref_r.regs, DIFFTEST_TO_DUT);
+  ref_difftest_pccpy(&ref_r.pc, DIFFTEST_TO_DUT);
 
-  diff_check(&ref_r, pc);
+  diff_check(&ref_r, cpu.pc);
 }
