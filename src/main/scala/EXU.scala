@@ -11,41 +11,51 @@ import chisel3.util.Fill
 class EXU extends Module {
   val io = IO(new EXUBundle)
 
-  io.withMemory.address := io.withRegisterFile.readData1 + io.fromIDU.imm
-  io.withMemory.lenth := io.fromIDU.memoryLenth
-  io.withMemory.writeData := io.withRegisterFile.readData2
-  io.withMemory.writeEnable := (io.fromIDU.instructionType === InstType.S.asUInt)
-  io.withMemory.valid := io.fromIDU.memoryValid
+  io.toMemory.valid := false.B
+  io.toRegisterFile.valid := false.B
 
-  val data1 = MuxLookup(io.fromIDU.data1Type, 0.U(32.W))(
+  io.fromIDU.ready := false.B
+  io.fromRegisterFile.ready := false.B
+  io.fromMemory.ready := false.B
+
+  dontTouch(io.fromMemory.valid)
+  dontTouch(io.toMemory.ready)
+
+  io.toMemory.bits.address := io.fromRegisterFile.bits.readData1 + io.fromIDU.bits.imm
+  io.toMemory.bits.lenth := io.fromIDU.bits.memoryLenth
+  io.toMemory.bits.writeData := io.fromRegisterFile.bits.readData2
+  io.toMemory.bits.writeEnable := (io.fromIDU.bits.instructionType === InstType.S.asUInt)
+  io.toMemory.bits.valid := io.fromIDU.bits.memoryValid
+
+  val data1 = MuxLookup(io.fromIDU.bits.data1Type, 0.U(32.W))(
     Seq(
-      Data1Type.RS1.asUInt -> io.withRegisterFile.readData1,
+      Data1Type.RS1.asUInt -> io.fromRegisterFile.bits.readData1,
       Data1Type.PC.asUInt -> io.currentPC
     )
   )
 
-  val data2 = MuxLookup(io.fromIDU.data2Type, 0.U(32.W))(
+  val data2 = MuxLookup(io.fromIDU.bits.data2Type, 0.U(32.W))(
     Seq(
-      Data2Type.RS2.asUInt -> io.withRegisterFile.readData2,
-      Data2Type.IMM.asUInt -> io.fromIDU.imm
+      Data2Type.RS2.asUInt -> io.fromRegisterFile.bits.readData2,
+      Data2Type.IMM.asUInt -> io.fromIDU.bits.imm
     )
   )
 
-  val memoryReadData = MuxLookup(io.fromIDU.memoryLenth, 0.U(32.W))(
+  val memoryReadData = MuxLookup(io.fromIDU.bits.memoryLenth, 0.U(32.W))(
     Seq(
       MemLen.B.asUInt -> Fill(
         24,
-        io.withMemory.readData(7) & ~io.fromIDU.unsigned
-      ) ## io.withMemory.readData(7, 0),
+        io.fromMemory.bits.readData(7) & ~io.fromIDU.bits.unsigned
+      ) ## io.fromMemory.bits.readData(7, 0),
       MemLen.H.asUInt -> Fill(
         16,
-        io.withMemory.readData(15) & ~io.fromIDU.unsigned
-      ) ## io.withMemory.readData(15, 0),
-      MemLen.W.asUInt -> io.withMemory.readData
+        io.fromMemory.bits.readData(15) & ~io.fromIDU.bits.unsigned
+      ) ## io.fromMemory.bits.readData(15, 0),
+      MemLen.W.asUInt -> io.fromMemory.bits.readData
     )
   )
 
-  val result = MuxLookup(io.fromIDU.aluOp, 0.U(32.W))(
+  val result = MuxLookup(io.fromIDU.bits.aluOp, 0.U(32.W))(
     Seq(
       ALUOpType.ADD.asUInt -> (data1 + data2),
       ALUOpType.SUB.asUInt -> (data1 - data2),
@@ -60,7 +70,7 @@ class EXU extends Module {
     )
   )
 
-  val compareCheck = MuxLookup(io.fromIDU.compareOp, false.B)(
+  val compareCheck = MuxLookup(io.fromIDU.bits.compareOp, false.B)(
     Seq(
       CompareOpType.EQ.asUInt -> (data1 === data2),
       CompareOpType.NE.asUInt -> (data1 =/= data2),
@@ -75,12 +85,12 @@ class EXU extends Module {
 
   branchTarget := Mux(
     compareCheck,
-    io.currentPC + io.fromIDU.imm,
+    io.currentPC + io.fromIDU.bits.imm,
     io.currentPC + 4.U
   )
 
   io.nextPC := MuxLookup(
-    io.fromIDU.nextPCType,
+    io.fromIDU.bits.nextPCType,
     0.U(32.W)
   )(
     Seq(
@@ -91,8 +101,8 @@ class EXU extends Module {
     )
   )
 
-  io.withRegisterFile.writeData := MuxLookup(
-    io.fromIDU.registerWriteType,
+  io.toRegisterFile.bits.writeData := MuxLookup(
+    io.fromIDU.bits.registerWriteType,
     0.U(32.W)
   )(
     Seq(
@@ -103,14 +113,14 @@ class EXU extends Module {
     )
   )
 
-  io.withRegisterFile.writeEnable := Mux(
-    (io.fromIDU.instructionType === InstType.S.asUInt) || (io.fromIDU.instructionType === InstType.B.asUInt),
+  io.toRegisterFile.bits.writeEnable := Mux(
+    (io.fromIDU.bits.instructionType === InstType.S.asUInt) || (io.fromIDU.bits.instructionType === InstType.B.asUInt),
     false.B,
     true.B
   )
 
   val powerManager = Module(new PowerManager())
   powerManager.io.reset := reset
-  powerManager.io.breakSignal := io.fromIDU.break
+  powerManager.io.breakSignal := io.fromIDU.bits.break
   powerManager.io.code := data1
 }

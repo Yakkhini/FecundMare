@@ -23,11 +23,11 @@ class TaoHe extends Module {
 
   val csr = Module(new CSR())
   csr.io.currentPC := pc
-  csr.io.rs1data := registerFile.io.withEXU.readData1
+  csr.io.rs1data := registerFile.io.toEXU.bits.readData1
 
   val IDU = Module(new idu.IDU())
   IDU.io.inst := inst
-  registerFile.io.fromIDU <> IDU.io.controlSignal.toRegisterFile
+  registerFile.io.fromIDU <> IDU.io.toRegisterFile
   csr.io.address := IDU.io.csrAddress
   csr.io.csrOperation := IDU.io.csrOperation
 
@@ -35,14 +35,16 @@ class TaoHe extends Module {
   EXU.io.currentPC := pc
   pc := EXU.io.nextPC
   EXU.io.csrData := csr.io.readData
-  EXU.io.fromIDU <> IDU.io.controlSignal.toEXU
-  registerFile.io.withEXU <> EXU.io.withRegisterFile
-  memory.io.withEXU <> EXU.io.withMemory
+  EXU.io.fromIDU <> IDU.io.toEXU
+  EXU.io.fromRegisterFile <> registerFile.io.toEXU
+  EXU.io.fromMemory <> memory.io.toEXU
+  registerFile.io.fromEXU <> EXU.io.toRegisterFile
+  memory.io.fromEXU <> EXU.io.toMemory
 
   dontTouch(pc)
   dontTouch(inst)
-  dontTouch(EXU.io.withRegisterFile.writeData)
-  dontTouch(EXU.io.withRegisterFile.writeEnable)
+  dontTouch(EXU.io.toRegisterFile.bits.writeData)
+  dontTouch(EXU.io.toRegisterFile.bits.writeEnable)
   dontTouch(csr.io.readData)
 
 }

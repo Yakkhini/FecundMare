@@ -10,6 +10,9 @@ import taohe.util.IDUBundle
 class IDU extends Module {
   val io = IO(new IDUBundle)
 
+  io.toEXU.valid := true.B
+  io.toRegisterFile.valid := true.B
+
   import IDUTable.decodeTable
 
   val decodeResult = decodeTable.decode(io.inst)
@@ -27,7 +30,7 @@ class IDU extends Module {
 
   val immType = decodeResult(ImmField)
 
-  io.controlSignal.toEXU.imm := MuxLookup(immType, 0.U)(
+  io.toEXU.bits.imm := MuxLookup(immType, 0.U)(
     Seq(
       ImmType.I.asUInt -> imm_i,
       ImmType.S.asUInt -> imm_s,
@@ -46,7 +49,7 @@ class IDU extends Module {
     )
   )
 
-  io.controlSignal.toRegisterFile.readAddr1 := MuxLookup(
+  io.toRegisterFile.bits.readAddr1 := MuxLookup(
     io.inst(6, 0),
     io.inst(19, 15)
   )(
@@ -55,22 +58,22 @@ class IDU extends Module {
       "b1110011".U -> breakReadAddr
     )
   )
-  io.controlSignal.toRegisterFile.readAddr2 := io.inst(24, 20)
-  io.controlSignal.toRegisterFile.writeAddr := io.inst(11, 7)
+  io.toRegisterFile.bits.readAddr2 := io.inst(24, 20)
+  io.toRegisterFile.bits.writeAddr := io.inst(11, 7)
 
-  io.controlSignal.toEXU.instructionType := decodeResult(InstTypeField)
-  io.controlSignal.toEXU.data1Type := decodeResult(Data1Field)
-  io.controlSignal.toEXU.data2Type := decodeResult(Data2Field)
-  io.controlSignal.toEXU.registerWriteType := decodeResult(
+  io.toEXU.bits.instructionType := decodeResult(InstTypeField)
+  io.toEXU.bits.data1Type := decodeResult(Data1Field)
+  io.toEXU.bits.data2Type := decodeResult(Data2Field)
+  io.toEXU.bits.registerWriteType := decodeResult(
     RegWriteDataTypeField
   )
-  io.controlSignal.toEXU.nextPCType := decodeResult(NextPCDataTypeField)
-  io.controlSignal.toEXU.memoryLenth := decodeResult(MemLenField)
-  io.controlSignal.toEXU.memoryValid := decodeResult(MemValidField)
-  io.controlSignal.toEXU.aluOp := decodeResult(ALUOpField)
-  io.controlSignal.toEXU.compareOp := decodeResult(CompareOpField)
-  io.controlSignal.toEXU.unsigned := decodeResult(UnsignField)
-  io.controlSignal.toEXU.break := decodeResult(BreakField)
+  io.toEXU.bits.nextPCType := decodeResult(NextPCDataTypeField)
+  io.toEXU.bits.memoryLenth := decodeResult(MemLenField)
+  io.toEXU.bits.memoryValid := decodeResult(MemValidField)
+  io.toEXU.bits.aluOp := decodeResult(ALUOpField)
+  io.toEXU.bits.compareOp := decodeResult(CompareOpField)
+  io.toEXU.bits.unsigned := decodeResult(UnsignField)
+  io.toEXU.bits.break := decodeResult(BreakField)
 
   io.csrAddress := io.inst(31, 20)
   io.csrOperation := decodeResult(CSROPTypeField)

@@ -13,13 +13,20 @@ class Memory extends BlackBox with HasBlackBoxInline {
         |module Memory(
         |  input bit clock,
         |  input bit reset,
-        |  input bit withEXU_valid,
-        |  input bit withEXU_writeEnable,
-        |  input [31:0] withEXU_writeData,
-        |  output [31:0] withEXU_readData,
-        |  input [31:0] withEXU_address,
-        |  input int withEXU_lenth
+        |  input bit fromEXU_valid,
+        |  output bit fromEXU_ready,
+        |  output bit toEXU_valid,
+        |  input bit toEXU_ready,
+        |  input bit fromEXU_bits_valid,
+        |  input bit fromEXU_bits_writeEnable,
+        |  input [31:0] fromEXU_bits_writeData,
+        |  output [31:0] toEXU_bits_readData,
+        |  input [31:0] fromEXU_bits_address,
+        |  input int fromEXU_bits_lenth
         |);
+        |
+        |  assign fromEXU_ready = 1;
+        |  assign toEXU_valid = 1;
         |
         |  import "DPI-C" function int vaddr_read(
         |    int addr,
@@ -39,24 +46,24 @@ class Memory extends BlackBox with HasBlackBoxInline {
         |  import "DPI-C" context function void mtrace_reset();
         |
         |  always @(posedge clock) begin
-        |    if(withEXU_writeEnable & !reset) begin
-        |      vaddr_write(withEXU_address, withEXU_lenth, withEXU_writeData, {31'b0, withEXU_valid});
+        |    if(fromEXU_bits_writeEnable & !reset) begin
+        |      vaddr_write(fromEXU_bits_address, fromEXU_bits_lenth, fromEXU_bits_writeData, {31'b0, fromEXU_bits_valid});
         |    end
         |  end
         |
         |  always_comb begin
-        |    if(withEXU_valid) begin
-        |      vaddr_difftest_skip_check(withEXU_address);
+        |    if(fromEXU_bits_valid) begin
+        |      vaddr_difftest_skip_check(fromEXU_bits_address);
         |    end else begin
         |      vaddr_difftest_skip_cancel();
         |    end
         |  end
         |
         |  always_comb begin
-        |    if(!withEXU_writeEnable & withEXU_valid) begin
-        |      withEXU_readData = vaddr_read(withEXU_address, withEXU_lenth, {31'b0, withEXU_valid});
+        |    if(!fromEXU_bits_writeEnable & fromEXU_bits_valid) begin
+        |      toEXU_bits_readData = vaddr_read(fromEXU_bits_address, fromEXU_bits_lenth, {31'b0, fromEXU_bits_valid});
         |    end else begin
-        |      withEXU_readData = 0;
+        |      toEXU_bits_readData = 0;
         |      mtrace_reset();
         |    end
         |  end

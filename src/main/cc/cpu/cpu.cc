@@ -178,10 +178,10 @@ void cpu_exec(int n) {
 
 void cpu_sync() {
   memcpy(cpu.regs, cpu.top->TaoHe->registerFile->registers, sizeof(cpu.regs));
-  if (cpu.top->TaoHe->registerFile->io_withEXU_writeEnable &&
-      cpu.top->TaoHe->registerFile->io_fromIDU_writeAddr) {
-    cpu.regs[cpu.top->TaoHe->registerFile->io_fromIDU_writeAddr] =
-        cpu.top->TaoHe->registerFile->io_withEXU_writeData;
+  if (cpu.top->TaoHe->registerFile->io_fromEXU_bits_writeEnable &&
+      cpu.top->TaoHe->registerFile->io_fromIDU_bits_writeAddr) {
+    cpu.regs[cpu.top->TaoHe->registerFile->io_fromIDU_bits_writeAddr] =
+        cpu.top->TaoHe->registerFile->io_fromEXU_bits_writeData;
   }
   cpu.pc_prev = cpu.pc;
   cpu.pc = cpu.top->TaoHe->EXU->io_nextPC;
