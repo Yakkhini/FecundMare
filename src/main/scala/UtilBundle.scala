@@ -41,7 +41,6 @@ class MemoryToEXUBundle extends Bundle {
 }
 
 class EXUToMemoryBundle extends Bundle {
-  val valid = Bool()
   val writeEnable = Bool()
   val writeData = UInt(32.W)
   val address = UInt(32.W)

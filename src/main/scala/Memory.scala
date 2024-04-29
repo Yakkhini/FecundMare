@@ -17,7 +17,6 @@ class Memory extends BlackBox with HasBlackBoxInline {
         |  output bit fromEXU_ready,
         |  output bit toEXU_valid,
         |  input bit toEXU_ready,
-        |  input bit fromEXU_bits_valid,
         |  input bit fromEXU_bits_writeEnable,
         |  input [31:0] fromEXU_bits_writeData,
         |  output [31:0] toEXU_bits_readData,
@@ -47,12 +46,12 @@ class Memory extends BlackBox with HasBlackBoxInline {
         |
         |  always @(posedge clock) begin
         |    if(fromEXU_bits_writeEnable & !reset) begin
-        |      vaddr_write(fromEXU_bits_address, fromEXU_bits_lenth, fromEXU_bits_writeData, {31'b0, fromEXU_bits_valid});
+        |      vaddr_write(fromEXU_bits_address, fromEXU_bits_lenth, fromEXU_bits_writeData, {31'b0, fromEXU_valid});
         |    end
         |  end
         |
         |  always_comb begin
-        |    if(fromEXU_bits_valid) begin
+        |    if(fromEXU_valid) begin
         |      vaddr_difftest_skip_check(fromEXU_bits_address);
         |    end else begin
         |      vaddr_difftest_skip_cancel();
@@ -60,8 +59,8 @@ class Memory extends BlackBox with HasBlackBoxInline {
         |  end
         |
         |  always_comb begin
-        |    if(!fromEXU_bits_writeEnable & fromEXU_bits_valid) begin
-        |      toEXU_bits_readData = vaddr_read(fromEXU_bits_address, fromEXU_bits_lenth, {31'b0, fromEXU_bits_valid});
+        |    if(!fromEXU_bits_writeEnable & fromEXU_valid) begin
+        |      toEXU_bits_readData = vaddr_read(fromEXU_bits_address, fromEXU_bits_lenth, {31'b0, fromEXU_valid});
         |    end else begin
         |      toEXU_bits_readData = 0;
         |      mtrace_reset();
