@@ -11,7 +11,6 @@ import chisel3.util.Fill
 class EXU extends Module {
   val io = IO(new EXUBundle)
 
-  io.toMemory.valid := false.B
   io.toRegisterFile.valid := false.B
 
   io.fromIDU.ready := false.B
