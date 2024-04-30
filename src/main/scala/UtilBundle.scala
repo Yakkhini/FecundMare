@@ -5,17 +5,23 @@ import chisel3._
 import taohe.util.enum._
 import chisel3.util.Decoupled
 
-class IDUToRegisterFileBundle extends Bundle {
-  val readAddr1 = UInt(5.W)
-  val readAddr2 = UInt(5.W)
-  val writeAddr = UInt(5.W)
+// Internal interfaces
+class IFUToIDUBundle extends Bundle {
+  val currentPC = UInt(32.W)
+  val inst = UInt(32.W)
 }
 
 class IDUToEXUBundle extends Bundle {
+  val currentPC = UInt(32.W)
+  val registerReadAddr1 = UInt(5.W)
+  val registerReadAddr2 = UInt(5.W)
+  val registerWriteAddr = UInt(5.W)
+  val registerWriteType = UInt(RegWriteDataType.getWidth.W)
+  val csrAddress = UInt(12.W)
+  val csrOperation = UInt(CSROPType.getWidth.W)
   val instructionType = UInt(InstType.getWidth.W)
   val data1Type = UInt(Data1Type.getWidth.W)
   val data2Type = UInt(Data2Type.getWidth.W)
-  val registerWriteType = UInt(RegWriteDataType.getWidth.W)
   val nextPCType = UInt(NextPCDataType.getWidth.W)
   val lsuLenth = UInt(MemLen.getWidth.W)
   val aluOp = UInt(ALUOpType.getWidth.W)
@@ -32,8 +38,26 @@ class RegisterFileToEXUBundle extends Bundle {
 }
 
 class EXUToRegisterFileBundle extends Bundle {
+  val readAddr1 = UInt(5.W)
+  val readAddr2 = UInt(5.W)
+  val writeAddr = UInt(5.W)
   val writeData = UInt(32.W)
   val writeEnable = Bool()
+}
+
+class CSRToEXUBundle extends Bundle {
+  val readData = UInt(32.W)
+}
+
+class EXUToCSRBundle extends Bundle {
+  val operation = UInt(CSROPType.getWidth.W)
+  val address = UInt(12.W)
+  val currentPC = UInt(32.W)
+  val rs1data = UInt(32.W)
+}
+
+class EXUToIFUBundle extends Bundle {
+  val nextPC = UInt(32.W)
 }
 
 class LSUToEXUBundle extends Bundle {
@@ -47,6 +71,7 @@ class EXUToLSUBundle extends Bundle {
   val lenth = UInt(32.W)
 }
 
+// Public interfaces
 class LSUBundle extends Bundle {
   val clock = Input(Clock())
   val reset = Input(Bool())
@@ -55,26 +80,32 @@ class LSUBundle extends Bundle {
 }
 
 class RegisterFileBundle extends Bundle {
-  val fromIDU = Flipped(Decoupled(new IDUToRegisterFileBundle))
   val fromEXU = Flipped(Decoupled(new EXUToRegisterFileBundle))
   val toEXU = Decoupled(new RegisterFileToEXUBundle)
 }
 
+class CSRBundle extends Bundle {
+  val fromEXU = Flipped(Decoupled(new EXUToCSRBundle))
+  val toEXU = Decoupled(new CSRToEXUBundle)
+}
+
+class IFUBundle extends Bundle {
+  val fromEXU = Flipped(Decoupled(new EXUToIFUBundle))
+  val toIDU = Decoupled(new IFUToIDUBundle)
+}
+
 class IDUBundle extends Bundle {
-  val inst = Input(UInt(32.W))
-  val toRegisterFile = Decoupled(new IDUToRegisterFileBundle)
+  val fromIFU = Flipped(Decoupled(new IFUToIDUBundle))
   val toEXU = Decoupled(new IDUToEXUBundle)
-  val csrAddress = Output(UInt(12.W))
-  val csrOperation = Output(UInt(CSROPType.getWidth.W))
 }
 
 class EXUBundle extends Bundle {
-  val currentPC = Input(UInt(32.W))
-  val nextPC = Output(UInt(32.W))
-  val csrData = Input(UInt(32.W))
   val fromIDU = Flipped(Decoupled(new IDUToEXUBundle))
   val fromRegisterFile = Flipped(Decoupled(new RegisterFileToEXUBundle))
   val toRegisterFile = Decoupled(new EXUToRegisterFileBundle)
   val fromLSU = Flipped(Decoupled(new LSUToEXUBundle))
   val toLSU = Decoupled(new EXUToLSUBundle)
+  val fromCSR = Flipped(Decoupled(new CSRToEXUBundle))
+  val toCSR = Decoupled(new EXUToCSRBundle)
+  val toIFU = Decoupled(new EXUToIFUBundle)
 }

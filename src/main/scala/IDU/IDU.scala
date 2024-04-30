@@ -11,22 +11,34 @@ class IDU extends Module {
   val io = IO(new IDUBundle)
 
   io.toEXU.valid := true.B
-  io.toRegisterFile.valid := true.B
 
   import IDUTable.decodeTable
 
-  val decodeResult = decodeTable.decode(io.inst)
+  val decodeResult = decodeTable.decode(io.fromIFU.bits.inst)
 
-  val imm_i = io.inst(31) ## Fill(20, io.inst(31)) ## io.inst(30, 20)
+  val imm_i = io.fromIFU.bits.inst(31) ## Fill(
+    20,
+    io.fromIFU.bits.inst(31)
+  ) ## io.fromIFU.bits.inst(30, 20)
   val imm_s =
-    io.inst(31) ## Fill(20, io.inst(31)) ## io.inst(30, 25) ## io.inst(11, 7)
+    io.fromIFU.bits.inst(31) ## Fill(
+      20,
+      io.fromIFU.bits.inst(31)
+    ) ## io.fromIFU.bits.inst(30, 25) ## io.fromIFU.bits.inst(11, 7)
   val imm_b =
-    io.inst(31) ## Fill(19, io.inst(31)) ## io.inst(7) ## io.inst(30, 25) ## io
-      .inst(11, 8) ## 0.U(1.W)
-  val imm_u = io.inst(31, 12) ## 0.U(12.W)
+    io.fromIFU.bits.inst(31) ## Fill(
+      19,
+      io.fromIFU.bits.inst(31)
+    ) ## io.fromIFU.bits.inst(7) ## io.fromIFU.bits
+      .inst(30, 25) ## io.fromIFU.bits.inst(11, 8) ## 0.U(1.W)
+  val imm_u = io.fromIFU.bits.inst(31, 12) ## 0.U(12.W)
   val imm_j =
-    io.inst(31) ## Fill(11, io.inst(31)) ## io.inst(19, 12) ## io.inst(20) ## io
-      .inst(30, 21) ## 0.U(1.W)
+    io.fromIFU.bits.inst(31) ## Fill(
+      11,
+      io.fromIFU.bits.inst(31)
+    ) ## io.fromIFU.bits.inst(19, 12) ## io.fromIFU.bits.inst(
+      20
+    ) ## io.fromIFU.bits.inst(30, 21) ## 0.U(1.W)
 
   val immType = decodeResult(ImmField)
 
@@ -41,25 +53,25 @@ class IDU extends Module {
   )
 
   val breakReadAddr = MuxLookup(
-    io.inst(31, 20),
-    io.inst(19, 15)
+    io.fromIFU.bits.inst(31, 20),
+    io.fromIFU.bits.inst(19, 15)
   )(
     Seq(
       "b000000000001".U -> 10.U
     )
   )
 
-  io.toRegisterFile.bits.readAddr1 := MuxLookup(
-    io.inst(6, 0),
-    io.inst(19, 15)
+  io.toEXU.bits.registerReadAddr1 := MuxLookup(
+    io.fromIFU.bits.inst(6, 0),
+    io.fromIFU.bits.inst(19, 15)
   )(
     Seq(
       "b0110111".U -> 0.U,
       "b1110011".U -> breakReadAddr
     )
   )
-  io.toRegisterFile.bits.readAddr2 := io.inst(24, 20)
-  io.toRegisterFile.bits.writeAddr := io.inst(11, 7)
+  io.toEXU.bits.registerReadAddr2 := io.fromIFU.bits.inst(24, 20)
+  io.toEXU.bits.registerWriteAddr := io.fromIFU.bits.inst(11, 7)
 
   io.toEXU.bits.instructionType := decodeResult(InstTypeField)
   io.toEXU.bits.data1Type := decodeResult(Data1Field)
@@ -75,8 +87,8 @@ class IDU extends Module {
   io.toEXU.bits.unsigned := decodeResult(UnsignField)
   io.toEXU.bits.break := decodeResult(BreakField)
 
-  io.csrAddress := io.inst(31, 20)
-  io.csrOperation := decodeResult(CSROPTypeField)
+  io.toEXU.bits.csrAddress := io.fromIFU.bits.inst(31, 20)
+  io.toEXU.bits.csrOperation := decodeResult(CSROPTypeField)
 
   val decodeSupport = Wire(Bool())
   decodeSupport := decodeResult(DecodeSupportField)

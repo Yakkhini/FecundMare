@@ -29,7 +29,7 @@ class EXU extends Module {
   val data1 = MuxLookup(io.fromIDU.bits.data1Type, 0.U(32.W))(
     Seq(
       Data1Type.RS1.asUInt -> io.fromRegisterFile.bits.readData1,
-      Data1Type.PC.asUInt -> io.currentPC
+      Data1Type.PC.asUInt -> io.fromIDU.bits.currentPC
     )
   )
 
@@ -84,19 +84,19 @@ class EXU extends Module {
 
   branchTarget := Mux(
     compareCheck,
-    io.currentPC + io.fromIDU.bits.imm,
-    io.currentPC + 4.U
+    io.fromIDU.bits.currentPC + io.fromIDU.bits.imm,
+    io.fromIDU.bits.currentPC + 4.U
   )
 
-  io.nextPC := MuxLookup(
+  io.toIFU.bits.nextPC := MuxLookup(
     io.fromIDU.bits.nextPCType,
     0.U(32.W)
   )(
     Seq(
       NextPCDataType.RESULT.asUInt -> (result & (~1.U(32.W))),
       NextPCDataType.BRANCH.asUInt -> branchTarget,
-      NextPCDataType.CSRDATA.asUInt -> io.csrData,
-      NextPCDataType.NORMAL.asUInt -> (io.currentPC + 4.U)
+      NextPCDataType.CSRDATA.asUInt -> io.fromCSR.bits.readData,
+      NextPCDataType.NORMAL.asUInt -> (io.fromIDU.bits.currentPC + 4.U)
     )
   )
 
@@ -106,9 +106,9 @@ class EXU extends Module {
   )(
     Seq(
       RegWriteDataType.RESULT.asUInt -> result,
-      RegWriteDataType.NEXTPC.asUInt -> (io.currentPC + 4.U),
+      RegWriteDataType.NEXTPC.asUInt -> (io.fromIDU.bits.currentPC + 4.U),
       RegWriteDataType.MEMREAD.asUInt -> lsuReadData,
-      RegWriteDataType.CSRDATA.asUInt -> io.csrData
+      RegWriteDataType.CSRDATA.asUInt -> io.fromCSR.bits.readData
     )
   )
 
