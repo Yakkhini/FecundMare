@@ -3,14 +3,14 @@ package taohe
 import chisel3._
 import chisel3.util.HasBlackBoxInline
 
-import taohe.util.MemoryBundle
+import taohe.util.LSUBundle
 
-class Memory extends BlackBox with HasBlackBoxInline {
-  val io = IO(new MemoryBundle)
+class LSU extends BlackBox with HasBlackBoxInline {
+  val io = IO(new LSUBundle)
   setInline(
-    "Memory.sv",
+    "LSU.sv",
     """
-        |module Memory(
+        |module LSU(
         |  input bit clock,
         |  input bit reset,
         |  input bit fromEXU_valid,

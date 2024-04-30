@@ -184,7 +184,7 @@ void cpu_sync() {
         cpu.top->TaoHe->registerFile->io_fromEXU_bits_writeData;
   }
   cpu.pc_prev = cpu.pc;
-  cpu.pc = cpu.top->TaoHe->EXU->io_nextPC;
+  cpu.pc = cpu.top->TaoHe->exu->io_nextPC;
   cpu.inst = cpu.top->TaoHe->inst;
 }
 
@@ -194,7 +194,7 @@ void cpu_check() {
   disassembler();
 #endif
 
-  if (cpu.top->TaoHe->IDU->decodeSupport == 0) {
+  if (cpu.top->TaoHe->idu->decodeSupport == 0) {
     Log(ANSI_FMT("ERROR INST NOT SUPPORT: ", ANSI_FG_RED) ANSI_FG_BLUE
         "DECODE " ANSI_FMT("FAILED ", ANSI_FG_RED) ANSI_FG_BLUE
         "at pc = 0x%08X",

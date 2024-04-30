@@ -17,10 +17,10 @@ class IDUToEXUBundle extends Bundle {
   val data2Type = UInt(Data2Type.getWidth.W)
   val registerWriteType = UInt(RegWriteDataType.getWidth.W)
   val nextPCType = UInt(NextPCDataType.getWidth.W)
-  val memoryLenth = UInt(MemLen.getWidth.W)
+  val lsuLenth = UInt(MemLen.getWidth.W)
   val aluOp = UInt(ALUOpType.getWidth.W)
   val compareOp = UInt(CompareOpType.getWidth.W)
-  val memoryValid = Bool()
+  val lsuValid = Bool()
   val unsigned = Bool()
   val break = Bool()
   val imm = UInt(32.W)
@@ -36,22 +36,22 @@ class EXUToRegisterFileBundle extends Bundle {
   val writeEnable = Bool()
 }
 
-class MemoryToEXUBundle extends Bundle {
+class LSUToEXUBundle extends Bundle {
   val readData = UInt(32.W)
 }
 
-class EXUToMemoryBundle extends Bundle {
+class EXUToLSUBundle extends Bundle {
   val writeEnable = Bool()
   val writeData = UInt(32.W)
   val address = UInt(32.W)
   val lenth = UInt(32.W)
 }
 
-class MemoryBundle extends Bundle {
+class LSUBundle extends Bundle {
   val clock = Input(Clock())
   val reset = Input(Bool())
-  val fromEXU = Flipped(Decoupled(new EXUToMemoryBundle))
-  val toEXU = Decoupled(new MemoryToEXUBundle)
+  val fromEXU = Flipped(Decoupled(new EXUToLSUBundle))
+  val toEXU = Decoupled(new LSUToEXUBundle)
 }
 
 class RegisterFileBundle extends Bundle {
@@ -75,6 +75,6 @@ class EXUBundle extends Bundle {
   val fromIDU = Flipped(Decoupled(new IDUToEXUBundle))
   val fromRegisterFile = Flipped(Decoupled(new RegisterFileToEXUBundle))
   val toRegisterFile = Decoupled(new EXUToRegisterFileBundle)
-  val fromMemory = Flipped(Decoupled(new MemoryToEXUBundle))
-  val toMemory = Decoupled(new EXUToMemoryBundle)
+  val fromLSU = Flipped(Decoupled(new LSUToEXUBundle))
+  val toLSU = Decoupled(new EXUToLSUBundle)
 }

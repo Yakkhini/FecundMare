@@ -18,9 +18,9 @@ class TaoHe extends Module {
   inst := instFetchUnit.io.inst
 
   val registerFile = Module(new RegisterFile())
-  val memory = Module(new Memory())
-  memory.io.clock := clock
-  memory.io.reset := reset
+  val lsu = Module(new LSU())
+  lsu.io.clock := clock
+  lsu.io.reset := reset
 
   val csr = Module(new CSR())
   csr.io.currentPC := pc
@@ -38,9 +38,9 @@ class TaoHe extends Module {
   exu.io.csrData := csr.io.readData
   exu.io.fromIDU <> idu.io.toEXU
   exu.io.fromRegisterFile <> registerFile.io.toEXU
-  exu.io.fromMemory <> memory.io.toEXU
+  exu.io.fromLSU <> lsu.io.toEXU
   registerFile.io.fromEXU <> exu.io.toRegisterFile
-  memory.io.fromEXU <> exu.io.toMemory
+  lsu.io.fromEXU <> exu.io.toLSU
 
   dontTouch(pc)
   dontTouch(inst)

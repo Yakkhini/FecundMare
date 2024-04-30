@@ -15,16 +15,16 @@ class EXU extends Module {
 
   io.fromIDU.ready := false.B
   io.fromRegisterFile.ready := false.B
-  io.fromMemory.ready := false.B
+  io.fromLSU.ready := false.B
 
-  dontTouch(io.fromMemory.valid)
-  dontTouch(io.toMemory.ready)
+  dontTouch(io.fromLSU.valid)
+  dontTouch(io.toLSU.ready)
 
-  io.toMemory.bits.address := io.fromRegisterFile.bits.readData1 + io.fromIDU.bits.imm
-  io.toMemory.bits.lenth := io.fromIDU.bits.memoryLenth
-  io.toMemory.bits.writeData := io.fromRegisterFile.bits.readData2
-  io.toMemory.bits.writeEnable := (io.fromIDU.bits.instructionType === InstType.S.asUInt)
-  io.toMemory.valid := io.fromIDU.bits.memoryValid
+  io.toLSU.bits.address := io.fromRegisterFile.bits.readData1 + io.fromIDU.bits.imm
+  io.toLSU.bits.lenth := io.fromIDU.bits.lsuLenth
+  io.toLSU.bits.writeData := io.fromRegisterFile.bits.readData2
+  io.toLSU.bits.writeEnable := (io.fromIDU.bits.instructionType === InstType.S.asUInt)
+  io.toLSU.valid := io.fromIDU.bits.lsuValid
 
   val data1 = MuxLookup(io.fromIDU.bits.data1Type, 0.U(32.W))(
     Seq(
@@ -40,17 +40,17 @@ class EXU extends Module {
     )
   )
 
-  val memoryReadData = MuxLookup(io.fromIDU.bits.memoryLenth, 0.U(32.W))(
+  val lsuReadData = MuxLookup(io.fromIDU.bits.lsuLenth, 0.U(32.W))(
     Seq(
       MemLen.B.asUInt -> Fill(
         24,
-        io.fromMemory.bits.readData(7) & ~io.fromIDU.bits.unsigned
-      ) ## io.fromMemory.bits.readData(7, 0),
+        io.fromLSU.bits.readData(7) & ~io.fromIDU.bits.unsigned
+      ) ## io.fromLSU.bits.readData(7, 0),
       MemLen.H.asUInt -> Fill(
         16,
-        io.fromMemory.bits.readData(15) & ~io.fromIDU.bits.unsigned
-      ) ## io.fromMemory.bits.readData(15, 0),
-      MemLen.W.asUInt -> io.fromMemory.bits.readData
+        io.fromLSU.bits.readData(15) & ~io.fromIDU.bits.unsigned
+      ) ## io.fromLSU.bits.readData(15, 0),
+      MemLen.W.asUInt -> io.fromLSU.bits.readData
     )
   )
 
@@ -107,7 +107,7 @@ class EXU extends Module {
     Seq(
       RegWriteDataType.RESULT.asUInt -> result,
       RegWriteDataType.NEXTPC.asUInt -> (io.currentPC + 4.U),
-      RegWriteDataType.MEMREAD.asUInt -> memoryReadData,
+      RegWriteDataType.MEMREAD.asUInt -> lsuReadData,
       RegWriteDataType.CSRDATA.asUInt -> io.csrData
     )
   )
