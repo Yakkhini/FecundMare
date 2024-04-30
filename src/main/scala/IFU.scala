@@ -14,6 +14,11 @@ class IFU extends Module {
   val pc = RegInit("h80000000".U(32.W))
   val inst = Wire(UInt(32.W))
 
+  val sram = Module(new SRAM())
+
+  sram.io.readAddr := pc
+  inst := sram.io.readData
+
   io.toIDU.bits.currentPC := pc
   io.toIDU.bits.inst := inst
 
