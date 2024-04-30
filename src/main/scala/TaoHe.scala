@@ -2,7 +2,8 @@ package taohe
 
 import chisel3._
 import circt.stage.ChiselStage
-import chisel3.probe.Probe
+
+import taohe.idu.IDU
 
 class TaoHe extends Module {
   val io = IO(new Bundle {})
@@ -25,26 +26,26 @@ class TaoHe extends Module {
   csr.io.currentPC := pc
   csr.io.rs1data := registerFile.io.toEXU.bits.readData1
 
-  val IDU = Module(new idu.IDU())
-  IDU.io.inst := inst
-  registerFile.io.fromIDU <> IDU.io.toRegisterFile
-  csr.io.address := IDU.io.csrAddress
-  csr.io.csrOperation := IDU.io.csrOperation
+  val idu = Module(new IDU())
+  idu.io.inst := inst
+  registerFile.io.fromIDU <> idu.io.toRegisterFile
+  csr.io.address := idu.io.csrAddress
+  csr.io.csrOperation := idu.io.csrOperation
 
-  val EXU = Module(new EXU())
-  EXU.io.currentPC := pc
-  pc := EXU.io.nextPC
-  EXU.io.csrData := csr.io.readData
-  EXU.io.fromIDU <> IDU.io.toEXU
-  EXU.io.fromRegisterFile <> registerFile.io.toEXU
-  EXU.io.fromMemory <> memory.io.toEXU
-  registerFile.io.fromEXU <> EXU.io.toRegisterFile
-  memory.io.fromEXU <> EXU.io.toMemory
+  val exu = Module(new EXU())
+  exu.io.currentPC := pc
+  pc := exu.io.nextPC
+  exu.io.csrData := csr.io.readData
+  exu.io.fromIDU <> idu.io.toEXU
+  exu.io.fromRegisterFile <> registerFile.io.toEXU
+  exu.io.fromMemory <> memory.io.toEXU
+  registerFile.io.fromEXU <> exu.io.toRegisterFile
+  memory.io.fromEXU <> exu.io.toMemory
 
   dontTouch(pc)
   dontTouch(inst)
-  dontTouch(EXU.io.toRegisterFile.bits.writeData)
-  dontTouch(EXU.io.toRegisterFile.bits.writeEnable)
+  dontTouch(exu.io.toRegisterFile.bits.writeData)
+  dontTouch(exu.io.toRegisterFile.bits.writeEnable)
   dontTouch(csr.io.readData)
 
 }
