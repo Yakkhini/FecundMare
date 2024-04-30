@@ -179,13 +179,13 @@ void cpu_exec(int n) {
 void cpu_sync() {
   memcpy(cpu.regs, cpu.top->TaoHe->registerFile->registers, sizeof(cpu.regs));
   if (cpu.top->TaoHe->registerFile->io_fromEXU_bits_writeEnable &&
-      cpu.top->TaoHe->registerFile->io_fromIDU_bits_writeAddr) {
-    cpu.regs[cpu.top->TaoHe->registerFile->io_fromIDU_bits_writeAddr] =
+      cpu.top->TaoHe->registerFile->io_fromEXU_bits_writeAddr) {
+    cpu.regs[cpu.top->TaoHe->registerFile->io_fromEXU_bits_writeAddr] =
         cpu.top->TaoHe->registerFile->io_fromEXU_bits_writeData;
   }
   cpu.pc_prev = cpu.pc;
-  cpu.pc = cpu.top->TaoHe->exu->io_nextPC;
-  cpu.inst = cpu.top->TaoHe->inst;
+  cpu.pc = cpu.top->TaoHe->exu->io_toIFU_bits_nextPC;
+  cpu.inst = cpu.top->TaoHe->ifu->io_toIDU_bits_inst;
 }
 
 void cpu_check() {

@@ -10,11 +10,14 @@ import taohe.util.IDUBundle
 class IDU extends Module {
   val io = IO(new IDUBundle)
 
-  io.toEXU.valid := true.B
+  io.toEXU.valid := false.B
+  io.fromIFU.ready := false.B
 
   import IDUTable.decodeTable
 
   val decodeResult = decodeTable.decode(io.fromIFU.bits.inst)
+
+  io.toEXU.bits.currentPC := io.fromIFU.bits.currentPC
 
   val imm_i = io.fromIFU.bits.inst(31) ## Fill(
     20,

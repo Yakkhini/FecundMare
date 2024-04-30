@@ -12,6 +12,9 @@ import taohe.util.CSRBundle
 class CSR extends Module {
   val io = IO(new CSRBundle)
 
+  io.toEXU.valid := false.B
+  io.fromEXU.ready := false.B
+
   // The initial value of the MSTATUS register is 0x00001800 to pass DiffTest
   val csrs = RegInit(
     VecInit(Seq("h00001800".U(32.W), 0.U(32.W), 0.U(32.W), 0.U(32.W)))

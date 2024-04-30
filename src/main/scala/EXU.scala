@@ -12,13 +12,26 @@ class EXU extends Module {
   val io = IO(new EXUBundle)
 
   io.toRegisterFile.valid := false.B
+  io.toCSR.valid := false.B
+  io.toIFU.valid := false.B
+  io.toLSU.valid := io.fromIDU.bits.lsuValid
 
   io.fromIDU.ready := false.B
   io.fromRegisterFile.ready := false.B
+  io.fromCSR.ready := false.B
   io.fromLSU.ready := false.B
 
   dontTouch(io.fromLSU.valid)
   dontTouch(io.toLSU.ready)
+
+  io.toRegisterFile.bits.readAddr1 := io.fromIDU.bits.registerReadAddr1
+  io.toRegisterFile.bits.readAddr2 := io.fromIDU.bits.registerReadAddr2
+  io.toRegisterFile.bits.writeAddr := io.fromIDU.bits.registerWriteAddr
+
+  io.toCSR.bits.address := io.fromIDU.bits.csrAddress
+  io.toCSR.bits.currentPC := io.fromIDU.bits.currentPC
+  io.toCSR.bits.operation := io.fromIDU.bits.csrOperation
+  io.toCSR.bits.rs1data := io.fromRegisterFile.bits.readData1
 
   io.toLSU.bits.address := io.fromRegisterFile.bits.readData1 + io.fromIDU.bits.imm
   io.toLSU.bits.lenth := io.fromIDU.bits.lsuLenth
