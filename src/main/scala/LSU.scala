@@ -45,7 +45,7 @@ class LSU extends BlackBox with HasBlackBoxInline {
         |  import "DPI-C" context function void mtrace_reset();
         |
         |  always @(posedge clock) begin
-        |    if(fromEXU_bits_writeEnable & !reset) begin
+        |    if(fromEXU_bits_writeEnable & !reset & fromEXU_valid) begin
         |      vaddr_write(fromEXU_bits_address, fromEXU_bits_lenth, fromEXU_bits_writeData, {31'b0, fromEXU_valid});
         |    end
         |  end

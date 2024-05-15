@@ -10,7 +10,9 @@ class RegisterFile extends Module {
 
   val registers = RegInit(VecInit(Seq.fill(32)(0.U(32.W))))
 
-  when(io.fromEXU.bits.writeEnable && io.fromEXU.bits.writeAddr =/= 0.U) {
+  when(
+    io.fromEXU.bits.writeEnable && io.fromEXU.bits.writeAddr =/= 0.U && io.fromEXU.valid
+  ) {
     registers(io.fromEXU.bits.writeAddr) := io.fromEXU.bits.writeData
   }
 
