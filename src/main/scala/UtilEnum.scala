@@ -2,6 +2,10 @@ package taohe.util.enum
 
 import chisel3._
 
+object UnitState extends ChiselEnum {
+  val IDLE, WAIT = Value
+}
+
 object InstType extends ChiselEnum {
   val R, I, S, B, U, J = Value
 }
