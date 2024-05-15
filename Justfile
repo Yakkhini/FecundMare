@@ -22,7 +22,7 @@ _compile:
     --top-module {{NPC_NAME}} \
     --x-assign fast --x-initial fast --noassert \
     --build -j 6 -Wall -Wno-UNUSEDSIGNAL -Wno-DECLFILENAME `echo $VLTRC` `echo $CSRC` `echo $VSRC` \
-    -CFLAGS -I{{BUILD_DIR}}/verilator -CFLAGS -I{{INC_DIR}} -CFLAGS -I{{CONFIG_DIR}} \
+    -CFLAGS -I{{BUILD_DIR}}/verilator -CFLAGS -I{{INC_DIR}} -CFLAGS -I{{CONFIG_DIR}} -CFLAGS -g \
     -LDFLAGS -lreadline -LDFLAGS -lcapstone \
     --trace --exe -o {{BUILD_DIR}}/bin/taohe
 
