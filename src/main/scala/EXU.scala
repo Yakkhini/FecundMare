@@ -11,10 +11,10 @@ import chisel3.util.Fill
 class EXU extends Module {
   val io = IO(new EXUBundle)
 
-  io.toRegisterFile.valid := false.B
-  io.toCSR.valid := false.B
-  io.toIFU.valid := false.B
-  io.toLSU.valid := io.fromIDU.bits.lsuValid
+  io.toRegisterFile.valid := io.fromIDU.valid
+  io.toCSR.valid := io.fromIDU.valid
+  io.toIFU.valid := io.fromIDU.valid
+  io.toLSU.valid := io.fromIDU.valid & io.fromIDU.bits.lsuValid
 
   io.fromIDU.ready := false.B
   io.fromRegisterFile.ready := false.B
@@ -37,7 +37,6 @@ class EXU extends Module {
   io.toLSU.bits.lenth := io.fromIDU.bits.lsuLenth
   io.toLSU.bits.writeData := io.fromRegisterFile.bits.readData2
   io.toLSU.bits.writeEnable := (io.fromIDU.bits.instructionType === InstType.S.asUInt)
-  io.toLSU.valid := io.fromIDU.bits.lsuValid
 
   val data1 = MuxLookup(io.fromIDU.bits.data1Type, 0.U(32.W))(
     Seq(

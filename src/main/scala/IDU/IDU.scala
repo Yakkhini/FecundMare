@@ -10,8 +10,8 @@ import taohe.util.IDUBundle
 class IDU extends Module {
   val io = IO(new IDUBundle)
 
-  io.toEXU.valid := false.B
-  io.fromIFU.ready := false.B
+  io.toEXU.valid := io.fromIFU.valid
+  io.fromIFU.ready := true.B
 
   import IDUTable.decodeTable
 
@@ -94,6 +94,6 @@ class IDU extends Module {
   io.toEXU.bits.csrOperation := decodeResult(CSROPTypeField)
 
   val decodeSupport = Wire(Bool())
-  decodeSupport := decodeResult(DecodeSupportField)
+  decodeSupport := decodeResult(DecodeSupportField) | ~io.fromIFU.valid
   dontTouch(decodeSupport)
 }
