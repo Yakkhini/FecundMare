@@ -26,6 +26,12 @@ class IFU extends Module {
   sramValid := sram.io.valid
   inst := sram.io.readData
 
+  // No need to write to SRAM in IFU
+  sram.io.writeAddr := 0.U
+  sram.io.writeData := 0.U
+  sram.io.writeLen := 0.U
+  sram.io.writeEnable := false.B
+
   io.toIDU.bits.currentPC := pc
   io.toIDU.bits.inst := inst
 }
