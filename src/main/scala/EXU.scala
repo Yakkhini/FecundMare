@@ -11,18 +11,15 @@ import chisel3.util.Fill
 class EXU extends Module {
   val io = IO(new EXUBundle)
 
-  io.toRegisterFile.valid := io.fromIDU.valid
-  io.toCSR.valid := io.fromIDU.valid
-  io.toIFU.valid := io.fromIDU.valid
-  io.toLSU.valid := io.fromIDU.valid & io.fromIDU.bits.lsuValid
+  io.toRegisterFile.valid := io.fromIDU.valid & io.fromLSU.valid
+  io.toCSR.valid := io.fromIDU.valid & io.fromLSU.valid
+  io.toIFU.valid := io.fromIDU.valid & io.fromLSU.valid
+  io.toLSU.valid := io.fromIDU.valid & io.fromIDU.bits.lsuValid & io.fromLSU.valid
 
   io.fromIDU.ready := false.B
   io.fromRegisterFile.ready := false.B
   io.fromCSR.ready := false.B
   io.fromLSU.ready := false.B
-
-  dontTouch(io.fromLSU.valid)
-  dontTouch(io.toLSU.ready)
 
   io.toRegisterFile.bits.readAddr1 := io.fromIDU.bits.registerReadAddr1
   io.toRegisterFile.bits.readAddr2 := io.fromIDU.bits.registerReadAddr2
