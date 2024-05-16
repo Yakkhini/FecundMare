@@ -3,7 +3,6 @@ package taohe
 import chisel3._
 
 import taohe.util.RegisterFileBundle
-import chisel3.probe.Probe
 
 class RegisterFile extends Module {
   val io = IO(new RegisterFileBundle)
