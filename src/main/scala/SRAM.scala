@@ -26,7 +26,7 @@ class SRAM extends Module {
   val memWrite = Module(new MemWrite())
 
   memRead.io.readAddr := io.readAddr
-  io.readData := memRead.io.readData
+  io.readData := Mux(io.valid, memRead.io.readData, 0.U)
 
   memWrite.io.writeAddr := io.writeAddr
   memWrite.io.writeData := io.writeData
