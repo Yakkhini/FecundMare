@@ -30,10 +30,11 @@ class MemWrite extends BlackBox with HasBlackBoxInline {
        |    int data,
        |    int valid
        |  );
-       |
        |  
        |  always @(posedge clock) begin
-       |    vaddr_write(writeAddr, writeLen, writeData, {31'b0, writeEnable});
+       |    if(writeEnable) begin
+       |      vaddr_write(writeAddr, writeLen, writeData, {31'b0, writeEnable});
+       |    end
        |  end
        |
        |endmodule
