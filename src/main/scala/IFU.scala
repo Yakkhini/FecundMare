@@ -13,7 +13,6 @@ class IFU extends Module {
   val pc = RegInit("h80000000".U(32.W))
   val inst = Wire(UInt(32.W))
 
-  val sram = Module(new SRAM())
   val sramValid = Wire(Bool())
 
   // Default value
@@ -22,15 +21,15 @@ class IFU extends Module {
 
   pc := Mux(io.fromEXU.valid, io.fromEXU.bits.nextPC, pc)
 
-  sram.io.readAddr := pc
-  sramValid := sram.io.valid
-  inst := sram.io.readData
+  io.withSRAM.readAddr := pc
+  sramValid := io.withSRAM.valid
+  inst := io.withSRAM.readData
 
   // No need to write to SRAM in IFU
-  sram.io.writeAddr := 0.U
-  sram.io.writeData := 0.U
-  sram.io.writeLen := 0.U
-  sram.io.writeEnable := false.B
+  io.withSRAM.writeAddr := 0.U
+  io.withSRAM.writeData := 0.U
+  io.withSRAM.writeLen := 0.U
+  io.withSRAM.writeEnable := false.B
 
   io.toIDU.bits.currentPC := pc
   io.toIDU.bits.inst := inst

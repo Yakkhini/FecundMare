@@ -18,6 +18,10 @@ class TaoHe extends Module {
   val idu = Module(new IDU())
   val exu = Module(new EXU())
 
+  val sramArbiter = Module(new SRAMArbiter())
+  ifu.io.withSRAM <> sramArbiter.ifuIO
+  lsu.io.withSRAM <> sramArbiter.lsuIO
+
   ifu.io.toIDU <> idu.io.fromIFU
   idu.io.toEXU <> exu.io.fromIDU
 
@@ -31,8 +35,13 @@ class TaoHe extends Module {
 
   exu.io.toIFU <> ifu.io.fromEXU
 
+  dontTouch(exu.io.toRegisterFile.bits.writeAddr)
   dontTouch(exu.io.toRegisterFile.bits.writeData)
   dontTouch(exu.io.toRegisterFile.bits.writeEnable)
+  dontTouch(exu.io.toLSU.bits.lenth)
+  dontTouch(exu.io.toLSU.bits.address)
+  dontTouch(exu.io.toLSU.bits.writeData)
+  dontTouch(exu.io.toLSU.bits.writeEnable)
 
 }
 

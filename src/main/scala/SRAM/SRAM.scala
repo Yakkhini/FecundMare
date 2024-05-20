@@ -5,17 +5,10 @@ import chisel3.util.{switch, is}
 
 import taohe.dpic.{MemRead, MemWrite}
 import taohe.util.enum.MemLen
+import taohe.util.SRAMBundle
 
 class SRAM extends Module {
-  val io = IO(new Bundle {
-    val readAddr = Input(UInt(32.W))
-    val readData = Output(UInt(32.W))
-    val writeAddr = Input(UInt(32.W))
-    val writeData = Input(UInt(32.W))
-    val writeLen = Input(UInt(MemLen.getWidth.W))
-    val writeEnable = Input(Bool())
-    val valid = Output(Bool())
-  })
+  val io = IO(new SRAMBundle)
 
   val addr = RegInit(0.U(32.W))
   addr := io.readAddr

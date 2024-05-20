@@ -1,32 +1,30 @@
 package taohe
 
 import chisel3._
+import chisel3.util.{switch, is}
 
 import taohe.util.LSUBundle
-import chisel3.util.{switch, is}
 
 class LSU extends Module {
   val io = IO(new LSUBundle)
 
-  val sram = Module(new SRAM())
-
-  sram.io.writeEnable := false.B
+  io.withSRAM.writeEnable := false.B
 
   switch(io.fromEXU.valid) {
     is(true.B) {
-      sram.io.writeEnable := io.fromEXU.bits.writeEnable
+      io.withSRAM.writeEnable := io.fromEXU.bits.writeEnable
     }
     is(false.B) {
-      sram.io.writeEnable := false.B
+      io.withSRAM.writeEnable := false.B
     }
   }
 
-  sram.io.readAddr := io.fromEXU.bits.address
-  sram.io.writeAddr := io.fromEXU.bits.address
-  sram.io.writeData := io.fromEXU.bits.writeData
-  sram.io.writeLen := io.fromEXU.bits.lenth
-  io.toEXU.bits.readData := sram.io.readData
-  io.toEXU.valid := sram.io.valid
+  io.withSRAM.readAddr := io.fromEXU.bits.address
+  io.withSRAM.writeAddr := io.fromEXU.bits.address
+  io.withSRAM.writeData := io.fromEXU.bits.writeData
+  io.withSRAM.writeLen := io.fromEXU.bits.lenth
+  io.toEXU.bits.readData := io.withSRAM.readData
+  io.toEXU.valid := io.withSRAM.valid
   io.fromEXU.ready := true.B
 
   //   "LSU.sv",
