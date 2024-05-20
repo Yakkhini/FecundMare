@@ -37,7 +37,7 @@ class TaoHe extends Module {
 }
 
 object Main extends App {
-  println("Hello World, I will now generate the Verilog file!")
+  println("Hello World, I will generate the Verilog file now!")
   ChiselStage.emitSystemVerilogFile(
     gen = new TaoHe(),
     args = Array("--target-dir", "out/verilog", "--split-verilog"),
