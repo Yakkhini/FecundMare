@@ -71,15 +71,22 @@ class EXUToLSUBundle extends Bundle {
   val lenth = UInt(32.W)
 }
 
+class ToSRAM extends Bundle {
+  val readAddr = UInt(32.W)
+  val writeAddr = UInt(32.W)
+  val writeData = UInt(32.W)
+  val writeLen = UInt(MemLen.getWidth.W)
+  val writeEnable = Bool()
+}
+
+class fromSRAM extends Bundle {
+  val readData = UInt(32.W)
+}
+
 // Public interfaces
 class SRAMBundle extends Bundle {
-  val readAddr = Input(UInt(32.W))
-  val readData = Output(UInt(32.W))
-  val writeAddr = Input(UInt(32.W))
-  val writeData = Input(UInt(32.W))
-  val writeLen = Input(UInt(MemLen.getWidth.W))
-  val writeEnable = Input(Bool())
-  val valid = Output(Bool())
+  val input = Flipped(Decoupled(new ToSRAM))
+  val output = Decoupled(new fromSRAM)
 }
 
 class LSUBundle extends Bundle {
@@ -87,7 +94,8 @@ class LSUBundle extends Bundle {
   val reset = Input(Bool())
   val fromEXU = Flipped(Decoupled(new EXUToLSUBundle))
   val toEXU = Decoupled(new LSUToEXUBundle)
-  val withSRAM = Flipped(new SRAMBundle)
+  val fromSRAM = Flipped(Decoupled(new fromSRAM))
+  val toSRAM = Decoupled(new ToSRAM)
 }
 
 class RegisterFileBundle extends Bundle {
@@ -103,7 +111,8 @@ class CSRBundle extends Bundle {
 class IFUBundle extends Bundle {
   val fromEXU = Flipped(Decoupled(new EXUToIFUBundle))
   val toIDU = Decoupled(new IFUToIDUBundle)
-  val withSRAM = Flipped(new SRAMBundle)
+  val fromSRAM = Flipped(Decoupled(new fromSRAM))
+  val toSRAM = Decoupled(new ToSRAM)
 }
 
 class IDUBundle extends Bundle {

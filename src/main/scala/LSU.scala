@@ -8,24 +8,29 @@ import taohe.util.LSUBundle
 class LSU extends Module {
   val io = IO(new LSUBundle)
 
-  io.withSRAM.writeEnable := false.B
+  io.toSRAM.bits.writeEnable := false.B
+  io.toSRAM.valid := false.B
 
   switch(io.fromEXU.valid) {
     is(true.B) {
-      io.withSRAM.writeEnable := io.fromEXU.bits.writeEnable
+      io.toSRAM.bits.writeEnable := io.fromEXU.bits.writeEnable
+      io.toSRAM.valid := true.B
     }
+
     is(false.B) {
-      io.withSRAM.writeEnable := false.B
+      io.toSRAM.bits.writeEnable := false.B
+      io.toSRAM.valid := false.B
     }
   }
 
-  io.withSRAM.readAddr := io.fromEXU.bits.address
-  io.withSRAM.writeAddr := io.fromEXU.bits.address
-  io.withSRAM.writeData := io.fromEXU.bits.writeData
-  io.withSRAM.writeLen := io.fromEXU.bits.lenth
-  io.toEXU.bits.readData := io.withSRAM.readData
-  io.toEXU.valid := io.withSRAM.valid
+  io.toSRAM.bits.readAddr := io.fromEXU.bits.address
+  io.toSRAM.bits.writeAddr := io.fromEXU.bits.address
+  io.toSRAM.bits.writeData := io.fromEXU.bits.writeData
+  io.toSRAM.bits.writeLen := io.fromEXU.bits.lenth
+  io.toEXU.bits.readData := io.fromSRAM.bits.readData
+  io.toEXU.valid := io.fromSRAM.valid
   io.fromEXU.ready := true.B
+  io.fromSRAM.ready := true.B
 
   //   "LSU.sv",
   //   """

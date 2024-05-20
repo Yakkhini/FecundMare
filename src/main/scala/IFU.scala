@@ -21,15 +21,16 @@ class IFU extends Module {
 
   pc := Mux(io.fromEXU.valid, io.fromEXU.bits.nextPC, pc)
 
-  io.withSRAM.readAddr := pc
-  sramValid := io.withSRAM.valid
-  inst := io.withSRAM.readData
+  io.toSRAM.bits.readAddr := pc
+  io.toSRAM.bits.writeAddr := 0.U
+  io.toSRAM.bits.writeData := 0.U
+  io.toSRAM.bits.writeLen := 0.U
+  io.toSRAM.bits.writeEnable := false.B
+  io.toSRAM.valid := (pc =/= io.fromEXU.bits.nextPC) && io.fromEXU.valid
 
-  // No need to write to SRAM in IFU
-  io.withSRAM.writeAddr := 0.U
-  io.withSRAM.writeData := 0.U
-  io.withSRAM.writeLen := 0.U
-  io.withSRAM.writeEnable := false.B
+  sramValid := io.fromSRAM.valid
+  io.fromSRAM.ready := io.toSRAM.valid
+  inst := io.fromSRAM.bits.readData
 
   io.toIDU.bits.currentPC := pc
   io.toIDU.bits.inst := inst
