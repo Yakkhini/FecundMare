@@ -35,7 +35,7 @@ trace msg:
     sync
 
 wave:
-    gtkwave {{BUILD_DIR}}/waveform.vcd
+    gtkwave WaveLayout.gtkw
 
 fmt:
     scalafmt
