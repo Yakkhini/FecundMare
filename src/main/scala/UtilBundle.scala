@@ -79,14 +79,14 @@ class ToSRAM extends Bundle {
   val writeEnable = Bool()
 }
 
-class fromSRAM extends Bundle {
+class FromSRAM extends Bundle {
   val readData = UInt(32.W)
 }
 
 // Public interfaces
 class SRAMBundle extends Bundle {
   val input = Flipped(Decoupled(new ToSRAM))
-  val output = Decoupled(new fromSRAM)
+  val output = Decoupled(new FromSRAM)
 }
 
 class LSUBundle extends Bundle {
@@ -94,7 +94,7 @@ class LSUBundle extends Bundle {
   val reset = Input(Bool())
   val fromEXU = Flipped(Decoupled(new EXUToLSUBundle))
   val toEXU = Decoupled(new LSUToEXUBundle)
-  val fromSRAM = Flipped(Decoupled(new fromSRAM))
+  val fromSRAM = Flipped(Decoupled(new FromSRAM))
   val toSRAM = Decoupled(new ToSRAM)
 }
 
@@ -111,7 +111,7 @@ class CSRBundle extends Bundle {
 class IFUBundle extends Bundle {
   val fromEXU = Flipped(Decoupled(new EXUToIFUBundle))
   val toIDU = Decoupled(new IFUToIDUBundle)
-  val fromSRAM = Flipped(Decoupled(new fromSRAM))
+  val fromSRAM = Flipped(Decoupled(new FromSRAM))
   val toSRAM = Decoupled(new ToSRAM)
 }
 
