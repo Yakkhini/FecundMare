@@ -83,10 +83,38 @@ class FromSRAM extends Bundle {
   val readData = UInt(32.W)
 }
 
+class AXI4LiteAWChannel extends Bundle {
+  val addr = Output(UInt(32.W))
+  val prot = Output(UInt(3.W))
+}
+
+class AXI4LiteWChannel extends Bundle {
+  val data = Output(UInt(32.W))
+  val strb = Output(UInt(4.W))
+}
+
+class AXI4LiteBChannel extends Bundle {
+  val resp = Input(UInt(2.W))
+}
+
+class AXI4LiteARChannel extends Bundle {
+  val addr = Output(UInt(32.W))
+  val prot = Output(UInt(3.W))
+}
+
+class AXI4LiteRChannel extends Bundle {
+  val data = Input(UInt(32.W))
+  val resp = Input(UInt(2.W))
+}
+
 // Public interfaces
-class SRAMBundle extends Bundle {
-  val input = Flipped(Decoupled(new ToSRAM))
-  val output = Decoupled(new FromSRAM)
+class AXI4LiteBundle extends Bundle {
+  // Manager to Subordinate
+  val aw = Decoupled(new AXI4LiteAWChannel)
+  val w = Decoupled(new AXI4LiteWChannel)
+  val b = Flipped(Decoupled(new AXI4LiteBChannel))
+  val ar = Decoupled(new AXI4LiteARChannel)
+  val r = Flipped(Decoupled(new AXI4LiteRChannel))
 }
 
 class LSUBundle extends Bundle {
