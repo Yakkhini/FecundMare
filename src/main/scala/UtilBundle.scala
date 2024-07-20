@@ -85,7 +85,8 @@ class FromSRAM extends Bundle {
 
 class AXI4LiteAWChannel extends Bundle {
   val addr = Output(UInt(32.W))
-  val prot = Output(UInt(3.W))
+  // Not required to differentiate between Non-secure and Secure accesses
+  // val prot = Output(UInt(3.W))
 }
 
 class AXI4LiteWChannel extends Bundle {
@@ -99,7 +100,8 @@ class AXI4LiteBChannel extends Bundle {
 
 class AXI4LiteARChannel extends Bundle {
   val addr = Output(UInt(32.W))
-  val prot = Output(UInt(3.W))
+  // Not required to differentiate between Non-secure and Secure accesses
+  // val prot = Output(UInt(3.W))
 }
 
 class AXI4LiteRChannel extends Bundle {
