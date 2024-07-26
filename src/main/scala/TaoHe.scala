@@ -19,10 +19,8 @@ class TaoHe extends Module {
   val exu = Module(new EXU())
 
   val sramArbiter = Module(new SRAMArbiter())
-  ifu.io.toSRAM <> sramArbiter.ifuIO.input
-  lsu.io.toSRAM <> sramArbiter.lsuIO.input
-  ifu.io.fromSRAM <> sramArbiter.ifuIO.output
-  lsu.io.fromSRAM <> sramArbiter.lsuIO.output
+  ifu.io.axi4Lite <> sramArbiter.ifuIO
+  lsu.io.axi4Lite <> sramArbiter.lsuIO
 
   ifu.io.toIDU <> idu.io.fromIFU
   idu.io.toEXU <> exu.io.fromIDU

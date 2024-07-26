@@ -71,18 +71,6 @@ class EXUToLSUBundle extends Bundle {
   val lenth = UInt(32.W)
 }
 
-class ToSRAM extends Bundle {
-  val readAddr = UInt(32.W)
-  val writeAddr = UInt(32.W)
-  val writeData = UInt(32.W)
-  val writeLen = UInt(MemLen.getWidth.W)
-  val writeEnable = Bool()
-}
-
-class FromSRAM extends Bundle {
-  val readData = UInt(32.W)
-}
-
 class AXI4LiteAWChannel extends Bundle {
   val addr = Output(UInt(32.W))
   // Not required to differentiate between Non-secure and Secure accesses
@@ -124,8 +112,7 @@ class LSUBundle extends Bundle {
   val reset = Input(Bool())
   val fromEXU = Flipped(Decoupled(new EXUToLSUBundle))
   val toEXU = Decoupled(new LSUToEXUBundle)
-  val fromSRAM = Flipped(Decoupled(new FromSRAM))
-  val toSRAM = Decoupled(new ToSRAM)
+  val axi4Lite = new AXI4LiteBundle
 }
 
 class RegisterFileBundle extends Bundle {
@@ -141,8 +128,7 @@ class CSRBundle extends Bundle {
 class IFUBundle extends Bundle {
   val fromEXU = Flipped(Decoupled(new EXUToIFUBundle))
   val toIDU = Decoupled(new IFUToIDUBundle)
-  val fromSRAM = Flipped(Decoupled(new FromSRAM))
-  val toSRAM = Decoupled(new ToSRAM)
+  val axi4Lite = new AXI4LiteBundle
 }
 
 class IDUBundle extends Bundle {
