@@ -64,7 +64,7 @@ class IDU extends Module {
     )
   )
 
-  io.toEXU.bits.registerReadAddr1 := MuxLookup(
+  io.toRegisterFile.bits.readAddr1 := MuxLookup(
     io.fromIFU.bits.inst(6, 0),
     io.fromIFU.bits.inst(19, 15)
   )(
@@ -73,7 +73,10 @@ class IDU extends Module {
       "b1110011".U -> breakReadAddr
     )
   )
-  io.toEXU.bits.registerReadAddr2 := io.fromIFU.bits.inst(24, 20)
+  io.toRegisterFile.bits.readAddr2 := io.fromIFU.bits.inst(24, 20)
+
+  io.toEXU.bits.registerReadData1 := io.fromRegisterFile.bits.readData1
+  io.toEXU.bits.registerReadData2 := io.fromRegisterFile.bits.readData2
   io.toEXU.bits.registerWriteAddr := io.fromIFU.bits.inst(11, 7)
 
   io.toEXU.bits.instructionType := decodeResult(InstTypeField)

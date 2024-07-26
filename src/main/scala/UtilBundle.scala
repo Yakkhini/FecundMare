@@ -13,8 +13,8 @@ class IFUToIDUBundle extends Bundle {
 
 class IDUToEXUBundle extends Bundle {
   val currentPC = UInt(32.W)
-  val registerReadAddr1 = UInt(5.W)
-  val registerReadAddr2 = UInt(5.W)
+  val registerReadData1 = UInt(5.W)
+  val registerReadData2 = UInt(5.W)
   val registerWriteAddr = UInt(5.W)
   val registerWriteType = UInt(RegWriteDataType.getWidth.W)
   val csrAddress = UInt(12.W)
@@ -32,14 +32,17 @@ class IDUToEXUBundle extends Bundle {
   val imm = UInt(32.W)
 }
 
-class RegisterFileToEXUBundle extends Bundle {
+class RegisterFileToIDUBundle extends Bundle {
   val readData1 = UInt(32.W)
   val readData2 = UInt(32.W)
 }
 
-class EXUToRegisterFileBundle extends Bundle {
+class IDUToRegisterFileBundle extends Bundle {
   val readAddr1 = UInt(5.W)
   val readAddr2 = UInt(5.W)
+}
+
+class EXUToRegisterFileBundle extends Bundle {
   val writeAddr = UInt(5.W)
   val writeData = UInt(32.W)
   val writeEnable = Bool()
@@ -117,7 +120,8 @@ class LSUBundle extends Bundle {
 
 class RegisterFileBundle extends Bundle {
   val fromEXU = Flipped(Decoupled(new EXUToRegisterFileBundle))
-  val toEXU = Decoupled(new RegisterFileToEXUBundle)
+  val fromIDU = Flipped(Decoupled(new IDUToRegisterFileBundle))
+  val toIDU = Decoupled(new RegisterFileToIDUBundle)
 }
 
 class CSRBundle extends Bundle {
@@ -134,11 +138,12 @@ class IFUBundle extends Bundle {
 class IDUBundle extends Bundle {
   val fromIFU = Flipped(Decoupled(new IFUToIDUBundle))
   val toEXU = Decoupled(new IDUToEXUBundle)
+  val fromRegisterFile = Flipped(Decoupled(new RegisterFileToIDUBundle))
+  val toRegisterFile = Decoupled(new IDUToRegisterFileBundle)
 }
 
 class EXUBundle extends Bundle {
   val fromIDU = Flipped(Decoupled(new IDUToEXUBundle))
-  val fromRegisterFile = Flipped(Decoupled(new RegisterFileToEXUBundle))
   val toRegisterFile = Decoupled(new EXUToRegisterFileBundle)
   val fromLSU = Flipped(Decoupled(new LSUToEXUBundle))
   val toLSU = Decoupled(new EXUToLSUBundle)

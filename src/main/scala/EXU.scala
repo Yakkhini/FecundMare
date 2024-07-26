@@ -17,34 +17,31 @@ class EXU extends Module {
   io.toLSU.valid := io.fromIDU.valid & io.fromIDU.bits.lsuValid & io.fromLSU.valid
 
   io.fromIDU.ready := false.B
-  io.fromRegisterFile.ready := false.B
   io.fromCSR.ready := false.B
   io.fromLSU.ready := false.B
 
-  io.toRegisterFile.bits.readAddr1 := io.fromIDU.bits.registerReadAddr1
-  io.toRegisterFile.bits.readAddr2 := io.fromIDU.bits.registerReadAddr2
   io.toRegisterFile.bits.writeAddr := io.fromIDU.bits.registerWriteAddr
 
   io.toCSR.bits.address := io.fromIDU.bits.csrAddress
   io.toCSR.bits.currentPC := io.fromIDU.bits.currentPC
   io.toCSR.bits.operation := io.fromIDU.bits.csrOperation
-  io.toCSR.bits.rs1data := io.fromRegisterFile.bits.readData1
+  io.toCSR.bits.rs1data := io.fromIDU.bits.registerReadData1
 
-  io.toLSU.bits.address := io.fromRegisterFile.bits.readData1 + io.fromIDU.bits.imm
+  io.toLSU.bits.address := io.fromIDU.bits.registerReadData1 + io.fromIDU.bits.imm
   io.toLSU.bits.lenth := io.fromIDU.bits.lsuLenth
-  io.toLSU.bits.writeData := io.fromRegisterFile.bits.readData2
+  io.toLSU.bits.writeData := io.fromIDU.bits.registerReadData2
   io.toLSU.bits.writeEnable := (io.fromIDU.bits.instructionType === InstType.S.asUInt)
 
   val data1 = MuxLookup(io.fromIDU.bits.data1Type, 0.U(32.W))(
     Seq(
-      Data1Type.RS1.asUInt -> io.fromRegisterFile.bits.readData1,
+      Data1Type.RS1.asUInt -> io.fromIDU.bits.registerReadData1,
       Data1Type.PC.asUInt -> io.fromIDU.bits.currentPC
     )
   )
 
   val data2 = MuxLookup(io.fromIDU.bits.data2Type, 0.U(32.W))(
     Seq(
-      Data2Type.RS2.asUInt -> io.fromRegisterFile.bits.readData2,
+      Data2Type.RS2.asUInt -> io.fromIDU.bits.registerReadData2,
       Data2Type.IMM.asUInt -> io.fromIDU.bits.imm
     )
   )

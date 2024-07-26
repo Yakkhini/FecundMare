@@ -25,7 +25,9 @@ class TaoHe extends Module {
   ifu.io.toIDU <> idu.io.fromIFU
   idu.io.toEXU <> exu.io.fromIDU
 
-  exu.io.fromRegisterFile <> registerFile.io.toEXU
+  idu.io.fromRegisterFile <> registerFile.io.toIDU
+  idu.io.toRegisterFile <> registerFile.io.fromIDU
+
   exu.io.fromCSR <> csr.io.toEXU
   exu.io.fromLSU <> lsu.io.toEXU
 
