@@ -275,21 +275,6 @@ object MemLenField extends DecodeField[InstructionPattern, UInt] {
   }
 }
 
-object MemValidField extends BoolDecodeField[InstructionPattern] {
-  def name: String = "memoryValid"
-  def genTable(op: InstructionPattern): BitPat = {
-    op.instType match {
-      case InstType.I => {
-        if (op.opcode == BitPat("b0000011")) BitPat(true.B)
-        else BitPat(false.B)
-      }
-      case InstType.S => BitPat(true.B)
-      case _          => BitPat(false.B)
-    }
-  }
-
-}
-
 object UnsignField extends BoolDecodeField[InstructionPattern] {
   def name: String = "unsign"
   def genTable(op: InstructionPattern): BitPat = {
@@ -629,7 +614,6 @@ object IDUTable {
     RegWriteDataTypeField,
     NextPCDataTypeField,
     MemLenField,
-    MemValidField,
     UnsignField,
     BreakField,
     CSROPTypeField
