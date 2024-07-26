@@ -2,9 +2,15 @@ package taohe.util.enum
 
 import chisel3._
 
-object UnitState extends ChiselEnum {
+object ManagerState extends ChiselEnum {
   val IDLE, WAIT = Value
 }
+
+object SubordinateState extends ChiselEnum {
+  val IDLE, WORK = Value
+}
+
+// Control signals
 
 object InstType extends ChiselEnum {
   val R, I, S, B, U, J = Value
