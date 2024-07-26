@@ -83,7 +83,7 @@ class AXI4LiteWChannel extends Bundle {
 }
 
 class AXI4LiteBChannel extends Bundle {
-  val resp = Input(UInt(2.W))
+  val resp = Output(UInt(2.W))
 }
 
 class AXI4LiteARChannel extends Bundle {
@@ -93,8 +93,8 @@ class AXI4LiteARChannel extends Bundle {
 }
 
 class AXI4LiteRChannel extends Bundle {
-  val data = Input(UInt(32.W))
-  val resp = Input(UInt(2.W))
+  val data = Output(UInt(32.W))
+  val resp = Output(UInt(2.W))
 }
 
 // Public interfaces
