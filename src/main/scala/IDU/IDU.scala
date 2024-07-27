@@ -18,6 +18,8 @@ class IDU extends Module {
   inst := Mux(io.fromIFU.fire, io.fromIFU.bits.inst, inst)
 
   io.toEXU.valid := true.B
+  io.toRegisterFile.valid := true.B
+  io.fromRegisterFile.ready := true.B
 
   import IDUTable.decodeTable
 
