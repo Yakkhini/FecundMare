@@ -11,9 +11,6 @@ class TaoHe extends Module {
   val registerFile = Module(new RegisterFile())
   val csr = Module(new CSR())
   val lsu = Module(new LSU())
-  lsu.io.clock := clock
-  lsu.io.reset := reset
-
   val ifu = Module(new IFU())
   val idu = Module(new IDU())
   val exu = Module(new EXU())

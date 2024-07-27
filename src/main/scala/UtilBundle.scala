@@ -111,8 +111,6 @@ class AXI4LiteBundle extends Bundle {
 }
 
 class LSUBundle extends Bundle {
-  val clock = Input(Clock())
-  val reset = Input(Bool())
   val fromEXU = Flipped(Decoupled(new EXUToLSUBundle))
   val toEXU = Decoupled(new LSUToEXUBundle)
   val axi4Lite = new AXI4LiteBundle
