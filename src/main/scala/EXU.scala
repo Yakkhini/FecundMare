@@ -30,7 +30,8 @@ class EXU extends Module {
   io.toLSU.bits.address := io.fromIDU.bits.registerReadData1 + io.fromIDU.bits.imm
   io.toLSU.bits.length := io.fromIDU.bits.lsuLength
   io.toLSU.bits.writeData := io.fromIDU.bits.registerReadData2
-  io.toLSU.bits.writeEnable := (io.fromIDU.bits.instructionType === InstType.S.asUInt)
+  io.toLSU.bits.writeEnable := io.fromIDU.bits.lsuWriteEnable
+  io.toLSU.bits.readEnable := io.fromIDU.bits.lsuReadEnable
 
   val data1 = MuxLookup(io.fromIDU.bits.data1Type, 0.U(32.W))(
     Seq(

@@ -26,7 +26,8 @@ class IDUToEXUBundle extends Bundle {
   val lsuLength = UInt(MemLen.getWidth.W)
   val aluOp = UInt(ALUOpType.getWidth.W)
   val compareOp = UInt(CompareOpType.getWidth.W)
-  val lsuValid = Bool()
+  val lsuReadEnable = Bool()
+  val lsuWriteEnable = Bool()
   val unsigned = Bool()
   val break = Bool()
   val imm = UInt(32.W)
@@ -68,6 +69,7 @@ class LSUToEXUBundle extends Bundle {
 }
 
 class EXUToLSUBundle extends Bundle {
+  val readEnable = Bool()
   val writeEnable = Bool()
   val writeData = UInt(32.W)
   val address = UInt(32.W)
