@@ -40,7 +40,7 @@ class TaoHe extends Module {
   dontTouch(exu.io.toRegisterFile.bits.writeAddr)
   dontTouch(exu.io.toRegisterFile.bits.writeData)
   dontTouch(exu.io.toRegisterFile.bits.writeEnable)
-  dontTouch(exu.io.toLSU.bits.lenth)
+  dontTouch(exu.io.toLSU.bits.length)
   dontTouch(exu.io.toLSU.bits.address)
   dontTouch(exu.io.toLSU.bits.writeData)
   dontTouch(exu.io.toLSU.bits.writeEnable)

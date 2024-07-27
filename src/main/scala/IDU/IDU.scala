@@ -77,7 +77,7 @@ class IDU extends Module {
     RegWriteDataTypeField
   )
   io.toEXU.bits.nextPCType := decodeResult(NextPCDataTypeField)
-  io.toEXU.bits.lsuLenth := decodeResult(MemLenField)
+  io.toEXU.bits.lsuLength := decodeResult(MemLenField)
   io.toEXU.bits.aluOp := decodeResult(ALUOpField)
   io.toEXU.bits.compareOp := decodeResult(CompareOpField)
   io.toEXU.bits.unsigned := decodeResult(UnsignField)

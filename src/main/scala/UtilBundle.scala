@@ -23,7 +23,7 @@ class IDUToEXUBundle extends Bundle {
   val data1Type = UInt(Data1Type.getWidth.W)
   val data2Type = UInt(Data2Type.getWidth.W)
   val nextPCType = UInt(NextPCDataType.getWidth.W)
-  val lsuLenth = UInt(MemLen.getWidth.W)
+  val lsuLength = UInt(MemLen.getWidth.W)
   val aluOp = UInt(ALUOpType.getWidth.W)
   val compareOp = UInt(CompareOpType.getWidth.W)
   val lsuValid = Bool()
@@ -71,7 +71,7 @@ class EXUToLSUBundle extends Bundle {
   val writeEnable = Bool()
   val writeData = UInt(32.W)
   val address = UInt(32.W)
-  val lenth = UInt(32.W)
+  val length = UInt(32.W)
 }
 
 class AXI4LiteAWChannel extends Bundle {
