@@ -10,12 +10,14 @@ import taohe.util.IDUBundle
 class IDU extends Module {
   val io = IO(new IDUBundle)
 
-  val pc = RegInit(0.U(32.W))
-  val inst = RegInit(0.U(32.W))
+  val pcRegister = RegInit(0.U(32.W))
+  val instRegister = RegInit(0.U(32.W))
 
   io.fromIFU.ready := true.B
-  pc := Mux(io.fromIFU.fire, io.fromIFU.bits.currentPC, pc)
-  inst := Mux(io.fromIFU.fire, io.fromIFU.bits.inst, inst)
+  pcRegister := Mux(io.fromIFU.fire, io.fromIFU.bits.currentPC, pcRegister)
+  instRegister := Mux(io.fromIFU.fire, io.fromIFU.bits.inst, instRegister)
+  val pc = Mux(io.fromIFU.fire, io.fromIFU.bits.currentPC, pcRegister)
+  val inst = Mux(io.fromIFU.fire, io.fromIFU.bits.inst, instRegister)
 
   io.toEXU.valid := true.B
   io.toRegisterFile.valid := true.B
