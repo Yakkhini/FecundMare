@@ -26,7 +26,7 @@ class IFU extends Module {
   val pc = RegInit("h80000000".U(32.W))
   val inst = RegInit(0.U(32.W))
 
-  val ifuState = RegInit(IFUState.sIdle)
+  val ifuState = RegInit(IFUState.sRequest)
 
   // State 1
   io.fromEXU.ready := ifuState === IFUState.sIdle
