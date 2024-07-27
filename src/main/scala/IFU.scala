@@ -31,19 +31,19 @@ class IFU extends Module {
   // State 1
   io.fromEXU.ready := ifuState === IFUState.sIdle
   pc := Mux(io.fromEXU.fire, io.fromEXU.bits.nextPC, pc)
-  val currentPC = Mux(io.fromEXU.fire, io.fromEXU.bits.nextPC, pc)
 
   // State 2
   io.axi4Lite.ar.valid := ifuState === IFUState.sRequest || io.fromEXU.fire
-  io.axi4Lite.ar.bits.addr := currentPC
+  io.axi4Lite.ar.bits.addr := pc
 
   // State 3
   io.axi4Lite.r.ready := ifuState === IFUState.sFetch
+  inst := Mux(io.axi4Lite.r.fire, io.axi4Lite.r.bits.data, inst)
   val currentInst = Mux(io.axi4Lite.r.fire, io.axi4Lite.r.bits.data, inst)
 
   // State 4
   io.toIDU.valid := ifuState === IFUState.sSend || io.axi4Lite.r.fire
-  io.toIDU.bits.currentPC := currentPC
+  io.toIDU.bits.currentPC := pc
   io.toIDU.bits.inst := currentInst
 
   // Make write transaction silent

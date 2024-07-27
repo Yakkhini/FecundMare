@@ -13,7 +13,7 @@ class EXU extends Module {
 
   io.toRegisterFile.valid := io.fromIDU.valid & io.fromLSU.valid
   io.toCSR.valid := io.fromIDU.valid & io.fromLSU.valid
-  io.toIFU.valid := io.fromIDU.valid & io.fromLSU.valid
+  io.toIFU.valid := io.fromLSU.valid
   io.toLSU.valid := io.fromIDU.valid
 
   io.fromIDU.ready := false.B
