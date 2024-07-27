@@ -56,14 +56,28 @@ class LSU extends Module {
   readEnable := Mux(io.fromEXU.fire, io.fromEXU.bits.readEnable, readEnable)
 
   // State 2
-  val currentReadEnable = Mux(io.fromEXU.fire, io.fromEXU.bits.readEnable, readEnable)
-  val currentWriteEnable = Mux(io.fromEXU.fire, io.fromEXU.bits.writeEnable, writeEnable)
+  val currentReadEnable =
+    Mux(io.fromEXU.fire, io.fromEXU.bits.readEnable, readEnable)
+  val currentWriteEnable =
+    Mux(io.fromEXU.fire, io.fromEXU.bits.writeEnable, writeEnable)
   io.axi4Lite.ar.valid := (lsuState === LSUState.sRequest || io.fromEXU.fire) && currentReadEnable
   io.axi4Lite.aw.valid := (lsuState === LSUState.sRequest || io.fromEXU.fire) && currentWriteEnable
   io.axi4Lite.w.valid := (lsuState === LSUState.sRequest || io.fromEXU.fire) && currentWriteEnable
-  io.axi4Lite.ar.bits.addr := Mux(io.fromEXU.fire, io.fromEXU.bits.address, address)
-  io.axi4Lite.aw.bits.addr := Mux(io.fromEXU.fire, io.fromEXU.bits.address, address)
-  io.axi4Lite.w.bits.data := Mux(io.fromEXU.fire, io.fromEXU.bits.writeData, writeData)
+  io.axi4Lite.ar.bits.addr := Mux(
+    io.fromEXU.fire,
+    io.fromEXU.bits.address,
+    address
+  )
+  io.axi4Lite.aw.bits.addr := Mux(
+    io.fromEXU.fire,
+    io.fromEXU.bits.address,
+    address
+  )
+  io.axi4Lite.w.bits.data := Mux(
+    io.fromEXU.fire,
+    io.fromEXU.bits.writeData,
+    writeData
+  )
   io.axi4Lite.w.bits.strb := io.fromEXU.bits.length
 
   // State 3
@@ -82,7 +96,11 @@ class LSU extends Module {
         // So the Request state is skipped.
         //
         // As the write transaction, we don't care the response now.
-        lsuState := Mux(io.fromEXU.bits.readEnable, LSUState.sWait, LSUState.sIdle)
+        lsuState := Mux(
+          io.fromEXU.bits.readEnable,
+          LSUState.sWait,
+          LSUState.sIdle
+        )
       }
     }
     is(LSUState.sRequest) {
