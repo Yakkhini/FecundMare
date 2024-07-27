@@ -221,8 +221,6 @@ void cpu_check() {
   finish();
 }
 
-int inst_fetch(int pc) { return vaddr_ifetch(pc); }
-
 void finish() {
   switch (npc_state) {
   case TCHE_ABORT:

@@ -20,20 +20,19 @@ class MemWrite extends BlackBox with HasBlackBoxInline {
        |  input  [31:0] writeAddr,
        |  input  [31:0] writeData,
        |  input  int writeLen,
-       |  input  bit writeEnable,
+       |  input  writeEnable,
        |  input  clock
        |);
        |
        |  import "DPI-C" function void vaddr_write(
        |    int addr,
-       |    int lenth,
+       |    int len,
        |    int data,
-       |    int valid
        |  );
        |  
        |  always @(posedge clock) begin
        |    if(writeEnable) begin
-       |      vaddr_write(writeAddr, writeLen, writeData, {31'b0, writeEnable});
+       |      vaddr_write(writeAddr, writeLen, writeData);
        |    end
        |  end
        |
