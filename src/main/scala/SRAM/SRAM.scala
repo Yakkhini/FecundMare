@@ -4,7 +4,9 @@ import chisel3._
 import chisel3.util.{switch, is}
 
 import taohe.dpic.{MemRead, MemWrite}
+import taohe.util.enum.MemLen
 import taohe.util.AXI4LiteBundle
+import chisel3.util.MuxLookup
 
 object SRAMState extends ChiselEnum {
   /*
@@ -28,6 +30,9 @@ class SRAM extends Module {
   val memRead = Module(new MemRead())
   val memWrite = Module(new MemWrite())
 
+  memRead.io.clock := clock
+  memWrite.io.clock := clock
+
   val readState = RegInit(SRAMState.sIdle)
   val writeState = RegInit(SRAMState.sIdle)
 
@@ -50,6 +55,7 @@ class SRAM extends Module {
 
   // State 3
   io.r.valid := readState === SRAMState.sSend
+  io.r.bits.resp := readState === SRAMState.sSend
 
   // Write FSM
   // State 1
@@ -61,6 +67,15 @@ class SRAM extends Module {
   // State 2
   memWrite.io.writeAddr := Mux(io.aw.fire, io.aw.bits.addr, awAddr)
   memWrite.io.writeData := Mux(io.w.fire, io.w.bits.data, wData)
+  memWrite.io.writeEnable := io.w.fire || writeState === SRAMState.sSend // Work State Skipped
+
+  memWrite.io.writeLen := MuxLookup(io.w.bits.strb, 1.U(32.W))(
+    Seq(
+      MemLen.B.asUInt -> 1.U,
+      MemLen.H.asUInt -> 2.U,
+      MemLen.W.asUInt -> 4.U
+    )
+  )
 
   // State 3
   io.b.valid := writeState === SRAMState.sSend

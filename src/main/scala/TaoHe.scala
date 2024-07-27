@@ -42,6 +42,10 @@ class TaoHe extends Module {
   dontTouch(exu.io.toLSU.bits.writeData)
   dontTouch(exu.io.toLSU.bits.writeEnable)
 
+  dontTouch(ifu.io.axi4Lite.aw.ready)
+  dontTouch(ifu.io.axi4Lite.w.ready)
+  dontTouch(ifu.io.axi4Lite.b.valid)
+
 }
 
 object Main extends App {

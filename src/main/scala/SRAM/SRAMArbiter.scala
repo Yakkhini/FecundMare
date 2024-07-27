@@ -14,4 +14,10 @@ class SRAMArbiter extends Module {
 
   sram1.io <> ifuIO
   sram2.io <> lsuIO
+
+  dontTouch(ifuIO.aw.valid)
+  dontTouch(ifuIO.aw.ready)
+  dontTouch(ifuIO.w.ready)
+  dontTouch(ifuIO.b.valid)
+
 }
