@@ -15,10 +15,11 @@ class RegisterFile extends Module {
     registers(io.fromEXU.bits.writeAddr) := io.fromEXU.bits.writeData
   }
 
-  io.toEXU.bits.readData1 := registers(io.fromEXU.bits.readAddr1)
-  io.toEXU.bits.readData2 := registers(io.fromEXU.bits.readAddr2)
+  io.toIDU.bits.readData1 := registers(io.fromIDU.bits.readAddr1)
+  io.toIDU.bits.readData2 := registers(io.fromIDU.bits.readAddr2)
 
-  io.toEXU.valid := false.B
-  io.fromEXU.ready := false.B
-  io.fromEXU.ready := false.B
+  io.toIDU.valid := true.B
+  io.fromIDU.ready := true.B
+  io.fromEXU.ready := true.B
+  io.fromEXU.ready := true.B
 }
