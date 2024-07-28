@@ -30,10 +30,10 @@ class IFU extends Module {
 
   // State 1
   io.fromEXU.ready := ifuState === IFUState.sIdle
-  pc := Mux(io.fromEXU.fire, io.fromEXU.bits.nextPC, pc)
+  pc := Mux(io.fromEXU.fire || io.axi4Lite.r.fire, io.fromEXU.bits.nextPC, pc)
 
   // State 2
-  io.axi4Lite.ar.valid := ifuState === IFUState.sRequest || io.fromEXU.fire
+  io.axi4Lite.ar.valid := ifuState === IFUState.sRequest
   io.axi4Lite.ar.bits.addr := pc
 
   // State 3
@@ -68,9 +68,11 @@ class IFU extends Module {
     }
     is(IFUState.sFetch) {
       when(io.axi4Lite.r.fire) {
-        // Skip the send state if the instruction accepted in the same cycle.
-        // We can believe that the skip behavior is more common circumstance.
-        ifuState := Mux(io.toIDU.fire, IFUState.sIdle, IFUState.sSend)
+        // The IFU should finish in two cycles when there is no mem access
+        // instructions.
+        // Normal instructions FSM: (Request -> Fetch) -> (R -> F)
+        // Mem Access instructions(l*, s*) FSM: (Request -> Fetch -> Idle -> Idle) -> (...)
+        ifuState := Mux(io.fromEXU.valid, IFUState.sRequest, IFUState.sIdle)
       }
     }
     is(IFUState.sSend) {
