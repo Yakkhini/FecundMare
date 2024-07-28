@@ -2,23 +2,34 @@ package taohe
 
 import chisel3._
 import chisel3.util.MuxLookup
+import chisel3.util.{switch, is}
 
 import taohe.util.EXUBundle
 import taohe.util.enum._
 
 import chisel3.util.Fill
 
+object EXUState extends ChiselEnum {
+  val sIdle, sLS, sWB = Value
+}
+
 class EXU extends Module {
   val io = IO(new EXUBundle)
+  val exuState = RegInit(EXUState.sIdle)
 
-  io.toRegisterFile.valid := io.fromIDU.valid & io.fromLSU.valid
+  // State 1
+  io.fromIDU.ready := exuState === EXUState.sIdle
+
+  // State 2
+  io.toLSU.valid := exuState === EXUState.sLS
+  io.fromLSU.ready := exuState === EXUState.sLS
+
+  // State 3
+  io.toRegisterFile.valid := exuState === EXUState.sWB
+  io.toIFU.valid := exuState === EXUState.sWB
+
   io.toCSR.valid := io.fromIDU.valid & io.fromLSU.valid
-  io.toIFU.valid := io.fromLSU.valid
-  io.toLSU.valid := io.fromIDU.valid
-
-  io.fromIDU.ready := false.B
   io.fromCSR.ready := false.B
-  io.fromLSU.ready := false.B
 
   io.toRegisterFile.bits.writeAddr := io.fromIDU.bits.registerWriteAddr
 
@@ -124,6 +135,28 @@ class EXU extends Module {
     false.B,
     true.B
   )
+
+  switch(exuState) {
+    is(EXUState.sIdle) {
+      when(io.fromIDU.fire) {
+        exuState := Mux(
+          io.fromIDU.bits.lsuReadEnable || io.fromIDU.bits.lsuWriteEnable,
+          EXUState.sLS,
+          EXUState.sWB
+        )
+      }
+    }
+    is(EXUState.sLS) {
+      when(io.fromLSU.fire) {
+        exuState := EXUState.sWB
+      }
+    }
+    is(EXUState.sWB) {
+      when(io.toRegisterFile.fire && io.toIFU.fire) {
+        exuState := EXUState.sIdle
+      }
+    }
+  }
 
   val powerManager = Module(new PowerManager())
   powerManager.io.reset := reset
