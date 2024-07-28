@@ -25,8 +25,10 @@ class EXU extends Module {
   io.fromLSU.ready := exuState === EXUState.sLS
 
   // State 3
-  io.toRegisterFile.valid := exuState === EXUState.sWB
-  io.toIFU.valid := exuState === EXUState.sWB
+  val skipLSState =
+    exuState === EXUState.sLS && !io.fromIDU.bits.lsuReadEnable && !io.fromIDU.bits.lsuWriteEnable
+  io.toRegisterFile.valid := exuState === EXUState.sWB || skipLSState
+  io.toIFU.valid := exuState === EXUState.sWB || skipLSState
 
   io.toCSR.valid := io.fromIDU.valid & io.fromLSU.valid
   io.fromCSR.ready := false.B
@@ -139,16 +141,12 @@ class EXU extends Module {
   switch(exuState) {
     is(EXUState.sIdle) {
       when(io.fromIDU.fire) {
-        exuState := Mux(
-          io.fromIDU.bits.lsuReadEnable || io.fromIDU.bits.lsuWriteEnable,
-          EXUState.sLS,
-          EXUState.sWB
-        )
+        exuState := EXUState.sLS
       }
     }
     is(EXUState.sLS) {
-      when(io.fromLSU.fire) {
-        exuState := EXUState.sWB
+      when(io.fromLSU.fire || io.toIFU.fire) {
+        exuState := Mux(io.toIFU.fire, EXUState.sIdle, EXUState.sWB)
       }
     }
     is(EXUState.sWB) {
