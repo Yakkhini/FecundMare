@@ -13,8 +13,8 @@ class IFUToIDUBundle extends Bundle {
 
 class IDUToEXUBundle extends Bundle {
   val currentPC = UInt(32.W)
-  val registerReadData1 = UInt(5.W)
-  val registerReadData2 = UInt(5.W)
+  val registerReadData1 = UInt(32.W)
+  val registerReadData2 = UInt(32.W)
   val registerWriteAddr = UInt(5.W)
   val registerWriteType = UInt(RegWriteDataType.getWidth.W)
   val csrAddress = UInt(12.W)
