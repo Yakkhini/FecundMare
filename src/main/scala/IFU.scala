@@ -25,12 +25,16 @@ class IFU extends Module {
 
   val pc = RegInit("h80000000".U(32.W))
   val inst = RegInit(0.U(32.W))
+  val iCount = RegInit(0.U(32.W))
 
   val ifuState = RegInit(IFUState.sRequest)
 
   // State 1
-  io.fromEXU.ready := ifuState === IFUState.sIdle
+  io.fromEXU.ready := ifuState === IFUState.sIdle || io.axi4Lite.r.fire
   pc := Mux(io.fromEXU.fire || io.axi4Lite.r.fire, io.fromEXU.bits.nextPC, pc)
+  iCount := Mux(io.fromEXU.fire || io.axi4Lite.r.fire, iCount + 1.U, iCount)
+
+  dontTouch(iCount)
 
   // State 2
   io.axi4Lite.ar.valid := ifuState === IFUState.sRequest

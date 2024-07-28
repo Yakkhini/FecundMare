@@ -11,6 +11,8 @@ typedef struct cpu {
   word_t pc = 0x80000000;
   word_t pc_prev;
   word_t inst;
+  uint32_t iCount;
+  bool check_cycle;
 } CPU;
 
 extern NPCState npc_state;

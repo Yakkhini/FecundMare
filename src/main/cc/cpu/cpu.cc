@@ -67,7 +67,10 @@ void single_clock() {
 #endif
 
   cpu_sync();
-  cpu_check();
+  if (cpu.check_cycle) {
+    cpu_check();
+    cpu.check_cycle = false;
+  }
 }
 
 void reset() {
@@ -109,7 +112,11 @@ void reset() {
 #endif
 
   cpu_sync();
-  cpu_check();
+
+  if (cpu.check_cycle) {
+    cpu_check();
+    cpu.check_cycle = false;
+  }
 
   Log("TCHE reset done.");
 }
@@ -123,6 +130,8 @@ void cpu_init(int argc, char **argv) {
   contextp->commandArgs(argc, argv);
 
   cpu.top = new VTaoHe(contextp);
+  cpu.iCount = 0;
+  cpu.check_cycle = false;
   Log("Welcome to TaoHe Processor Core Verilating Model.");
 
 #if CONFIG_WAVE_RECORD
@@ -178,14 +187,14 @@ void cpu_exec(int n) {
 
 void cpu_sync() {
   memcpy(cpu.regs, cpu.top->TaoHe->registerFile->registers, sizeof(cpu.regs));
-  if (cpu.top->TaoHe->registerFile->io_fromEXU_bits_writeEnable &&
-      cpu.top->TaoHe->registerFile->io_fromEXU_bits_writeAddr) {
-    cpu.regs[cpu.top->TaoHe->registerFile->io_fromEXU_bits_writeAddr] =
-        cpu.top->TaoHe->registerFile->io_fromEXU_bits_writeData;
-  }
-  cpu.pc_prev = cpu.pc;
-  cpu.pc = cpu.top->TaoHe->exu->io_toIFU_bits_nextPC;
   cpu.inst = cpu.top->TaoHe->ifu->io_toIDU_bits_inst;
+  cpu.check_cycle = cpu.top->TaoHe->ifu->iCount > cpu.iCount;
+
+  if (cpu.check_cycle) {
+    cpu.pc_prev = cpu.pc;
+    cpu.pc = cpu.top->TaoHe->exu->io_toIFU_bits_nextPC;
+    cpu.iCount = cpu.top->TaoHe->ifu->iCount;
+  }
 }
 
 void cpu_check() {
