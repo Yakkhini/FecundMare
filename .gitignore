@@ -8,6 +8,7 @@
 !.gitignore
 !.scalafmt.conf
 !Justfile
+.metals
 out
 build
 compile_commands.json
