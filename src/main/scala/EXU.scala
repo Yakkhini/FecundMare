@@ -21,12 +21,12 @@ class EXU extends Module {
   io.fromIDU.ready := exuState === EXUState.sIdle
 
   // State 2
-  io.toLSU.valid := exuState === EXUState.sLS
+  val skipLSState =
+    exuState === EXUState.sLS && !io.fromIDU.bits.lsuReadEnable && !io.fromIDU.bits.lsuWriteEnable
+  io.toLSU.valid := exuState === EXUState.sLS && !skipLSState
   io.fromLSU.ready := exuState === EXUState.sLS
 
   // State 3
-  val skipLSState =
-    exuState === EXUState.sLS && !io.fromIDU.bits.lsuReadEnable && !io.fromIDU.bits.lsuWriteEnable
   io.toRegisterFile.valid := exuState === EXUState.sWB || skipLSState
   io.toIFU.valid := exuState === EXUState.sWB || skipLSState
 
