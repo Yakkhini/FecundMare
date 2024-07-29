@@ -86,7 +86,7 @@ class LSU extends Module {
   io.axi4Lite.b.ready := lsuState === LSUState.sWait
 
   // State 4
-  io.toEXU.valid := lsuState === LSUState.sSend || (lsuState === LSUState.sIdle && !currentWriteEnable && !currentReadEnable)
+  io.toEXU.valid := lsuState === LSUState.sSend || (lsuState === LSUState.sIdle && !currentWriteEnable && !currentReadEnable) || lsuState === LSUState.sWait
   io.toEXU.bits.readData := io.axi4Lite.r.bits.data
 
   switch(lsuState) {
@@ -96,11 +96,7 @@ class LSU extends Module {
         // So the Request state is skipped.
         //
         // As the write transaction, we don't care the response now.
-        lsuState := Mux(
-          io.fromEXU.bits.readEnable,
-          LSUState.sWait,
-          LSUState.sIdle
-        )
+        lsuState := LSUState.sWait
       }
     }
     is(LSUState.sRequest) {
