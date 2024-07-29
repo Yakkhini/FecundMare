@@ -31,8 +31,8 @@ class IFU extends Module {
 
   // State 1
   io.fromEXU.ready := ifuState === IFUState.sIdle || io.axi4Lite.r.fire
-  pc := Mux(io.fromEXU.fire || io.axi4Lite.r.fire, io.fromEXU.bits.nextPC, pc)
-  iCount := Mux(io.fromEXU.fire || io.axi4Lite.r.fire, iCount + 1.U, iCount)
+  pc := Mux(io.fromEXU.fire, io.fromEXU.bits.nextPC, pc)
+  iCount := Mux(io.fromEXU.fire, iCount + 1.U, iCount)
 
   dontTouch(iCount)
 
