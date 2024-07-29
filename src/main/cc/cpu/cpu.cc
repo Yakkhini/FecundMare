@@ -188,7 +188,8 @@ void cpu_exec(int n) {
 void cpu_sync() {
   memcpy(cpu.regs, cpu.top->TaoHe->registerFile->registers, sizeof(cpu.regs));
   cpu.inst = cpu.top->TaoHe->ifu->io_toIDU_bits_inst;
-  cpu.check_cycle = cpu.top->TaoHe->ifu->iCount > cpu.iCount;
+  cpu.check_cycle = cpu.top->TaoHe->ifu->iCount > cpu.iCount ||
+                    npc_state == TCHE_HALT || npc_state == TCHE_ABORT;
 
   if (cpu.check_cycle) {
     cpu.pc_prev = cpu.pc;
