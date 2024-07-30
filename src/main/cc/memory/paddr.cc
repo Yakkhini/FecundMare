@@ -36,7 +36,10 @@ word_t paddr_read(paddr_t addr, int len) {
   }
 
 #if CONFIG_DEVICE
-  return mmio_read(addr, len);
+  if (in_mmio(addr)) {
+    difftest_skip_ref();
+    return mmio_read(addr, len);
+  }
 #endif
 
   Log("Invalid memory access at address 0x%08x", addr);
@@ -50,8 +53,11 @@ void paddr_write(paddr_t addr, int len, word_t data) {
   }
 
 #if CONFIG_DEVICE
-  mmio_write(addr, len, data);
-  return;
+  if (in_mmio(addr)) {
+    difftest_skip_ref();
+    mmio_write(addr, len, data);
+    return;
+  }
 #endif
 
   Log("Invalid memory access at address 0x%08x", addr);
