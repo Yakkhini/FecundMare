@@ -24,11 +24,6 @@ object LSUState extends ChiselEnum {
    * cycles, and write transaction should finish in
    * one cycle. Maybe few states have to be skipped.
    *
-   * We skip the  Request & Wait state in two transaction and
-   * the Send state in write transaction.
-   *
-   * Read FSM: Idle -> Wait -> Idle
-   * Write FSM: Idle -> Idle
    */
   val sIdle, sRequest, sWait, sSend = Value
 }
@@ -92,16 +87,16 @@ class LSU extends Module {
   switch(lsuState) {
     is(LSUState.sIdle) {
       when(io.fromEXU.fire) {
-        // We trust the SRAM handshake would done in same cycle.
-        // So the Request state is skipped.
-        //
-        // As the write transaction, we don't care the response now.
-        lsuState := LSUState.sWait
+        lsuState := Mux(
+          io.axi4Lite.aw.fire || io.axi4Lite.ar.fire,
+          LSUState.sWait,
+          LSUState.sRequest
+        )
       }
     }
     is(LSUState.sRequest) {
-      when(io.axi4Lite.ar.fire && io.axi4Lite.aw.fire && io.axi4Lite.w.fire) {
-        lsuState := LSUState.sSend
+      when(io.axi4Lite.ar.fire || io.axi4Lite.aw.fire) {
+        lsuState := LSUState.sWait
       }
     }
     is(LSUState.sWait) {
