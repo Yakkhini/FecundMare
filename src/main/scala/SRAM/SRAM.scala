@@ -67,7 +67,7 @@ class SRAM extends Module {
   // State 2
   memWrite.io.writeAddr := Mux(io.aw.fire, io.aw.bits.addr, awAddr)
   memWrite.io.writeData := Mux(io.w.fire, io.w.bits.data, wData)
-  memWrite.io.writeEnable := io.w.fire || writeState === SRAMState.sSend // Work State Skipped
+  memWrite.io.writeEnable := io.w.fire
 
   memWrite.io.writeLen := MuxLookup(io.w.bits.strb, 1.U(32.W))(
     Seq(
