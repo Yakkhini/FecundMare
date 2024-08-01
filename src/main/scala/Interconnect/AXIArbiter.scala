@@ -2,27 +2,26 @@ package taohe
 
 import chisel3._
 import taohe.util.AXI4LiteBundle
-import chisel3.util.Arbiter
 import chisel3.util.{switch, is}
 
-object SRAMArbiterState extends ChiselEnum {
+object AXIArbiterState extends ChiselEnum {
   val sIdle, sIFU, sLSU = Value
 }
 
-class SRAMArbiterIO extends Bundle {
+class AXIArbiterIO extends Bundle {
   val ifu = Flipped(new AXI4LiteBundle)
   val lsu = Flipped(new AXI4LiteBundle)
   val sram = new AXI4LiteBundle
 }
 
-class SRAMArbiter extends Module {
+class AXIArbiter extends Module {
 
-  val io = IO(new SRAMArbiterIO)
+  val io = IO(new AXIArbiterIO)
 
-  val state = RegInit(SRAMArbiterState.sIdle)
+  val state = RegInit(AXIArbiterState.sIdle)
 
   val ifuDrive =
-    state === SRAMArbiterState.sIFU || (state === SRAMArbiterState.sIdle && io.ifu.ar.valid)
+    state === AXIArbiterState.sIFU || (state === AXIArbiterState.sIdle && io.ifu.ar.valid)
 
   // Write transaction
   //
@@ -59,28 +58,28 @@ class SRAMArbiter extends Module {
   io.ifu.b.bits.resp := 0.U
 
   switch(state) {
-    is(SRAMArbiterState.sIdle) {
+    is(AXIArbiterState.sIdle) {
       when(io.ifu.ar.valid) {
-        state := SRAMArbiterState.sIFU
+        state := AXIArbiterState.sIFU
       }.elsewhen(io.lsu.ar.valid) {
-        state := SRAMArbiterState.sLSU
+        state := AXIArbiterState.sLSU
       }
     }
-    is(SRAMArbiterState.sIFU) {
+    is(AXIArbiterState.sIFU) {
       when(io.ifu.r.fire) {
         state := Mux(
           io.lsu.ar.valid || io.lsu.aw.valid,
-          SRAMArbiterState.sLSU,
-          SRAMArbiterState.sIdle
+          AXIArbiterState.sLSU,
+          AXIArbiterState.sIdle
         )
       }
     }
-    is(SRAMArbiterState.sLSU) {
+    is(AXIArbiterState.sLSU) {
       when(io.lsu.r.fire || io.lsu.aw.fire) {
         state := Mux(
           io.ifu.ar.valid,
-          SRAMArbiterState.sIFU,
-          SRAMArbiterState.sIdle
+          AXIArbiterState.sIFU,
+          AXIArbiterState.sIdle
         )
       }
     }

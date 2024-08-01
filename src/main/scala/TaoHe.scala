@@ -16,11 +16,11 @@ class TaoHe extends Module {
   val idu = Module(new IDU())
   val exu = Module(new EXU())
 
-  val sramArbiter = Module(new SRAMArbiter())
+  val axiArbiter = Module(new AXIArbiter())
 
-  sramArbiter.io.ifu <> ifu.io.axi4Lite
-  sramArbiter.io.lsu <> lsu.io.axi4Lite
-  sramArbiter.io.sram <> sram.io
+  axiArbiter.io.ifu <> ifu.io.axi4Lite
+  axiArbiter.io.lsu <> lsu.io.axi4Lite
+  axiArbiter.io.sram <> sram.io
 
   ifu.io.toIDU <> idu.io.fromIFU
   idu.io.toEXU <> exu.io.fromIDU
