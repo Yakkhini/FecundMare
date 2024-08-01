@@ -191,6 +191,9 @@ void cpu_sync() {
   cpu.check_cycle = cpu.top->TaoHe->ifu->iCount > cpu.iCount ||
                     npc_state == TCHE_HALT || npc_state == TCHE_ABORT;
 
+  if (cpu.top->TaoHe->xbar->difftestSkip)
+    difftest_skip_ref();
+
   if (cpu.check_cycle) {
     cpu.pc_prev = cpu.pc;
     cpu.pc = cpu.top->TaoHe->exu->io_toIFU_bits_nextPC;

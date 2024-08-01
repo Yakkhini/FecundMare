@@ -27,6 +27,11 @@ class CrossBar extends Module {
   val outMatchVec = Wire(Vec(3, Bool()))
   val chosen = Wire(UInt())
 
+  val difftestSkip =
+    (outMatchVec(1) || outMatchVec(2)) && (io.in.ar.valid || io.in.aw.valid)
+
+  dontTouch(difftestSkip)
+
   outMatchVec(0) := !outMatchVec(1) && !outMatchVec(2) // SRAM is default output
   outMatchVec(1) := io.in.ar.bits.addr === "ha00003f8".U // UART
   outMatchVec(
