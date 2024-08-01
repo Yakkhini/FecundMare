@@ -3,12 +3,19 @@ package taohe.idu
 import chisel3._
 import chisel3.util.Fill
 import chisel3.util.MuxLookup
+import chisel3.util.{switch, is}
 
 import taohe.util.enum._
 import taohe.util.IDUBundle
 
+object IDUState extends ChiselEnum {
+  val sIdle, sSend = Value
+}
+
 class IDU extends Module {
   val io = IO(new IDUBundle)
+
+  val state = RegInit(IDUState.sIdle)
 
   val pcRegister = RegInit(0.U(32.W))
   val instRegister = RegInit(0.U(32.W))
@@ -17,11 +24,22 @@ class IDU extends Module {
   pcRegister := Mux(io.fromIFU.fire, io.fromIFU.bits.currentPC, pcRegister)
   instRegister := Mux(io.fromIFU.fire, io.fromIFU.bits.inst, instRegister)
   val pc = Mux(io.fromIFU.fire, io.fromIFU.bits.currentPC, pcRegister)
-  val inst = Mux(io.fromIFU.fire, io.fromIFU.bits.inst, instRegister)
+  val inst = instRegister
 
-  io.toEXU.valid := true.B
+  io.toEXU.valid := state === IDUState.sSend
   io.toRegisterFile.valid := true.B
   io.fromRegisterFile.ready := true.B
+
+  switch(state) {
+    is(IDUState.sIdle) {
+      when(io.fromIFU.fire) {
+        state := IDUState.sSend
+      }
+    }
+    is(IDUState.sSend) {
+      state := IDUState.sIdle
+    }
+  }
 
   import IDUTable.decodeTable
 
