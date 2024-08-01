@@ -11,7 +11,7 @@ object AXIArbiterState extends ChiselEnum {
 class AXIArbiterIO extends Bundle {
   val ifu = Flipped(new AXI4LiteBundle)
   val lsu = Flipped(new AXI4LiteBundle)
-  val sram = new AXI4LiteBundle
+  val out = new AXI4LiteBundle
 }
 
 class AXIArbiter extends Module {
@@ -27,29 +27,29 @@ class AXIArbiter extends Module {
   //
   // We still block the write transaction from LSU
   // when IFU is driving.
-  io.sram.aw.bits := io.lsu.aw.bits
-  io.sram.aw.valid := io.lsu.aw.valid && !ifuDrive
-  io.lsu.aw.ready := io.sram.aw.ready && !ifuDrive
+  io.out.aw.bits := io.lsu.aw.bits
+  io.out.aw.valid := io.lsu.aw.valid && !ifuDrive
+  io.lsu.aw.ready := io.out.aw.ready && !ifuDrive
 
-  io.sram.w.bits := io.lsu.w.bits
-  io.sram.w.valid := io.lsu.w.valid && !ifuDrive
-  io.lsu.w.ready := io.sram.w.ready && !ifuDrive
+  io.out.w.bits := io.lsu.w.bits
+  io.out.w.valid := io.lsu.w.valid && !ifuDrive
+  io.lsu.w.ready := io.out.w.ready && !ifuDrive
 
-  io.lsu.b.bits := io.sram.b.bits
-  io.lsu.b.valid := io.sram.b.valid && !ifuDrive
-  io.sram.b.ready := io.lsu.b.ready && !ifuDrive
+  io.lsu.b.bits := io.out.b.bits
+  io.lsu.b.valid := io.out.b.valid && !ifuDrive
+  io.out.b.ready := io.lsu.b.ready && !ifuDrive
 
   // Read transaction
-  io.sram.ar.bits := Mux(ifuDrive, io.ifu.ar.bits, io.lsu.ar.bits)
-  io.sram.ar.valid := Mux(ifuDrive, io.ifu.ar.valid, io.lsu.ar.valid)
-  io.ifu.ar.ready := io.sram.ar.ready && ifuDrive
-  io.lsu.ar.ready := io.sram.ar.ready && !ifuDrive
+  io.out.ar.bits := Mux(ifuDrive, io.ifu.ar.bits, io.lsu.ar.bits)
+  io.out.ar.valid := Mux(ifuDrive, io.ifu.ar.valid, io.lsu.ar.valid)
+  io.ifu.ar.ready := io.out.ar.ready && ifuDrive
+  io.lsu.ar.ready := io.out.ar.ready && !ifuDrive
 
-  io.sram.r.ready := Mux(ifuDrive, io.ifu.r.ready, io.lsu.r.ready)
-  io.ifu.r.valid := io.sram.r.valid && ifuDrive
-  io.lsu.r.valid := io.sram.r.valid && !ifuDrive
-  io.ifu.r.bits := io.sram.r.bits
-  io.lsu.r.bits := io.sram.r.bits
+  io.out.r.ready := Mux(ifuDrive, io.ifu.r.ready, io.lsu.r.ready)
+  io.ifu.r.valid := io.out.r.valid && ifuDrive
+  io.lsu.r.valid := io.out.r.valid && !ifuDrive
+  io.ifu.r.bits := io.out.r.bits
+  io.lsu.r.bits := io.out.r.bits
 
   // IFU no need to write data
   io.ifu.aw.ready := false.B
