@@ -9,7 +9,6 @@ class TaoHe extends Module {
   val io = IO(new Bundle {})
 
   val registerFile = Module(new RegisterFile())
-  val sram = Module(new SRAM())
   val csr = Module(new CSR())
   val lsu = Module(new LSU())
   val ifu = Module(new IFU())
@@ -17,10 +16,19 @@ class TaoHe extends Module {
   val exu = Module(new EXU())
 
   val axiArbiter = Module(new AXIArbiter())
+  val xbar = Module(new CrossBar())
+
+  val sram = Module(new SRAM())
+  val uart = Module(new UART())
+  val clint = Module(new CLINT())
 
   axiArbiter.io.ifu <> ifu.io.axi4Lite
   axiArbiter.io.lsu <> lsu.io.axi4Lite
-  axiArbiter.io.sram <> sram.io
+  axiArbiter.io.out <> xbar.io.in
+
+  xbar.io.out(0) <> sram.io
+  xbar.io.out(1) <> uart.io
+  xbar.io.out(2) <> clint.io
 
   ifu.io.toIDU <> idu.io.fromIFU
   idu.io.toEXU <> exu.io.fromIDU
