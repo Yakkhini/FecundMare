@@ -219,10 +219,6 @@ void cpu_check() {
   ftrace_check();
 #endif
 
-#if CONFIG_MTRACE
-  mtrace();
-#endif
-
 #if CONFIG_DIFFTEST
   difftest_step(cpu.pc_prev, cpu.pc);
 #endif

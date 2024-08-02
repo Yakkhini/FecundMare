@@ -12,8 +12,20 @@ int vaddr_read(int addr, int len) {
 
   int ret = paddr_read(addr, len);
 
+#if CONFIG_MTRACE
+  Log("[MTRACE] vaddr_read: addr = 0x%x, len = %d, data = 0x%x", addr, len,
+      ret);
+#endif
+
   return ret;
 }
 
-void vaddr_write(int addr, int len, int data) { paddr_write(addr, len, data); }
+void vaddr_write(int addr, int len, int data) {
+
+#if CONFIG_MTRACE
+  Log("[MTRACE] vaddr_write: addr = 0x%x, len = %d, data = 0x%x", addr, len,
+      data);
+#endif
+  paddr_write(addr, len, data);
+}
 }
