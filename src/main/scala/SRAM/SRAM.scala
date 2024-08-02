@@ -2,11 +2,12 @@ package taohe
 
 import chisel3._
 import chisel3.util.{switch, is}
+import chisel3.util.MuxLookup
+import chisel3.util.random.LFSR
 
 import taohe.dpic.{MemRead, MemWrite}
 import taohe.util.enum.MemLen
 import taohe.util.AXI4LiteBundle
-import chisel3.util.MuxLookup
 
 object SRAMState extends ChiselEnum {
   /*
@@ -41,10 +42,16 @@ class SRAM extends Module {
   val wData = RegInit(0.U(32.W))
   val wStrb = RegInit(0.U(4.W))
 
+  val random = LFSR(3)
+  val latencyReg = RegInit(0.U(3.W))
+
   // Read FSM
   // State 1
   io.ar.ready := readState === SRAMState.sIdle
   arAddr := Mux(io.ar.fire, io.ar.bits.addr, arAddr)
+
+  val latencyNext = Mux(latencyReg === 0.U, 0.U, latencyReg - 1.U)
+  latencyReg := Mux(io.ar.fire, random(2, 0), latencyNext)
 
   // State 2
   // Consider to skip Work state since transaction
@@ -54,7 +61,7 @@ class SRAM extends Module {
   io.r.bits.data := memRead.io.readData
 
   // State 3
-  io.r.valid := readState === SRAMState.sSend
+  io.r.valid := readState === SRAMState.sSend && !latencyReg
   io.r.bits.resp := readState === SRAMState.sSend
 
   // Write FSM

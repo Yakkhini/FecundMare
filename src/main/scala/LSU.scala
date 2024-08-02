@@ -81,7 +81,7 @@ class LSU extends Module {
   io.axi4Lite.b.ready := lsuState === LSUState.sWait
 
   // State 4
-  io.toEXU.valid := lsuState === LSUState.sSend || (lsuState === LSUState.sIdle && !currentWriteEnable && !currentReadEnable) || lsuState === LSUState.sWait
+  io.toEXU.valid := lsuState === LSUState.sSend || (lsuState === LSUState.sIdle && !currentWriteEnable && !currentReadEnable) || (lsuState === LSUState.sWait && io.axi4Lite.r.fire)
   io.toEXU.bits.readData := io.axi4Lite.r.bits.data
 
   switch(lsuState) {
