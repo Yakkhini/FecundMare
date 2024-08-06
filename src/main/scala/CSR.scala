@@ -12,8 +12,8 @@ import taohe.util.CSRBundle
 class CSR extends Module {
   val io = IO(new CSRBundle)
 
-  io.toEXU.valid := false.B
-  io.fromEXU.ready := false.B
+  io.toEXU.valid := true.B
+  io.fromEXU.ready := true.B
 
   // The initial value of the MSTATUS register is 0x00001800 to pass DiffTest
   val csrs = RegInit(
@@ -32,13 +32,17 @@ class CSR extends Module {
 
   switch(opType) {
     is(CSROPType.RW) {
-      csrs(index) := io.fromEXU.bits.rs1data
+      csrs(index) := Mux(io.fromEXU.fire, io.fromEXU.bits.rs1data, csrs(index))
     }
     is(CSROPType.RS) {
-      csrs(index) := csrs(index) | io.fromEXU.bits.rs1data
+      csrs(index) := Mux(
+        io.fromEXU.fire,
+        csrs(index) | io.fromEXU.bits.rs1data,
+        csrs(index)
+      )
     }
     is(CSROPType.CALL) {
-      csrs(2.U) := io.fromEXU.bits.currentPC // MEPC
+      csrs(2.U) := Mux(io.fromEXU.fire, io.fromEXU.bits.currentPC, csrs(2.U))
       csrs(3.U) := 11.U(32.W) // MCAUSE
     }
   }

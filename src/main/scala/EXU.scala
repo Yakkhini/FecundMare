@@ -29,9 +29,9 @@ class EXU extends Module {
   // State 3
   io.toRegisterFile.valid := exuState === EXUState.sWB || skipLSState
   io.toIFU.valid := exuState === EXUState.sWB || skipLSState
+  io.toCSR.valid := exuState === EXUState.sWB || skipLSState
 
-  io.toCSR.valid := io.fromIDU.valid & io.fromLSU.valid
-  io.fromCSR.ready := false.B
+  io.fromCSR.ready := true.B
 
   io.toRegisterFile.bits.writeAddr := io.fromIDU.bits.registerWriteAddr
 
