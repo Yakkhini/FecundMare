@@ -102,6 +102,40 @@ class AXI4LiteRChannel extends Bundle {
   val resp = Output(UInt(2.W))
 }
 
+class AXI4AWChannel extends Bundle {
+  val addr = Output(UInt(32.W))
+  val id = Output(UInt(4.W))
+  val len = Output(UInt(8.W))
+  val size = Output(UInt(3.W))
+  val burst = Output(UInt(2.W))
+}
+
+class AXI4WChannel extends Bundle {
+  val data = Output(UInt(32.W))
+  val strb = Output(UInt(4.W))
+  val last = Output(Bool())
+}
+
+class AXI4BChannel extends Bundle {
+  val id = Output(UInt(4.W))
+  val resp = Output(UInt(2.W))
+}
+
+class AXI4ARChannel extends Bundle {
+  val addr = Output(UInt(32.W))
+  val id = Output(UInt(4.W))
+  val len = Output(UInt(8.W))
+  val size = Output(UInt(3.W))
+  val burst = Output(UInt(2.W))
+}
+
+class AXI4RChannel extends Bundle {
+  val id = Output(UInt(4.W))
+  val data = Output(UInt(32.W))
+  val resp = Output(UInt(2.W))
+  val last = Output(Bool())
+}
+
 // Public interfaces
 class AXI4LiteBundle extends Bundle {
   // Manager to Subordinate
@@ -110,6 +144,15 @@ class AXI4LiteBundle extends Bundle {
   val b = Flipped(Decoupled(new AXI4LiteBChannel))
   val ar = Decoupled(new AXI4LiteARChannel)
   val r = Flipped(Decoupled(new AXI4LiteRChannel))
+}
+
+class AXI4Bundle extends Bundle {
+  // Manager to Subordinate
+  val aw = Decoupled(new AXI4AWChannel)
+  val w = Decoupled(new AXI4WChannel)
+  val b = Flipped(Decoupled(new AXI4BChannel))
+  val ar = Decoupled(new AXI4ARChannel)
+  val r = Flipped(Decoupled(new AXI4RChannel))
 }
 
 class LSUBundle extends Bundle {
