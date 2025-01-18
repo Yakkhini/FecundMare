@@ -4,6 +4,7 @@ import chisel3._
 
 import taohe.util.enum._
 import chisel3.util.Decoupled
+import chisel3.experimental.dataview._
 
 // Internal interfaces
 class IFUToIDUBundle extends Bundle {
@@ -193,4 +194,76 @@ class EXUBundle extends Bundle {
   val fromCSR = Flipped(Decoupled(new CSRToEXUBundle))
   val toCSR = Decoupled(new EXUToCSRBundle)
   val toIFU = Decoupled(new EXUToIFUBundle)
+}
+
+class YSYXSoCAXI4Bundle extends Bundle {
+  val awready = Input(Bool())
+  val awvalid = Output(Bool())
+  val awaddr = Output(UInt(32.W))
+  val awid = Output(UInt(4.W))
+  val awlen = Output(UInt(8.W))
+  val awsize = Output(UInt(3.W))
+  val awburst = Output(UInt(2.W))
+
+  val wready = Input(Bool())
+  val wvalid = Output(Bool())
+  val wdata = Output(UInt(32.W))
+  val wstrb = Output(UInt(4.W))
+  val wlast = Output(Bool())
+
+  val bready = Output(Bool())
+  val bvalid = Input(Bool())
+  val bresp = Input(UInt(2.W))
+  val bid = Input(UInt(4.W))
+
+  val arready = Input(Bool())
+  val arvalid = Output(Bool())
+  val araddr = Output(UInt(32.W))
+  val arid = Output(UInt(4.W))
+  val arlen = Output(UInt(8.W))
+  val arsize = Output(UInt(3.W))
+  val arburst = Output(UInt(2.W))
+
+  val rready = Output(Bool())
+  val rvalid = Input(Bool())
+  val rdata = Input(UInt(32.W))
+  val rresp = Input(UInt(2.W))
+  val rlast = Input(Bool())
+  val rid = Input(UInt(4.W))
+}
+
+// Data views
+object YSYXSoCAXI4Bundle {
+  implicit val axiView: DataView[AXI4Bundle, YSYXSoCAXI4Bundle] = DataView(
+    vab => new YSYXSoCAXI4Bundle(),
+    _.aw.ready -> _.awready,
+    _.aw.valid -> _.awvalid,
+    _.aw.bits.addr -> _.awaddr,
+    _.aw.bits.id -> _.awid,
+    _.aw.bits.len -> _.awlen,
+    _.aw.bits.size -> _.awsize,
+    _.aw.bits.burst -> _.awburst,
+    _.w.ready -> _.wready,
+    _.w.valid -> _.wvalid,
+    _.w.bits.data -> _.wdata,
+    _.w.bits.strb -> _.wstrb,
+    _.w.bits.last -> _.wlast,
+    _.b.ready -> _.bready,
+    _.b.valid -> _.bvalid,
+    _.b.bits.resp -> _.bresp,
+    _.b.bits.id -> _.bid,
+    _.ar.ready -> _.arready,
+    _.ar.valid -> _.arvalid,
+    _.ar.bits.addr -> _.araddr,
+    _.ar.bits.id -> _.arid,
+    _.ar.bits.len -> _.arlen,
+    _.ar.bits.size -> _.arsize,
+    _.ar.bits.burst -> _.arburst,
+    _.r.ready -> _.rready,
+    _.r.valid -> _.rvalid,
+    _.r.bits.data -> _.rdata,
+    _.r.bits.resp -> _.rresp,
+    _.r.bits.last -> _.rlast,
+    _.r.bits.id -> _.rid
+  )
 }

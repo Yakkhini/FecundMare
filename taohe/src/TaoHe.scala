@@ -4,9 +4,16 @@ import chisel3._
 import circt.stage.ChiselStage
 
 import taohe.idu.IDU
+import taohe.util.{YSYXSoCAXI4Bundle, AXI4Bundle}
 
 class TaoHe extends Module {
-  val io = IO(new Bundle {})
+  val io = IO(new Bundle {
+    val interrupt = Input(Bool())
+    val master = new YSYXSoCAXI4Bundle()
+    val slave = Flipped(new YSYXSoCAXI4Bundle())
+  })
+
+  io <> DontCare
 
   val registerFile = Module(new RegisterFile())
   val csr = Module(new CSR())
