@@ -3,8 +3,7 @@
 
 #include <config.h>
 
-#include <VTaoHe.h>
-// #include <VTaoHe__Dpi.h>
+#include <VysyxSoCFull.h>
 #include <verilated.h>
 #include <verilated_vcd_c.h>
 

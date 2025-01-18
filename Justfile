@@ -21,7 +21,7 @@ _compile:
     VLTRC=`find $NPC_CHISEL -name '*.vlt' | tr '\n' ' '` # we use echo command latter cause dollar var will cause error
     PERIP_SRC=`find {{PERIP_DIR}} -name '*.v' | tr '\n' ' '` # we use echo command latter cause dollar var will cause error
     verilator --cc -Mdir {{BUILD_DIR}}/verilator \
-    --top-module {{NPC_NAME}} \
+    --top-module ysyxSoCFull \
     --timescale 1ns/1ns --no-timing \
     --x-assign fast --x-initial fast --noassert \
     --build -j 6 -Wno-UNUSEDSIGNAL -Wno-DECLFILENAME \

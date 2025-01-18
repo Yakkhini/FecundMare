@@ -4,7 +4,7 @@
 #include <memory/paddr.h>
 #include <memory/vaddr.h>
 
-#include <VTaoHe__Dpi.h>
+#include <VysyxSoCFull__Dpi.h>
 
 extern "C" {
 

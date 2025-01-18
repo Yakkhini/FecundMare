@@ -6,9 +6,9 @@
 #include <memory/vaddr.h>
 #include <sdb.h>
 
-#include <VTaoHe.h>
-#include <VTaoHe__Dpi.h>
-#include <VTaoHe__Syms.h>
+#include <VysyxSoCFull.h>
+#include <VysyxSoCFull__Dpi.h>
+#include <VysyxSoCFull__Syms.h>
 
 CPU cpu;
 NPCState npc_state = TCHE_INIT;
@@ -129,7 +129,7 @@ void cpu_init(int argc, char **argv) {
   contextp = new VerilatedContext;
   contextp->commandArgs(argc, argv);
 
-  cpu.top = new VTaoHe(contextp);
+  cpu.top = new VysyxSoCFull(contextp);
   cpu.iCount = 0;
   cpu.check_cycle = false;
   Log("Welcome to TaoHe Processor Core Verilating Model.");
@@ -186,18 +186,21 @@ void cpu_exec(int n) {
 }
 
 void cpu_sync() {
-  memcpy(cpu.regs, cpu.top->TaoHe->registerFile->registers, sizeof(cpu.regs));
-  cpu.inst = cpu.top->TaoHe->ifu->io_toIDU_bits_inst;
-  cpu.check_cycle = cpu.top->TaoHe->ifu->iCount > cpu.iCount ||
-                    npc_state == TCHE_HALT || npc_state == TCHE_ABORT;
+  memcpy(cpu.regs,
+         cpu.top->ysyxSoCFull->asic->cpu->cpu->registerFile->registers,
+         sizeof(cpu.regs));
+  cpu.inst = cpu.top->ysyxSoCFull->asic->cpu->cpu->ifu->io_toIDU_bits_inst;
+  cpu.check_cycle =
+      cpu.top->ysyxSoCFull->asic->cpu->cpu->ifu->iCount > cpu.iCount ||
+      npc_state == TCHE_HALT || npc_state == TCHE_ABORT;
 
-  if (cpu.top->TaoHe->xbar->difftestSkip)
+  if (cpu.top->ysyxSoCFull->asic->cpu->cpu->xbar->difftestSkip)
     difftest_skip_ref();
 
   if (cpu.check_cycle) {
     cpu.pc_prev = cpu.pc;
-    cpu.pc = cpu.top->TaoHe->exu->io_toIFU_bits_nextPC;
-    cpu.iCount = cpu.top->TaoHe->ifu->iCount;
+    cpu.pc = cpu.top->ysyxSoCFull->asic->cpu->cpu->exu->io_toIFU_bits_nextPC;
+    cpu.iCount = cpu.top->ysyxSoCFull->asic->cpu->cpu->ifu->iCount;
   }
 }
 
@@ -207,7 +210,7 @@ void cpu_check() {
   disassembler();
 #endif
 
-  if (cpu.top->TaoHe->idu->decodeSupport == 0) {
+  if (cpu.top->ysyxSoCFull->asic->cpu->cpu->idu->decodeSupport == 0) {
     Log(ANSI_FMT("ERROR INST NOT SUPPORT: ", ANSI_FG_RED) ANSI_FG_BLUE
         "DECODE " ANSI_FMT("FAILED ", ANSI_FG_RED) ANSI_FG_BLUE
         "at pc = 0x%08X",
