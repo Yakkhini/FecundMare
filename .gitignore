@@ -12,4 +12,4 @@
 out
 build
 compile_commands.json
-config/config.h
+taohebench/config/config.h
