@@ -1,15 +1,15 @@
 set dotenv-load
 
 BUILD_DIR := "$NPC_CHISEL/out"
-INC_DIR := "$NPC_CHISEL/include"
-CONFIG_DIR := "$NPC_CHISEL/config"
+INC_DIR := "$NPC_CHISEL/taohebench/include"
+CONFIG_DIR := "$NPC_CHISEL/taohebench/config"
 NVBOARD_ARCHIVE := "$NVBOARD_HOME/build/nvboard.a"
 YSYX_HOME := "$NEMU_HOME/.."
 NPC_NAME := "TaoHe"
 
 sv:
     #!/usr/bin/env zsh
-    mill -i build.run
+    mill -i taohe.run
     echo "SystemVerilog files are generated."
 
 _compile:
