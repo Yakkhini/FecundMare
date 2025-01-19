@@ -55,52 +55,61 @@ class LSU extends Module {
     Mux(io.fromEXU.fire, io.fromEXU.bits.readEnable, readEnable)
   val currentWriteEnable =
     Mux(io.fromEXU.fire, io.fromEXU.bits.writeEnable, writeEnable)
-  io.axi4Lite.ar.valid := (lsuState === LSUState.sRequest || io.fromEXU.fire) && currentReadEnable
-  io.axi4Lite.aw.valid := (lsuState === LSUState.sRequest || io.fromEXU.fire) && currentWriteEnable
-  io.axi4Lite.w.valid := (lsuState === LSUState.sRequest || io.fromEXU.fire) && currentWriteEnable
-  io.axi4Lite.ar.bits.addr := Mux(
+  io.axi4.ar.valid := (lsuState === LSUState.sRequest || io.fromEXU.fire) && currentReadEnable
+  io.axi4.aw.valid := (lsuState === LSUState.sRequest || io.fromEXU.fire) && currentWriteEnable
+  io.axi4.w.valid := (lsuState === LSUState.sRequest || io.fromEXU.fire) && currentWriteEnable
+  io.axi4.w.bits.last := io.axi4.w.valid
+  io.axi4.ar.bits.addr := Mux(
     io.fromEXU.fire,
     io.fromEXU.bits.address,
     address
   )
-  io.axi4Lite.aw.bits.addr := Mux(
+  io.axi4.aw.bits.addr := Mux(
     io.fromEXU.fire,
     io.fromEXU.bits.address,
     address
   )
-  io.axi4Lite.w.bits.data := Mux(
+  io.axi4.w.bits.data := Mux(
     io.fromEXU.fire,
     io.fromEXU.bits.writeData,
     writeData
   )
-  io.axi4Lite.w.bits.strb := io.fromEXU.bits.length
+  io.axi4.w.bits.strb := io.fromEXU.bits.length
+  io.axi4.aw.bits.burst := 0.U
+  io.axi4.aw.bits.id := 0.U
+  io.axi4.aw.bits.len := 0.U
+  io.axi4.aw.bits.size := 0.U
+  io.axi4.ar.bits.id := 0.U
+  io.axi4.ar.bits.len := 0.U
+  io.axi4.ar.bits.size := "b010".U
+  io.axi4.ar.bits.burst := 0.U
 
   // State 3
   // Currently we don't care about the B channel
-  io.axi4Lite.r.ready := lsuState === LSUState.sWait || lsuState === LSUState.sSend // Skip the Wait state
-  io.axi4Lite.b.ready := lsuState === LSUState.sWait
+  io.axi4.r.ready := lsuState === LSUState.sWait || lsuState === LSUState.sSend // Skip the Wait state
+  io.axi4.b.ready := lsuState === LSUState.sWait
 
   // State 4
-  io.toEXU.valid := lsuState === LSUState.sSend || (lsuState === LSUState.sIdle && !currentWriteEnable && !currentReadEnable) || (lsuState === LSUState.sWait && io.axi4Lite.r.fire)
-  io.toEXU.bits.readData := io.axi4Lite.r.bits.data
+  io.toEXU.valid := lsuState === LSUState.sSend || (lsuState === LSUState.sIdle && !currentWriteEnable && !currentReadEnable) || (lsuState === LSUState.sWait && io.axi4.r.fire)
+  io.toEXU.bits.readData := io.axi4.r.bits.data
 
   switch(lsuState) {
     is(LSUState.sIdle) {
       when(io.fromEXU.fire) {
         lsuState := Mux(
-          io.axi4Lite.aw.fire || io.axi4Lite.ar.fire,
+          io.axi4.aw.fire || io.axi4.ar.fire,
           LSUState.sWait,
           LSUState.sRequest
         )
       }
     }
     is(LSUState.sRequest) {
-      when(io.axi4Lite.ar.fire || io.axi4Lite.aw.fire) {
+      when(io.axi4.ar.fire || io.axi4.aw.fire) {
         lsuState := LSUState.sWait
       }
     }
     is(LSUState.sWait) {
-      when(io.axi4Lite.r.fire || io.axi4Lite.b.fire) {
+      when(io.axi4.r.fire || io.axi4.b.fire) {
         lsuState := Mux(io.toEXU.fire, LSUState.sIdle, LSUState.sSend)
       }
     }

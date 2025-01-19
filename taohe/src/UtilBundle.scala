@@ -159,7 +159,7 @@ class AXI4Bundle extends Bundle {
 class LSUBundle extends Bundle {
   val fromEXU = Flipped(Decoupled(new EXUToLSUBundle))
   val toEXU = Decoupled(new LSUToEXUBundle)
-  val axi4Lite = new AXI4LiteBundle
+  val axi4 = new AXI4Bundle
 }
 
 class RegisterFileBundle extends Bundle {
@@ -176,7 +176,7 @@ class CSRBundle extends Bundle {
 class IFUBundle extends Bundle {
   val fromEXU = Flipped(Decoupled(new EXUToIFUBundle))
   val toIDU = Decoupled(new IFUToIDUBundle)
-  val axi4Lite = new AXI4LiteBundle
+  val axi4 = new AXI4Bundle
 }
 
 class IDUBundle extends Bundle {
@@ -266,4 +266,7 @@ object YSYXSoCAXI4Bundle {
     _.r.bits.last -> _.rlast,
     _.r.bits.id -> _.rid
   )
+
+  implicit val axiViewInvert: DataView[YSYXSoCAXI4Bundle, AXI4Bundle] =
+    YSYXSoCAXI4Bundle.axiView.invert(ab => new AXI4Bundle())
 }

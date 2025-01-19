@@ -1,7 +1,7 @@
 package taohe
 
 import chisel3._
-import taohe.util.AXI4LiteBundle
+import taohe.util.{AXI4LiteBundle, AXI4Bundle}
 import chisel3.util.{switch, is}
 
 object AXIArbiterState extends ChiselEnum {
@@ -9,9 +9,9 @@ object AXIArbiterState extends ChiselEnum {
 }
 
 class AXIArbiterIO extends Bundle {
-  val ifu = Flipped(new AXI4LiteBundle)
-  val lsu = Flipped(new AXI4LiteBundle)
-  val out = new AXI4LiteBundle
+  val ifu = Flipped(new AXI4Bundle)
+  val lsu = Flipped(new AXI4Bundle)
+  val out = new AXI4Bundle
 }
 
 class AXIArbiter extends Module {
@@ -56,6 +56,7 @@ class AXIArbiter extends Module {
   io.ifu.w.ready := false.B
   io.ifu.b.valid := false.B
   io.ifu.b.bits.resp := 0.U
+  io.ifu.b.bits.id := 0.U
 
   switch(state) {
     is(AXIArbiterState.sIdle) {

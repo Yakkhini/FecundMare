@@ -3,6 +3,8 @@ package taohe
 import chisel3._
 import circt.stage.ChiselStage
 
+import chisel3.experimental.dataview._
+
 import taohe.idu.IDU
 import taohe.util.{YSYXSoCAXI4Bundle, AXI4Bundle}
 
@@ -13,7 +15,14 @@ class TaoHe extends Module {
     val slave = Flipped(new YSYXSoCAXI4Bundle())
   })
 
-  io <> DontCare
+  io.interrupt <> DontCare
+  io.slave <> DontCare
+
+  val ioView = new Bundle {
+    val interrupt = Input(Bool())
+    val master = io.master.viewAs[AXI4Bundle]
+    val slave = io.slave.viewAs[AXI4Bundle]
+  }
 
   val registerFile = Module(new RegisterFile())
   val csr = Module(new CSR())
@@ -29,10 +38,15 @@ class TaoHe extends Module {
   val uart = Module(new UART())
   val clint = Module(new CLINT())
 
-  axiArbiter.io.ifu <> ifu.io.axi4Lite
-  axiArbiter.io.lsu <> lsu.io.axi4Lite
-  axiArbiter.io.out <> xbar.io.in
+  // IFU has Connected to the master port
+  axiArbiter.io.ifu <> ifu.io.axi4
+  axiArbiter.io.lsu <> lsu.io.axi4
 
+  axiArbiter.io.out <> ioView.master
+
+  // CrossBar is useless in SoC development
+  // Maybe it will be removed in the future.
+  xbar.io.in <> DontCare
   xbar.io.out(0) <> sram.io
   xbar.io.out(1) <> uart.io
   xbar.io.out(2) <> clint.io
@@ -60,9 +74,9 @@ class TaoHe extends Module {
   dontTouch(exu.io.toLSU.bits.writeData)
   dontTouch(exu.io.toLSU.bits.writeEnable)
 
-  dontTouch(ifu.io.axi4Lite.aw.ready)
-  dontTouch(ifu.io.axi4Lite.w.ready)
-  dontTouch(ifu.io.axi4Lite.b.valid)
+  dontTouch(ifu.io.axi4.aw.ready)
+  dontTouch(ifu.io.axi4.w.ready)
+  dontTouch(ifu.io.axi4.b.valid)
 
 }
 
