@@ -29,7 +29,7 @@ _compile:
     -I{{PERIP_DIR}}/uart16550/rtl -I{{PERIP_DIR}}/spi/rtl \
     -CFLAGS -I{{BUILD_DIR}}/verilator -CFLAGS -I{{INC_DIR}} -CFLAGS -I{{CONFIG_DIR}} -CFLAGS -g \
     -LDFLAGS -lreadline -LDFLAGS -lcapstone \
-    --trace --exe -o {{BUILD_DIR}}/bin/taohe
+    --trace-fst --exe -o {{BUILD_DIR}}/bin/taohe
 
 
 sim: (trace "Build TaoHe Simulator Program Binary.") sv _compile
@@ -40,7 +40,7 @@ trace msg:
     sync
 
 wave:
-    gtkwave WaveLayout.gtkw
+    surfer {{BUILD_DIR}}/waveform.fst
 
 fmt:
     scalafmt

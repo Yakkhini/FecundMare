@@ -5,7 +5,7 @@
 
 #include <VysyxSoCFull.h>
 #include <verilated.h>
-#include <verilated_vcd_c.h>
+#include <verilated_fst_c.h>
 
 #include <inttypes.h>
 #include <stdbool.h>

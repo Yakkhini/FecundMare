@@ -17,7 +17,7 @@ static char *NPC_CHISEL = getenv("NPC_CHISEL");
 static VerilatedContext *contextp;
 
 #if CONFIG_WAVE_RECORD
-static VerilatedVcdC *tfp;
+static VerilatedFstC *tfp;
 #endif
 
 void finish();
@@ -137,11 +137,11 @@ void cpu_init(int argc, char **argv) {
 #if CONFIG_WAVE_RECORD
   char wavefile_name[80];
   strcpy(wavefile_name, NPC_CHISEL);
-  strcat(wavefile_name, "/out/waveform.vcd");
+  strcat(wavefile_name, "/out/waveform.fst");
   Log("Wave Path: `%s`.", wavefile_name);
 
   Verilated::traceEverOn(true);
-  tfp = new VerilatedVcdC;
+  tfp = new VerilatedFstC;
   cpu.top->trace(tfp, 5);
 
   tfp->open(wavefile_name);
