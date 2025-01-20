@@ -49,9 +49,9 @@ class TaoHe extends Module {
   // xbar.io.out(0) <> sram.io
   // xbar.io.out(1) <> uart.io
   // xbar.io.out(2) <> clint.io
-  //
-  // ifu.io.toIDU <> idu.io.fromIFU
-  // idu.io.toEXU <> exu.io.fromIDU
+
+  ifu.io.toIDU <> idu.io.fromIFU
+  idu.io.toEXU <> exu.io.fromIDU
 
   idu.io.fromRegisterFile <> registerFile.io.toIDU
   idu.io.toRegisterFile <> registerFile.io.fromIDU
