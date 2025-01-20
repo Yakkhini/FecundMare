@@ -44,11 +44,17 @@ object NextPCDataType extends ChiselEnum {
   val RESULT, BRANCH, CSRDATA, NORMAL = Value
 }
 
-object MemLen extends ChiselEnum {
+object MemStrobe extends ChiselEnum {
   // MemLen signal can use as strb/mask.
   val B = Value("b0001".U)
   val H = Value("b0011".U)
   val W = Value("b1111".U)
+}
+
+object MemSize extends ChiselEnum {
+  val B = Value("b000".U)
+  val H = Value("b001".U)
+  val W = Value("b010".U)
 }
 
 object CSREnum extends ChiselEnum {

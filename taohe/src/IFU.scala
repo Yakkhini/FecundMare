@@ -4,6 +4,7 @@ import chisel3._
 import chisel3.util.{switch, is}
 
 import taohe.util.IFUBundle
+import taohe.util.enum.MemSize
 
 object IFUState extends ChiselEnum {
   /*
@@ -41,7 +42,7 @@ class IFU extends Module {
   io.axi4.ar.bits.addr := pc
   io.axi4.ar.bits.id := 0.U
   io.axi4.ar.bits.len := 0.U
-  io.axi4.ar.bits.size := "b010".U
+  io.axi4.ar.bits.size := MemSize.W
   io.axi4.ar.bits.burst := 0.U
 
   // State 3

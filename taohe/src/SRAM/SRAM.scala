@@ -6,7 +6,7 @@ import chisel3.util.MuxLookup
 import chisel3.util.random.LFSR
 
 import taohe.dpic.{MemRead, MemWrite}
-import taohe.util.enum.MemLen
+import taohe.util.enum.MemSize
 import taohe.util.AXI4LiteBundle
 
 object SRAMState extends ChiselEnum {
@@ -78,9 +78,9 @@ class SRAM extends Module {
 
   memWrite.io.writeLen := MuxLookup(io.w.bits.strb, 1.U(32.W))(
     Seq(
-      MemLen.B.asUInt -> 1.U,
-      MemLen.H.asUInt -> 2.U,
-      MemLen.W.asUInt -> 4.U
+      MemSize.B.asUInt -> 1.U,
+      MemSize.H.asUInt -> 2.U,
+      MemSize.W.asUInt -> 4.U
     )
   )
 

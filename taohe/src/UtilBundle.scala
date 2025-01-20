@@ -24,7 +24,7 @@ class IDUToEXUBundle extends Bundle {
   val data1Type = UInt(Data1Type.getWidth.W)
   val data2Type = UInt(Data2Type.getWidth.W)
   val nextPCType = UInt(NextPCDataType.getWidth.W)
-  val lsuLength = UInt(MemLen.getWidth.W)
+  val lsuLength = UInt(MemSize.getWidth.W)
   val aluOp = UInt(ALUOpType.getWidth.W)
   val compareOp = UInt(CompareOpType.getWidth.W)
   val lsuReadEnable = Bool()

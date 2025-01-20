@@ -62,15 +62,15 @@ class EXU extends Module {
 
   val lsuReadData = MuxLookup(io.fromIDU.bits.lsuLength, 0.U(32.W))(
     Seq(
-      MemLen.B.asUInt -> Fill(
+      MemSize.B.asUInt -> Fill(
         24,
         io.fromLSU.bits.readData(7) & ~io.fromIDU.bits.unsigned
       ) ## io.fromLSU.bits.readData(7, 0),
-      MemLen.H.asUInt -> Fill(
+      MemSize.H.asUInt -> Fill(
         16,
         io.fromLSU.bits.readData(15) & ~io.fromIDU.bits.unsigned
       ) ## io.fromLSU.bits.readData(15, 0),
-      MemLen.W.asUInt -> io.fromLSU.bits.readData
+      MemSize.W.asUInt -> io.fromLSU.bits.readData
     )
   )
 

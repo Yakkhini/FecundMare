@@ -261,16 +261,16 @@ object NextPCDataTypeField extends DecodeField[InstructionPattern, UInt] {
 
 object MemLenField extends DecodeField[InstructionPattern, UInt] {
   def name: String = "memoryLenth"
-  def chiselType = UInt(MemLen.getWidth.W)
+  def chiselType = UInt(MemSize.getWidth.W)
   def genTable(op: InstructionPattern): BitPat = {
     op.func3.rawString match {
       // Maybe we should just use 2 bits for this field? Whatever, espresso will optimize it.
-      case "000" => BitPat(MemLen.B.litValue.U(MemLen.getWidth.W))
-      case "001" => BitPat(MemLen.H.litValue.U(MemLen.getWidth.W))
-      case "010" => BitPat(MemLen.W.litValue.U(MemLen.getWidth.W))
-      case "100" => BitPat(MemLen.B.litValue.U(MemLen.getWidth.W)) // LBU
-      case "101" => BitPat(MemLen.H.litValue.U(MemLen.getWidth.W)) // LHU
-      case _     => BitPat(MemLen.B.litValue.U(MemLen.getWidth.W))
+      case "000" => BitPat(MemSize.B.litValue.U(MemSize.getWidth.W))
+      case "001" => BitPat(MemSize.H.litValue.U(MemSize.getWidth.W))
+      case "010" => BitPat(MemSize.W.litValue.U(MemSize.getWidth.W))
+      case "100" => BitPat(MemSize.B.litValue.U(MemSize.getWidth.W)) // LBU
+      case "101" => BitPat(MemSize.H.litValue.U(MemSize.getWidth.W)) // LHU
+      case _     => BitPat(MemSize.B.litValue.U(MemSize.getWidth.W))
     }
   }
 }
