@@ -32,11 +32,6 @@ class TaoHe extends Module {
   val exu = Module(new EXU())
 
   val axiArbiter = Module(new AXIArbiter())
-  val xbar = Module(new CrossBar())
-
-  val sram = Module(new SRAM())
-  val uart = Module(new UART())
-  val clint = Module(new CLINT())
 
   // IFU has Connected to the master port
   axiArbiter.io.ifu <> ifu.io.axi4
@@ -44,15 +39,19 @@ class TaoHe extends Module {
 
   axiArbiter.io.out <> ioView.master
 
-  // CrossBar is useless in SoC development
+  // CrossBar and built-in devices is useless in SoC development
   // Maybe it will be removed in the future.
-  xbar.io.in <> DontCare
-  xbar.io.out(0) <> sram.io
-  xbar.io.out(1) <> uart.io
-  xbar.io.out(2) <> clint.io
-
-  ifu.io.toIDU <> idu.io.fromIFU
-  idu.io.toEXU <> exu.io.fromIDU
+  // val xbar = Module(new CrossBar())
+  // val sram = Module(new SRAM())
+  // val uart = Module(new UART())
+  // val clint = Module(new CLINT())
+  // xbar.io.in <> DontCare
+  // xbar.io.out(0) <> sram.io
+  // xbar.io.out(1) <> uart.io
+  // xbar.io.out(2) <> clint.io
+  //
+  // ifu.io.toIDU <> idu.io.fromIFU
+  // idu.io.toEXU <> exu.io.fromIDU
 
   idu.io.fromRegisterFile <> registerFile.io.toIDU
   idu.io.toRegisterFile <> registerFile.io.fromIDU
