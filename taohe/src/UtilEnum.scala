@@ -52,9 +52,10 @@ object MemStrobe extends ChiselEnum {
 }
 
 object MemSize extends ChiselEnum {
-  val B = Value("b000".U)
-  val H = Value("b001".U)
-  val W = Value("b010".U)
+  val B = Value("b000".U(3.W))
+  val H = Value("b001".U(3.W))
+  val W = Value("b010".U(3.W))
+  val SIZE128 = Value("b111".U(3.W))
 }
 
 object CSREnum extends ChiselEnum {

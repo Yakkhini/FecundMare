@@ -107,7 +107,7 @@ class AXI4AWChannel extends Bundle {
   val addr = Output(UInt(32.W))
   val id = Output(UInt(4.W))
   val len = Output(UInt(8.W))
-  val size = Output(UInt(3.W))
+  val size = Output(UInt(MemSize.getWidth.W))
   val burst = Output(UInt(2.W))
 }
 
@@ -126,7 +126,7 @@ class AXI4ARChannel extends Bundle {
   val addr = Output(UInt(32.W))
   val id = Output(UInt(4.W))
   val len = Output(UInt(8.W))
-  val size = Output(UInt(3.W))
+  val size = Output(UInt(MemSize.getWidth.W))
   val burst = Output(UInt(2.W))
 }
 
