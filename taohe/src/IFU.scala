@@ -70,18 +70,18 @@ class IFU extends Module {
 
   switch(ifuState) {
     is(IFUState.sIdle) {
-      when(io.fromEXU.fire) {
+      when(io.fromEXU.fire && !reset.asBool) {
         // Skip the request state if the PC accepted in the same cycle.
         ifuState := Mux(io.axi4.ar.fire, IFUState.sFetch, IFUState.sRequest)
       }
     }
     is(IFUState.sRequest) {
-      when(io.axi4.ar.fire) {
+      when(io.axi4.ar.fire && !reset.asBool) {
         ifuState := IFUState.sFetch
       }
     }
     is(IFUState.sFetch) {
-      when(io.axi4.r.fire) {
+      when(io.axi4.r.fire && !reset.asBool) {
         // The IFU should finish in two cycles when there is no mem access
         // instructions.
         // Normal instructions FSM: (Request -> Fetch) -> (R -> F)
@@ -90,7 +90,7 @@ class IFU extends Module {
       }
     }
     is(IFUState.sSend) {
-      when(io.toIDU.fire) {
+      when(io.toIDU.fire && !reset.asBool) {
         ifuState := IFUState.sIdle
       }
     }
