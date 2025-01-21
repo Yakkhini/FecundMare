@@ -38,7 +38,7 @@ class IFU extends Module {
   dontTouch(iCount)
 
   // State 2
-  io.axi4.ar.valid := ifuState === IFUState.sRequest
+  io.axi4.ar.valid := (ifuState === IFUState.sRequest) && !reset.asBool
   io.axi4.ar.bits.addr := pc
   io.axi4.ar.bits.id := 0.U
   io.axi4.ar.bits.len := 0.U
@@ -46,7 +46,7 @@ class IFU extends Module {
   io.axi4.ar.bits.burst := 0.U
 
   // State 3
-  io.axi4.r.ready := ifuState === IFUState.sFetch
+  io.axi4.r.ready := (ifuState === IFUState.sFetch) && !reset.asBool
   inst := Mux(io.axi4.r.fire, io.axi4.r.bits.data, inst)
   val currentInst = Mux(io.axi4.r.fire, io.axi4.r.bits.data, inst)
 
