@@ -40,7 +40,7 @@ trace msg:
     sync
 
 wave:
-    surfer {{BUILD_DIR}}/waveform.fst
+    surfer -s WaveLayout.ron {{BUILD_DIR}}/waveform.fst
 
 fmt:
     scalafmt
