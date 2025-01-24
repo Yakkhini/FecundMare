@@ -13,3 +13,4 @@ out
 build
 compile_commands.json
 taohebench/config/config.h
+!char-test.c
