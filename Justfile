@@ -24,6 +24,7 @@ _compile:
     --top-module ysyxSoCFull \
     --timescale 1ns/1ns --no-timing \
     --x-assign fast --x-initial fast --noassert \
+    --autoflush \
     --build -j 6 -Wno-UNUSEDSIGNAL -Wno-DECLFILENAME \
     `echo $VLTRC` `echo $CSRC` `echo $VSRC` `echo $PERIP_SRC` $YSYX_SOC_HOME/build/ysyxSoCFull \
     -I{{PERIP_DIR}}/uart16550/rtl -I{{PERIP_DIR}}/spi/rtl \
