@@ -1,3 +1,5 @@
+set fallback
+
 compile:
   mkdir -p build
   riscv64-unknown-linux-gnu-gcc -O2 -march=rv32e_zicsr -nostdlib -L -Ttext -mabi=ilp32e char-test.c -o build/char-test.elf
