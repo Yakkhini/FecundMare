@@ -59,33 +59,34 @@ class LSU extends Module {
   io.axi4.aw.valid := (lsuState === LSUState.sRequest || io.fromEXU.fire) && currentWriteEnable
   io.axi4.w.valid := (lsuState === LSUState.sRequest || io.fromEXU.fire) && currentWriteEnable
   io.axi4.w.bits.last := io.axi4.w.valid
+  io.axi4.ar.bits.size := io.fromEXU.bits.length
   io.axi4.ar.bits.addr := Mux(
     io.fromEXU.fire,
     io.fromEXU.bits.address,
     address
   )
+  io.axi4.aw.bits.size := io.fromEXU.bits.length
   io.axi4.aw.bits.addr := Mux(
     io.fromEXU.fire,
     io.fromEXU.bits.address,
     address
   )
+  io.axi4.w.bits.strb := "b1111".U
   io.axi4.w.bits.data := Mux(
     io.fromEXU.fire,
     io.fromEXU.bits.writeData,
     writeData
   )
-  io.axi4.w.bits.strb := io.fromEXU.bits.length
+
+  // Default value
   io.axi4.aw.bits.burst := 0.U
   io.axi4.aw.bits.id := 0.U
   io.axi4.aw.bits.len := 0.U
-  io.axi4.aw.bits.size := 0.U
   io.axi4.ar.bits.id := 0.U
   io.axi4.ar.bits.len := 0.U
-  io.axi4.ar.bits.size := "b010".U
   io.axi4.ar.bits.burst := 0.U
 
   // State 3
-  // Currently we don't care about the B channel
   io.axi4.r.ready := lsuState === LSUState.sWait || lsuState === LSUState.sSend // Skip the Wait state
   io.axi4.b.ready := lsuState === LSUState.sWait
 
