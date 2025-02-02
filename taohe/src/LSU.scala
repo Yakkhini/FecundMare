@@ -7,22 +7,12 @@ import taohe.util.LSUBundle
 
 object LSUState extends ChiselEnum {
   /*
-   * Currently in multi-cycle design, there is
-   * no need to distinguish between read and write
-   * transaction. Only one type of transaction is
-   * allowed in one cycle.
-   *
    * LSU State
    *
    * 1. Idle State
    * 2. Request State
    * 3. Wait State
    * 4. Send State
-   *
-   * Now our design is connenct with a SRAM module.
-   * So the read transaction should finish in two
-   * cycles, and write transaction should finish in
-   * one cycle. Maybe few states have to be skipped.
    *
    */
   val sIdle, sRequest, sWait, sSend = Value
@@ -36,9 +26,15 @@ class LSU extends Module {
   val lsuState = RegInit(LSUState.sIdle)
 
   // Buffer Register
+  //
+  // Notice: `writeData` and `readData` looks
+  // similar, but they are different. EXU takes
+  // master of `writeData`, and LSU takes master
+  // of `readData`.
   val address = RegInit(0.U(32.W))
   val length = RegInit(0.U(32.W))
   val writeData = RegInit(0.U(32.W))
+  val readData = RegInit(0.U(32.W))
   val writeEnable = RegInit(false.B)
   val readEnable = RegInit(false.B)
 
@@ -88,11 +84,12 @@ class LSU extends Module {
 
   // State 3
   io.axi4.r.ready := lsuState === LSUState.sWait || lsuState === LSUState.sSend // Skip the Wait state
+  readData := Mux(io.axi4.r.fire, io.axi4.r.bits.data, readData)
   io.axi4.b.ready := lsuState === LSUState.sWait
 
   // State 4
   io.toEXU.valid := lsuState === LSUState.sSend || (lsuState === LSUState.sIdle && !currentWriteEnable && !currentReadEnable) || (lsuState === LSUState.sWait && io.axi4.r.fire)
-  io.toEXU.bits.readData := io.axi4.r.bits.data
+  io.toEXU.bits.readData := Mux(io.axi4.r.fire, io.axi4.r.bits.data, readData)
 
   switch(lsuState) {
     is(LSUState.sIdle) {
