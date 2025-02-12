@@ -4,6 +4,8 @@ import chisel3._
 import chisel3.util.{switch, is}
 
 import taohe.util.LSUBundle
+import chisel3.util.MuxLookup
+import taohe.util.enum.MemSize
 
 object LSUState extends ChiselEnum {
   /*
@@ -51,28 +53,32 @@ class LSU extends Module {
     Mux(io.fromEXU.fire, io.fromEXU.bits.readEnable, readEnable)
   val currentWriteEnable =
     Mux(io.fromEXU.fire, io.fromEXU.bits.writeEnable, writeEnable)
+  val currentAddress = Mux(
+    io.fromEXU.fire,
+    io.fromEXU.bits.address,
+    address
+  )
   io.axi4.ar.valid := (lsuState === LSUState.sRequest || io.fromEXU.fire) && currentReadEnable
   io.axi4.aw.valid := (lsuState === LSUState.sRequest || io.fromEXU.fire) && currentWriteEnable
   io.axi4.w.valid := (lsuState === LSUState.sRequest || io.fromEXU.fire) && currentWriteEnable
   io.axi4.w.bits.last := io.axi4.w.valid
   io.axi4.ar.bits.size := io.fromEXU.bits.length
-  io.axi4.ar.bits.addr := Mux(
-    io.fromEXU.fire,
-    io.fromEXU.bits.address,
-    address
-  )
+  io.axi4.ar.bits.addr := currentAddress
   io.axi4.aw.bits.size := io.fromEXU.bits.length
-  io.axi4.aw.bits.addr := Mux(
-    io.fromEXU.fire,
-    io.fromEXU.bits.address,
-    address
-  )
-  io.axi4.w.bits.strb := "b1111".U
+  io.axi4.aw.bits.addr := currentAddress
+  // It should align with the bus width in AXI4 transaction
+  io.axi4.w.bits.strb := MuxLookup(io.fromEXU.bits.length, "b1111".U)(
+    Seq(
+      MemSize.B.asUInt -> "b0001".U,
+      MemSize.H.asUInt -> "b0011".U,
+      MemSize.W.asUInt -> "b1111".U
+    )
+  ) << currentAddress(1, 0)
   io.axi4.w.bits.data := Mux(
     io.fromEXU.fire,
     io.fromEXU.bits.writeData,
     writeData
-  )
+  ) << (currentAddress(1, 0) << 3)
 
   // Default value
   io.axi4.aw.bits.burst := 0.U
@@ -88,8 +94,14 @@ class LSU extends Module {
   io.axi4.b.ready := lsuState === LSUState.sWait
 
   // State 4
+  //
+  // It should align with the bus width in AXI4 transaction
   io.toEXU.valid := lsuState === LSUState.sSend || (lsuState === LSUState.sIdle && !currentWriteEnable && !currentReadEnable) || (lsuState === LSUState.sWait && io.axi4.r.fire)
-  io.toEXU.bits.readData := Mux(io.axi4.r.fire, io.axi4.r.bits.data, readData)
+  io.toEXU.bits.readData := Mux(
+    io.axi4.r.fire,
+    io.axi4.r.bits.data,
+    readData
+  ) >> (currentAddress(1, 0) << 3)
 
   switch(lsuState) {
     is(LSUState.sIdle) {
