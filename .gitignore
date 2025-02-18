@@ -8,9 +8,9 @@
 !.gitignore
 !.scalafmt.conf
 !Justfile
+!taohe/test/*/*
 .metals
 out
 build
 compile_commands.json
 taohebench/config/config.h
-!char-test.c
