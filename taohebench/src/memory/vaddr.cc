@@ -31,6 +31,6 @@ void vaddr_write(int addr, int len, int data) {
 }
 
 extern "C" void mrom_read(int32_t addr, int32_t *data) {
-  *data = vaddr_read(addr + 0x60000000, 4);
+  *data = vaddr_read((addr & 0xFFFFFFFC) + 0x60000000, 4);
   return;
 }

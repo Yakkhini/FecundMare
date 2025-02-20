@@ -63,9 +63,9 @@ class LSU extends Module {
   io.axi4.w.valid := (lsuState === LSUState.sRequest || io.fromEXU.fire) && currentWriteEnable
   io.axi4.w.bits.last := io.axi4.w.valid
   io.axi4.ar.bits.size := io.fromEXU.bits.length
-  io.axi4.ar.bits.addr := currentAddress(31, 2) << 2
+  io.axi4.ar.bits.addr := currentAddress
   io.axi4.aw.bits.size := io.fromEXU.bits.length
-  io.axi4.aw.bits.addr := currentAddress(31, 2) << 2
+  io.axi4.aw.bits.addr := currentAddress
   // It should align with the bus width in AXI4 transaction
   io.axi4.w.bits.strb := MuxLookup(io.fromEXU.bits.length, "b1111".U)(
     Seq(
