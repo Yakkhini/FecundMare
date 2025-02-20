@@ -6,6 +6,8 @@
 
 #include <VysyxSoCFull__Dpi.h>
 
+static uint8_t FLASH[0x10000000] __attribute((aligned(4096))) = {};
+
 extern "C" {
 
 int vaddr_read(int addr, int len) {
@@ -32,5 +34,11 @@ void vaddr_write(int addr, int len, int data) {
 
 extern "C" void mrom_read(int32_t addr, int32_t *data) {
   *data = vaddr_read((addr & 0xFFFFFFFC) + 0x60000000, 4);
+  return;
+}
+
+extern "C" void flash_read(int32_t addr, int32_t *data) {
+  // *data = vaddr_read((addr & 0xFFFFFFFC) + 0x50000000, 4);
+  *data = *(uint32_t *)(FLASH + (addr & 0xFFFFFFFC) - 0x30000000);
   return;
 }
