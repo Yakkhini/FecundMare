@@ -2,8 +2,6 @@
 #include <klib-macros.h>
 #include <klib.h>
 
-#define STACK_LEFT 0x0f000000
-#define STACK_SIZE 0x1ff0
 
 int main() {
 
@@ -22,8 +20,8 @@ int main() {
   }
 
   // half test
-  uint16_t *half_start = (uint16_t *)STACK_LEFT;
-  for (int i = 0; i < STACK_SIZE / sizeof(uint16_t); i++) {
+  uint16_t *half_start = (uint16_t *)heap_test_start;
+  for (int i = 0; i < heap_test_size / sizeof(uint16_t); i++) {
     half_start[i] = 0x0E0F;
     if (*(uint8_t *)(half_start + i) != 0x0F)
       halt(1);
@@ -32,8 +30,8 @@ int main() {
   }
 
   // byte test
-  uint8_t *byte_start = (uint8_t *)STACK_LEFT;
-  for (int i = 0; i < STACK_SIZE; i++) {
+  uint8_t *byte_start = (uint8_t *)heap_test_start;
+  for (int i = 0; i < heap_test_size; i++) {
     byte_start[i] = 0xAB;
     if (byte_start[i] != 0xAB)
       halt(1);
