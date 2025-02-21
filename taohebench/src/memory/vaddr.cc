@@ -32,13 +32,25 @@ void vaddr_write(int addr, int len, int data) {
 }
 }
 
+void flash_init() {
+  uint32_t *flash_start = (uint32_t *)FLASH;
+  while (flash_start < (uint32_t *)(FLASH + 0x10000000)) {
+    *flash_start = 0x0A0B0C0D;
+    flash_start++;
+  }
+}
+
 extern "C" void mrom_read(int32_t addr, int32_t *data) {
   *data = vaddr_read((addr & 0xFFFFFFFC) + 0x60000000, 4);
   return;
 }
 
 extern "C" void flash_read(int32_t addr, int32_t *data) {
-  // *data = vaddr_read((addr & 0xFFFFFFFC) + 0x50000000, 4);
-  *data = *(uint32_t *)(FLASH + (addr & 0xFFFFFFFC) - 0x30000000);
+
+#if CONFIG_MTRACE
+  Log("flash_read: addr = 0x%x", addr + 0x30000000);
+#endif
+
+  *data = *(uint32_t *)(FLASH + (addr & 0xFFFFFFFC));
   return;
 }

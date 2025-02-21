@@ -3,4 +3,6 @@
 
 #include <common.h>
 
+void flash_init();
+
 #endif

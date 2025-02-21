@@ -3,6 +3,7 @@
 #include <cpu/ftrace.h>
 #include <getopt.h>
 #include <memory/paddr.h>
+#include <memory/vaddr.h>
 #include <sdb.h>
 
 static char *diff_so_file =
@@ -97,4 +98,5 @@ void monitor_init(int argc, char **argv) {
 
   init_regex();
   init_wp_pool();
+  flash_init();
 }
