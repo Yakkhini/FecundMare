@@ -3,12 +3,13 @@
 !*.sc
 !*.scala
 !*.cc
+!*.c
 !verilator.vlt
 !*.h
 !.gitignore
 !.scalafmt.conf
 !Justfile
-!taohe/test/*/*
+!Makefile
 .metals
 out
 build

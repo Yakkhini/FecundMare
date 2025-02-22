@@ -1,10 +1,11 @@
+#include "soctest.h"
 #include <am.h>
 #include <klib-macros.h>
 #include <klib.h>
 
 #define FLASH 0x30000000
 
-int main() {
+void mem_test() {
 
   uint32_t heap_test_size = 0x100;
   void *heap_test_start = malloc(heap_test_size);
@@ -72,6 +73,4 @@ int main() {
     if (*(uint32_t *)(flash_start + i) != 0x0A0B0C0D)
       halt(1);
   }
-
-  return 0;
 }

@@ -45,7 +45,7 @@ wave:
 
 fmt:
     scalafmt
-    find $NPC_CHISEL -iname *.h -o -iname *.cc | xargs clang-format -i
+    find $NPC_CHISEL -iname *.h -o -iname *.cc -o -iname *.c | xargs clang-format -i
 
 clean:
     rm -rf out
