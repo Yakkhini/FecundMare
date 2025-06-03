@@ -67,6 +67,8 @@ void single_clock() {
   tfp->dump(contextp->time());
 #endif
 
+  cpu.total_cycle++;
+
   cpu_sync();
   cpu_check();
 }
@@ -135,6 +137,7 @@ void cpu_init(int argc, char **argv) {
 
   cpu.top = new VysyxSoCFull(contextp);
   cpu.iCount = 0;
+  cpu.total_cycle = 0;
   cpu.check_cycle = false;
   Log("Welcome to TaoHe Processor Core Verilating Model.");
 
@@ -264,15 +267,24 @@ void finish() {
     Log("TCHE: " ANSI_FMT("ABORT", ANSI_FG_RED) ANSI_FG_BLUE
         " at pc = 0x%08X " ANSI_FMT("HIT BAD TRAP", ANSI_FG_RED),
         cpu.pc);
-    return;
+    break;
   case TCHE_HALT:
     Log("TCHE: " ANSI_FMT("QUIT", ANSI_FG_GREEN) ANSI_FG_BLUE
         " at pc = 0x%08X " ANSI_FMT("HIT GOOD TRAP", ANSI_FG_GREEN),
         cpu.pc);
-    return;
+    break;
   default:
     return;
   }
+
+  double cpi = (double)cpu.total_cycle / (double)cpu.iCount;
+  double ipc = (double)cpu.iCount / (double)cpu.total_cycle;
+
+  Log("TCHE: " ANSI_FMT("Run Total Instructions %d for %d cycles",
+                        ANSI_FG_YELLOW) ANSI_FG_BLUE,
+      cpu.iCount, cpu.total_cycle);
+  Log("TCHE: " ANSI_FMT("CPI %.4f, IPC %.4f", ANSI_FG_YELLOW) ANSI_FG_BLUE, cpi,
+      ipc);
 }
 
 void cpu_exit() {

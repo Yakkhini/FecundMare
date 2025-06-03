@@ -12,6 +12,7 @@ typedef struct cpu {
   word_t pc_prev;
   word_t inst;
   uint32_t iCount;
+  uint32_t total_cycle;
   bool check_cycle;
 } CPU;
 
