@@ -34,6 +34,6 @@ typedef enum {
 } SpiDeviceID;
 
 void spi_device_active(SpiDeviceID device_id);
-uint32_t spi_transfer(uint32_t input);
+uint32_t spi_transfer(uint32_t input, bool double_step);
 
 #endif

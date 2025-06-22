@@ -22,7 +22,7 @@ void spi_device_active(SpiDeviceID device_id) {
   return;
 }
 
-uint32_t spi_transfer(uint32_t input) {
+uint32_t spi_transfer(uint32_t input, bool double_step) {
   uint32_t *spi_base = (uint32_t *)0x10001000;
   uint8_t *spi_ctrl = (uint8_t *)(spi_base + 4);
 
@@ -33,11 +33,14 @@ uint32_t spi_transfer(uint32_t input) {
   outb((uintptr_t)(spi_ctrl + 1),
        0B00000011); // LSB=0, TxNEG=0, RxNEG=1, GOBSY=1
 
-  // Second Transfer: receive data from the slave
-  while ((inb((uintptr_t)(spi_ctrl + 1)) & 0B00000001) == 1)
-    ;
-  outb((uintptr_t)(spi_ctrl + 1),
-       0B00000011); // LSB=0, TxNEG=0, RxNEG=1, GOBSY=1
+  if (double_step) {
+
+    // Second Transfer: receive data from the slave
+    while ((inb((uintptr_t)(spi_ctrl + 1)) & 0B00000001) == 1)
+      ;
+    outb((uintptr_t)(spi_ctrl + 1),
+         0B00000011); // LSB=0, TxNEG=0, RxNEG=1, GOBSY=1
+  }
 
   // Read the data from spi master after second transfer is done
   while ((inb((uintptr_t)(spi_ctrl + 1)) & 0B00000001) == 1)

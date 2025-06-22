@@ -23,8 +23,10 @@ void spi_test() {
 
 void spi_test_case(uint32_t input, uint32_t expect) {
 
+  // In my implementation, the Bitrev device seperates the input and output in
+  // double step trancsfer.
   uint32_t data;
-  data = spi_transfer(input);
+  data = spi_transfer(input, true);
 
   // Assert the data is correct
   assert(data == expect);
