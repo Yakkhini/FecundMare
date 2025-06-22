@@ -1,38 +1,28 @@
-#include <am.h>
-#include <klib-macros.h>
-#include <klib.h>
-
 #include <soctest.h>
 
-void spi_test_case(uint32_t input, uint32_t expect);
+uint8_t spi_parse_device_charlen(SpiDeviceID device_id);
 
-// Access Bitrev device which is a slave connect
-// to the ysyxSoC's SPI master.
-void spi_test() {
-  printf("SPI Test Start\n");
+void spi_device_active(SpiDeviceID device_id) {
 
   uint32_t *spi_base = (uint32_t *)0x10001000;
   uint8_t *spi_ctrl = (uint8_t *)(spi_base + 4);
   uint32_t *spi_divider = spi_base + 5;
   uint8_t *spi_ss = (uint8_t *)(spi_base + 6);
 
-  outl((uintptr_t)(spi_base + 4), 0x00000000); // reset
-  outb((uintptr_t)spi_ctrl, 0B00001000);       // set CHARLEN to 8
+  uint8_t charlen = spi_parse_device_charlen(device_id);
+
+  outl((uintptr_t)spi_ctrl, 0x00000000); // reset
+  outb((uintptr_t)spi_ctrl, charlen);    // set CHARLEN
   outb((uintptr_t)(spi_ctrl + 1),
-       0B00000010); // LSB=0, TxNEG=0, RxNEG=1, GOBSY=0
-
+       0B00000010);                         // LSB=0, TxNEG=0, RxNEG=1, GOBSY=0
   outl((uintptr_t)spi_divider, 0x10000000); // set divider to 10000000
-  outl((uintptr_t)spi_ss, 0B10000000);      // set SS to seven bit
 
-  spi_test_case(0x0F, 0xF0);
-  spi_test_case(0xF0, 0x0F);
-  spi_test_case(0B00000001, 0B10000000);
-  spi_test_case(0B10000000, 0B00000001);
-  spi_test_case(0B10101010, 0B01010101);
-  spi_test_case(0B01010101, 0B10101010);
+  outl((uintptr_t)spi_ss, device_id); // set SS
+
+  return;
 }
 
-void spi_test_case(uint32_t input, uint32_t expect) {
+uint32_t spi_transfer(uint32_t input) {
   uint32_t *spi_base = (uint32_t *)0x10001000;
   uint8_t *spi_ctrl = (uint8_t *)(spi_base + 4);
 
@@ -54,7 +44,16 @@ void spi_test_case(uint32_t input, uint32_t expect) {
     ;
   uint32_t data = inw((uintptr_t)spi_base);
 
-  // Assert the data is correct
-  assert(data == expect);
-  printf("SPI Test: 0x%02X -> 0x%02X\n", input, data);
+  return data;
+}
+
+uint8_t spi_parse_device_charlen(SpiDeviceID device_id) {
+  switch (device_id) {
+  case SPI_FLASH_ID:
+    return 0B01000000; // Flash device uses 64-bit character length
+  case SPI_BITREV_ID:
+    return 0B00001000; // Bitrev device uses 8-bit character length
+  default:
+    return 0; // Unknown device
+  }
 }
