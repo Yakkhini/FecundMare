@@ -1,13 +1,15 @@
 #include <soctest.h>
 
+SpiDeviceID current_device_id = 0;
+
 uint8_t spi_parse_device_charlen(SpiDeviceID device_id);
 
 void spi_device_active(SpiDeviceID device_id) {
+  current_device_id = device_id;
 
   uint32_t *spi_base = (uint32_t *)0x10001000;
   uint8_t *spi_ctrl = (uint8_t *)(spi_base + 4);
   uint32_t *spi_divider = spi_base + 5;
-  uint8_t *spi_ss = (uint8_t *)(spi_base + 6);
 
   uint8_t charlen = spi_parse_device_charlen(device_id);
 
@@ -17,14 +19,15 @@ void spi_device_active(SpiDeviceID device_id) {
        0B00000010);                         // LSB=0, TxNEG=0, RxNEG=1, GOBSY=0
   outl((uintptr_t)spi_divider, 0x10000000); // set divider to 10000000
 
-  outl((uintptr_t)spi_ss, device_id); // set SS
-
   return;
 }
 
 uint32_t spi_transfer(uint32_t input, bool double_step) {
   uint32_t *spi_base = (uint32_t *)0x10001000;
   uint8_t *spi_ctrl = (uint8_t *)(spi_base + 4);
+  uint8_t *spi_ss = (uint8_t *)(spi_base + 6);
+
+  outl((uintptr_t)spi_ss, current_device_id); // set SS
 
   // First Transfer: send data to the slave
   while ((inb((uintptr_t)(spi_ctrl + 1)) & 0B00000001) == 1)
@@ -45,7 +48,9 @@ uint32_t spi_transfer(uint32_t input, bool double_step) {
   // Read the data from spi master after second transfer is done
   while ((inb((uintptr_t)(spi_ctrl + 1)) & 0B00000001) == 1)
     ;
-  uint32_t data = inw((uintptr_t)spi_base);
+  uint32_t data = inl((uintptr_t)(spi_base));
+
+  outl((uintptr_t)spi_ss, 0x00000000); // reset SS to close transfer
 
   return data;
 }
