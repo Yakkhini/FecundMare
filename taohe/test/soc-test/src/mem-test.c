@@ -71,8 +71,13 @@ void mem_test() {
 
 uint32_t flash_spi_read(uint32_t addr) {
   // Input struct: [31:24] 0x03 (read instuction from spec), [23:0] addr
-  uint32_t input;
+  uint32_t input, raw_bigendian_data, result;
   input = 0x03000000 | (addr & 0x00FFFFFF);
+  raw_bigendian_data = spi_transfer(input, false);
+  result = ((raw_bigendian_data & 0x000000FF) << 24) |
+           ((raw_bigendian_data & 0x0000FF00) << 8) |
+           ((raw_bigendian_data & 0x00FF0000) >> 8) |
+           ((raw_bigendian_data & 0xFF000000) >> 24);
 
-  return spi_transfer(input, false);
+  return result;
 }
