@@ -47,7 +47,7 @@ extern "C" void mrom_read(int32_t addr, int32_t *data) {
 
 extern "C" void flash_read(int32_t addr, int32_t *data) {
 
-#if CONFIG_MTRACE
+#if CONFIG_MTRACE_FLASH
   Log("flash_read: addr = 0x%x", addr + 0x30000000);
 #endif
 
