@@ -5,6 +5,7 @@
 
 #define FLASH 0x30000000
 
+uint32_t flash_spi_read(uint32_t addr);
 void mem_test() {
 
   uint32_t heap_test_size = 0x100;
@@ -56,21 +57,22 @@ void mem_test() {
   // todo: currently the flash not store program, which means
   // it not be modified after initialization.
 
-  uint32_t *flash_start = (uint32_t *)FLASH;
+  spi_device_active(SPI_FLASH_ID);
+
+  uint32_t flash_start = FLASH;
   for (int i = 0; i < 0x00010000 / sizeof(uint32_t); i++) {
-    if (*(uint8_t *)(flash_start + i) != 0x0D)
+    if (flash_spi_read(flash_start + i) != 0x0A0B0C0D) {
+      printf("flash read wrong data: 0x%08x\n",
+             flash_spi_read(flash_start + i));
       halt(1);
-    if (*((uint8_t *)(flash_start + i) + 1) != 0x0C)
-      halt(1);
-    if (*((uint8_t *)(flash_start + i) + 2) != 0x0B)
-      halt(1);
-    if (*((uint8_t *)(flash_start + i) + 3) != 0x0A)
-      halt(1);
-    if (*(uint16_t *)(flash_start + i) != 0x0C0D)
-      halt(1);
-    if (*((uint16_t *)(flash_start + i) + 1) != 0x0A0B)
-      halt(1);
-    if (*(uint32_t *)(flash_start + i) != 0x0A0B0C0D)
-      halt(1);
+    }
   }
+}
+
+uint32_t flash_spi_read(uint32_t addr) {
+  // Input struct: [31:24] 0x03 (read instuction from spec), [23:0] addr
+  uint32_t input;
+  input = 0x03000000 | (addr & 0x00FFFFFF);
+
+  return spi_transfer(input, false);
 }

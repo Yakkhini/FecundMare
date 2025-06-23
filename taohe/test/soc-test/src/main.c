@@ -2,7 +2,7 @@
 
 int main() {
 
-  // mem_test();
+  mem_test();
   spi_test();
 
   return 0;
