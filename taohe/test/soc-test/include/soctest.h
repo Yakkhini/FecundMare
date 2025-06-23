@@ -31,9 +31,9 @@ void spi_test();
 typedef enum {
   SPI_FLASH_ID = 0B00000001,
   SPI_BITREV_ID = 0B10000000,
-} SpiDeviceID;
+} SPIDeviceID;
 
-void spi_device_active(SpiDeviceID device_id);
-uint32_t spi_transfer(uint32_t input, bool double_step);
+void spi_device_active(SPIDeviceID device_id);
+uint32_t spi_transfer(uint32_t input);
 
 #endif

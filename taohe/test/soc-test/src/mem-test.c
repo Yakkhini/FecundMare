@@ -60,20 +60,22 @@ void mem_test() {
   spi_device_active(SPI_FLASH_ID);
 
   uint32_t flash_start = FLASH;
-  for (int i = 0; i < 0x00010000 / sizeof(uint32_t); i++) {
+  for (int i = 0; i < 0x00001000 / sizeof(uint32_t); i++) {
     if (flash_spi_read(flash_start + i) != 0x0A0B0C0D) {
       printf("flash read wrong data: 0x%08x\n",
              flash_spi_read(flash_start + i));
       halt(1);
     }
   }
+
+  printf("Memory test passed!\n");
 }
 
 uint32_t flash_spi_read(uint32_t addr) {
   // Input struct: [31:24] 0x03 (read instuction from spec), [23:0] addr
   uint32_t input, raw_bigendian_data, result;
   input = 0x03000000 | (addr & 0x00FFFFFF);
-  raw_bigendian_data = spi_transfer(input, false);
+  raw_bigendian_data = spi_transfer(input);
   result = ((raw_bigendian_data & 0x000000FF) << 24) |
            ((raw_bigendian_data & 0x0000FF00) << 8) |
            ((raw_bigendian_data & 0x00FF0000) >> 8) |

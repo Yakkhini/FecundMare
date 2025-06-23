@@ -1,10 +1,10 @@
 #include <soctest.h>
 
-SpiDeviceID current_device_id = 0;
+SPIDeviceID current_device_id = 0;
 
-uint8_t spi_parse_device_charlen(SpiDeviceID device_id);
+uint8_t spi_parse_device_charlen(SPIDeviceID device_id);
 
-void spi_device_active(SpiDeviceID device_id) {
+void spi_device_active(SPIDeviceID device_id) {
   current_device_id = device_id;
 
   uint32_t *spi_base = (uint32_t *)0x10001000;
@@ -22,7 +22,7 @@ void spi_device_active(SpiDeviceID device_id) {
   return;
 }
 
-uint32_t spi_transfer(uint32_t input, bool double_step) {
+uint32_t spi_transfer(uint32_t input) {
   uint32_t *spi_base = (uint32_t *)0x10001000;
   uint8_t *spi_ctrl = (uint8_t *)(spi_base + 4);
   uint8_t *spi_ss = (uint8_t *)(spi_base + 6);
@@ -32,17 +32,22 @@ uint32_t spi_transfer(uint32_t input, bool double_step) {
   // First Transfer: send data to the slave
   while ((inb((uintptr_t)(spi_ctrl + 1)) & 0x01) == 1)
     continue;
-  outl((uintptr_t)(spi_base + 1), input);
-  outb((uintptr_t)(spi_ctrl + 1),
-       0B00000001); // LSB=0, TxNEG=0, RxNEG=0, GOBSY=1
 
-  if (double_step) {
-
-    // Second Transfer: receive data from the slave
-    while ((inb((uintptr_t)(spi_ctrl + 1)) & 0x01) == 1)
-      continue;
+  // Flash RxNEG=0, Bitrev RxNEG=1
+  switch (current_device_id) {
+  case SPI_FLASH_ID:
+    outl((uintptr_t)(spi_base + 1), input); // Flash device uses 32-bit transfer
     outb((uintptr_t)(spi_ctrl + 1),
          0B00000001); // LSB=0, TxNEG=0, RxNEG=0, GOBSY=1
+    break;
+  case SPI_BITREV_ID:
+    outl((uintptr_t)(spi_base), input); // Bitrev device uses 8-bit transfer
+    outb((uintptr_t)(spi_ctrl + 1),
+         0B00000011); // LSB=0, TxNEG=0, RxNEG=1, GOBSY=1
+    break;
+  default:
+    printf("Unknown SPI device ID: %d\n", current_device_id);
+    break;
   }
 
   // Read the data from spi master after second transfer is done
@@ -55,12 +60,12 @@ uint32_t spi_transfer(uint32_t input, bool double_step) {
   return data;
 }
 
-uint8_t spi_parse_device_charlen(SpiDeviceID device_id) {
+uint8_t spi_parse_device_charlen(SPIDeviceID device_id) {
   switch (device_id) {
   case SPI_FLASH_ID:
     return 0B01000000; // Flash device uses 64-bit character length
   case SPI_BITREV_ID:
-    return 0B00001000; // Bitrev device uses 8-bit character length
+    return 0B00010000; // Bitrev device uses 8-bit character length
   default:
     return 0; // Unknown device
   }
