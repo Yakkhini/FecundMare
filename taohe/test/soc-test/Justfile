@@ -1,0 +1,4 @@
+set fallback
+
+update:
+  cd ./char-test && just compile

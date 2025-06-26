@@ -58,15 +58,28 @@ void mem_test() {
   // it not be modified after initialization.
 
   spi_device_active(SPI_FLASH_ID);
+  uint32_t flash_program_size = 0;
 
   uint32_t flash_start = FLASH;
   for (int i = 0; i < 0x00001000 / sizeof(uint32_t); i++) {
-    if (flash_spi_read(flash_start + i) != 0x0A0B0C0D) {
-      printf("flash read wrong data: 0x%08x\n",
-             flash_spi_read(flash_start + i));
-      halt(1);
+    if (flash_spi_read(flash_start + i) == 0x0A0B0C0D) {
+      printf("Program end at address 0x%08x\n", flash_start + i);
+      flash_program_size = i * sizeof(uint32_t);
+      break;
     }
   }
+
+  void *program_dest = malloc(flash_program_size);
+  for (int i = 0; i < flash_program_size / sizeof(uint32_t); i++) {
+    ((uint32_t *)program_dest)[i] = flash_spi_read(flash_start + i);
+  }
+
+  // Currently the program's UART access is a simple implementation which do not
+  // wait the finish signal and cause many outputs rather than four.
+  //
+  // This is an acceptable behavior because it's a embedded program without
+  // libraries and exceptions.
+  ((void (*)())program_dest)();
 
   printf("Memory test passed!\n");
 }

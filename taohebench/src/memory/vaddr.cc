@@ -38,6 +38,24 @@ void flash_init() {
     *flash_start = 0x0A0B0C0D;
     flash_start++;
   }
+
+  static char *NPC_CHISEL = getenv("NPC_CHISEL");
+  char flash_file[256];
+  strcpy(flash_file, NPC_CHISEL);
+  strcat(flash_file, "/taohe/test/soc-test/char-test/build/char-test.bin");
+
+  FILE *fp = fopen(flash_file, "rb");
+
+  fseek(fp, 0, SEEK_END);
+  long size = ftell(fp);
+
+  Log("Load char-test program in flash, size = %ld", size);
+
+  fseek(fp, 0, SEEK_SET);
+  int ret = fread((void *)FLASH, size, 1, fp);
+  assert(ret == 1);
+
+  fclose(fp);
 }
 
 extern "C" void mrom_read(int32_t addr, int32_t *data) {
