@@ -68,10 +68,7 @@ void single_clock() {
 #endif
 
   cpu_sync();
-  if (cpu.check_cycle) {
-    cpu_check();
-    cpu.check_cycle = false;
-  }
+  cpu_check();
 }
 
 void reset() {
@@ -123,10 +120,7 @@ void reset() {
 
   cpu_sync();
 
-  if (cpu.check_cycle) {
-    cpu_check();
-    cpu.check_cycle = false;
-  }
+  cpu_check();
 
   Log("TCHE reset done.");
 }
@@ -163,7 +157,7 @@ void cpu_init(int argc, char **argv) {
 void handle_sigint(int sig) {
   if (npc_state == TCHE_RUNNING && sig == SIGINT) {
     printf("\n"); // Print a newline for avoiding `^C` symbol.
-    Log("TCHE: " ANSI_FMT("INTERRUPT", ANSI_FG_RED) ANSI_FG_BLUE
+    Log("TCHE " ANSI_FMT("USER INTERRUPT", ANSI_FG_YELLOW) ANSI_FG_BLUE
         " at pc = 0x%08X ",
         cpu.pc);
     npc_state = TCHE_PAUSE;
@@ -229,10 +223,6 @@ void cpu_sync() {
 
 void cpu_check() {
 
-#if CONFIG_DISASM
-  disassembler();
-#endif
-
   if (cpu.top->ysyxSoCFull->asic->cpu->cpu->idu->decodeSupport == 0) {
     Log(ANSI_FMT("ERROR INST NOT SUPPORT: ", ANSI_FG_RED) ANSI_FG_BLUE
         "DECODE " ANSI_FMT("FAILED ", ANSI_FG_RED) ANSI_FG_BLUE
@@ -240,6 +230,14 @@ void cpu_check() {
         cpu.pc_prev);
     npc_state = TCHE_ABORT;
   }
+
+  if (cpu.check_cycle == false) {
+    return;
+  }
+
+#if CONFIG_DISASM
+  disassembler();
+#endif
 
 #if CONFIG_FTRACE
   ftrace_check();
@@ -254,6 +252,10 @@ void cpu_check() {
 #endif
 
   finish();
+
+  cpu.check_cycle = false;
+
+  return;
 }
 
 void finish() {
