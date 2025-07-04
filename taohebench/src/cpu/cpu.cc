@@ -5,6 +5,7 @@
 #include <cpu/ftrace.h>
 #include <memory/vaddr.h>
 #include <sdb.h>
+#include <signal.h>
 
 #include <VysyxSoCFull.h>
 #include <VysyxSoCFull__Dpi.h>
@@ -159,7 +160,18 @@ void cpu_init(int argc, char **argv) {
 #endif
 }
 
+void handle_sigint(int sig) {
+  if (npc_state == TCHE_RUNNING && sig == SIGINT) {
+    printf("\n"); // Print a newline for avoiding `^C` symbol.
+    Log("TCHE: " ANSI_FMT("INTERRUPT", ANSI_FG_RED) ANSI_FG_BLUE
+        " at pc = 0x%08X ",
+        cpu.pc);
+    npc_state = TCHE_PAUSE;
+  }
+}
+
 void cpu_exec(int n) {
+  signal(SIGINT, handle_sigint);
   switch (npc_state) {
   case TCHE_INIT:
     reset();
