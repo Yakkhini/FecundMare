@@ -72,7 +72,8 @@ void mem_test() {
 
   void *program_dest = malloc(flash_program_size);
   for (int i = 0; i < flash_program_size / sizeof(uint32_t); i++) {
-    ((uint32_t *)program_dest)[i] = flash_spi_read(flash_start + i);
+    ((uint32_t *)program_dest)[i] =
+        flash_spi_read(flash_start + i * sizeof(uint32_t));
   }
 
   // Currently the program's UART access is a simple implementation which do not
