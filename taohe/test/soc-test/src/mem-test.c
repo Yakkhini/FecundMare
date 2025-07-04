@@ -2,6 +2,7 @@
 #include <am.h>
 #include <klib-macros.h>
 #include <klib.h>
+#include <stdint.h>
 
 #define FLASH 0x30000000
 
@@ -80,6 +81,10 @@ void mem_test() {
   // This is an acceptable behavior because it's a embedded program without
   // libraries and exceptions.
   ((void (*)())program_dest)();
+
+  // The program is loaded to the XIP memory, and we can execute it directly.
+  void *program_xip = (void *)FLASH;
+  ((void (*)())program_xip)();
 
   printf("Memory test passed!\n");
 }
