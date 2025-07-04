@@ -39,17 +39,6 @@ class TaoHe extends Module {
 
   axiArbiter.io.out <> ioView.master
 
-  // CrossBar and built-in devices is useless in SoC development
-  // Maybe it will be removed in the future.
-  // val xbar = Module(new CrossBar())
-  // val sram = Module(new SRAM())
-  // val uart = Module(new UART())
-  // val clint = Module(new CLINT())
-  // xbar.io.in <> DontCare
-  // xbar.io.out(0) <> sram.io
-  // xbar.io.out(1) <> uart.io
-  // xbar.io.out(2) <> clint.io
-
   ifu.io.toIDU <> idu.io.fromIFU
   idu.io.toEXU <> exu.io.fromIDU
 
