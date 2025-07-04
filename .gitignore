@@ -1,5 +1,6 @@
 *
 !*/
+!*.mill
 !*.sc
 !*.scala
 !*.cc
