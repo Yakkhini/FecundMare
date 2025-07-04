@@ -24,7 +24,7 @@ class IDU extends Module {
   pcRegister := Mux(io.fromIFU.fire, io.fromIFU.bits.currentPC, pcRegister)
   instRegister := Mux(io.fromIFU.fire, io.fromIFU.bits.inst, instRegister)
   val pc = Mux(io.fromIFU.fire, io.fromIFU.bits.currentPC, pcRegister)
-  val inst = instRegister
+  val inst = Mux(io.fromIFU.fire, io.fromIFU.bits.inst, instRegister)
 
   io.toEXU.valid := state === IDUState.sSend
   io.toRegisterFile.valid := true.B
