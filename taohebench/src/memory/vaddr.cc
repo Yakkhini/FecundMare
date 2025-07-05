@@ -6,7 +6,7 @@
 
 #include <VysyxSoCFull__Dpi.h>
 
-static uint8_t FLASH[0x10000000] __attribute((aligned(4096))) = {};
+uint8_t FLASH[0x10000000] __attribute((aligned(4096))) = {};
 
 extern "C" {
 
@@ -32,30 +32,27 @@ void vaddr_write(int addr, int len, int data) {
 }
 }
 
-void flash_init() {
+long flash_init(char *img_file) {
   uint32_t *flash_start = (uint32_t *)FLASH;
   while (flash_start < (uint32_t *)(FLASH + 0x10000000)) {
     *flash_start = 0x0A0B0C0D;
     flash_start++;
   }
 
-  static char *NPC_CHISEL = getenv("NPC_CHISEL");
-  char flash_file[256];
-  strcpy(flash_file, NPC_CHISEL);
-  strcat(flash_file, "/taohe/test/soc-test/char-test/build/char-test.bin");
-
-  FILE *fp = fopen(flash_file, "rb");
+  FILE *fp = fopen(img_file, "rb");
 
   fseek(fp, 0, SEEK_END);
   long size = ftell(fp);
 
-  Log("Load char-test program in flash, size = %ld", size);
+  Log("Load program %s in flash, size = %ld", img_file, size);
 
   fseek(fp, 0, SEEK_SET);
   int ret = fread((void *)FLASH, size, 1, fp);
   assert(ret == 1);
 
   fclose(fp);
+
+  return size;
 }
 
 extern "C" void mrom_read(int32_t addr, int32_t *data) {

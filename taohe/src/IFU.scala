@@ -24,7 +24,7 @@ object IFUState extends ChiselEnum {
 class IFU extends Module {
   val io = IO(new IFUBundle)
 
-  val pc = RegInit("h20000000".U(32.W))
+  val pc = RegInit("h30000000".U(32.W))
   val inst = RegInit(0.U(32.W))
   val iCount = RegInit(0.U(32.W))
 

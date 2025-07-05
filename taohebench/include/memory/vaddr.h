@@ -3,6 +3,8 @@
 
 #include <common.h>
 
-void flash_init();
+long flash_init(char *img_file);
+
+extern uint8_t FLASH[];
 
 #endif

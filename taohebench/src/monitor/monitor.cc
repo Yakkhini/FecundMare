@@ -20,23 +20,13 @@ static uint32_t DEFAULT_MEM[] = {
 long load_img() {
   if (img_file == NULL) {
     Log("No image is given. Use the default build-in image.");
-    memcpy(guest_to_host(0x80000000), DEFAULT_MEM, sizeof(uint32_t) * 25);
+    memcpy(&FLASH, DEFAULT_MEM, sizeof(uint32_t) * 25);
     return 4096; // built-in image size
   }
 
-  FILE *fp = fopen(img_file, "rb");
+  long img_size = flash_init(img_file);
 
-  fseek(fp, 0, SEEK_END);
-  long size = ftell(fp);
-
-  Log("The image is %s, size = %ld", img_file, size);
-
-  fseek(fp, 0, SEEK_SET);
-  int ret = fread(guest_to_host(0x80000000), size, 1, fp);
-  assert(ret == 1);
-
-  fclose(fp);
-  return size;
+  return img_size;
 }
 
 void parse_args(int argc, char *argv[]) {
@@ -98,5 +88,4 @@ void monitor_init(int argc, char **argv) {
 
   init_regex();
   init_wp_pool();
-  flash_init();
 }
