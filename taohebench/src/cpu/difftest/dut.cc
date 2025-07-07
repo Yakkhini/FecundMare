@@ -3,6 +3,7 @@
 #include <cpu/difftest.h>
 #include <dlfcn.h>
 #include <memory/paddr.h>
+#include <memory/vaddr.h>
 
 void (*ref_difftest_memcpy)(paddr_t addr, void *buf, size_t n,
                             bool direction) = NULL;
@@ -82,8 +83,7 @@ void difftest_init(char *ref_so_file, long img_size, int port) {
       ref_so_file);
 
   ref_difftest_init(port);
-  ref_difftest_memcpy(RESET_VECTOR, guest_to_host(RESET_VECTOR), img_size,
-                      DIFFTEST_TO_REF);
+  ref_difftest_memcpy(FLASH_BASE, &FLASH, img_size, DIFFTEST_TO_REF);
   ref_difftest_regcpy(&cpu.regs, DIFFTEST_TO_REF);
   ref_difftest_pccpy(&cpu.pc, DIFFTEST_TO_REF);
 }
