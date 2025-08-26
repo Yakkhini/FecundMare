@@ -13,6 +13,9 @@ sv:
     mill -i taohe.run
     echo "SystemVerilog files are generated."
 
+soc-sv:
+    make -C $YSYX_SOC_HOME verilog
+
 _compile:
     #!/usr/bin/env zsh
     mkdir -p {{BUILD_DIR}}/bin
