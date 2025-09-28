@@ -150,7 +150,9 @@ static int cmd_help(char *args) {
 void sdb_mainloop() {
   if (batch_mode) {
     cpu_exec(-1);
-    return;
+    if (npc_state == TCHE_ABORT || npc_state == TCHE_HALT) {
+      return;
+    }
   }
 
   for (char *str; (str = rl_gets()) != NULL;) {
