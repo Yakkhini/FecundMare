@@ -17,12 +17,16 @@ class EXU extends Module {
   val io = IO(new EXUBundle)
   val exuState = RegInit(EXUState.sIdle)
 
+  val clint = Module(new CLINT())
+  clint.io.mmioAddress := io.fromIDU.bits.registerReadData1 + io.fromIDU.bits.imm
+  clint.io.readEnable := io.fromIDU.bits.lsuReadEnable
+
   // State 1
   io.fromIDU.ready := exuState === EXUState.sIdle
 
   // State 2
   val skipLSState =
-    exuState === EXUState.sLS && !io.fromIDU.bits.lsuReadEnable && !io.fromIDU.bits.lsuWriteEnable
+    exuState === EXUState.sLS && (!io.fromIDU.bits.lsuReadEnable || clint.io.clintChosen) && !io.fromIDU.bits.lsuWriteEnable
   io.toLSU.valid := exuState === EXUState.sLS && !skipLSState
   io.fromLSU.ready := exuState === EXUState.sLS
 
@@ -44,7 +48,7 @@ class EXU extends Module {
   io.toLSU.bits.length := io.fromIDU.bits.lsuLength
   io.toLSU.bits.writeData := io.fromIDU.bits.registerReadData2
   io.toLSU.bits.writeEnable := io.fromIDU.bits.lsuWriteEnable
-  io.toLSU.bits.readEnable := io.fromIDU.bits.lsuReadEnable
+  io.toLSU.bits.readEnable := io.fromIDU.bits.lsuReadEnable && !clint.io.clintChosen
 
   val data1 = MuxLookup(io.fromIDU.bits.data1Type, 0.U(32.W))(
     Seq(
@@ -127,7 +131,11 @@ class EXU extends Module {
     Seq(
       RegWriteDataType.RESULT.asUInt -> result,
       RegWriteDataType.NEXTPC.asUInt -> (io.fromIDU.bits.currentPC + 4.U),
-      RegWriteDataType.MEMREAD.asUInt -> lsuReadData,
+      RegWriteDataType.MEMREAD.asUInt -> Mux(
+        clint.io.clintChosen,
+        clint.io.outputMTime,
+        lsuReadData
+      ),
       RegWriteDataType.CSRDATA.asUInt -> io.fromCSR.bits.readData
     )
   )

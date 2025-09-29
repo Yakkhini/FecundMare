@@ -1,50 +1,27 @@
 package taohe
 
 import chisel3._
-import chisel3.util.{switch, is}
-
-import taohe.util.AXI4LiteBundle
-
-object CLINTState extends ChiselEnum {
-  val sIdle, sSend = Value
-}
+import chisel3.util.MuxLookup
 
 class CLINT extends Module {
-  val io = IO(Flipped(new AXI4LiteBundle))
-
-  val state = RegInit(CLINTState.sIdle)
+  val io = IO(new Bundle {
+    val mmioAddress = Input(UInt(32.W))
+    val readEnable = Input(Bool())
+    val clintChosen = Output(Bool())
+    val outputMTime = Output(UInt(32.W))
+  })
 
   val mtime = RegInit(0.U(64.W))
   mtime := mtime + 1.U
 
-  io.ar.ready := state === CLINTState.sIdle
-  io.r.valid := state === CLINTState.sSend
-  io.r.bits.resp := 1.U
+  io.clintChosen := (io.mmioAddress === "h02000000".U || io.mmioAddress === "h02000004".U) && io.readEnable
 
-  // CLINT 0xa0000048(low) 0xa000004c(high)
-  io.r.bits.data := Mux(
-    io.ar.bits.addr === "ha0000048".U,
-    mtime(31, 0),
-    mtime(63, 32)
+  // CLINT 0x02000000(low) 0x02000004(high)
+  io.outputMTime := MuxLookup(io.mmioAddress, 0.U(32.W))(
+    Seq(
+      "h02000000".U -> mtime(31, 0),
+      "h02000004".U -> mtime(63, 32)
+    )
   )
-
-  // Block write transaction
-  io.aw.ready := false.B
-  io.w.ready := false.B
-  io.b.valid := false.B
-  io.b.bits.resp := 0.U
-
-  switch(state) {
-    is(CLINTState.sIdle) {
-      when(io.ar.fire) {
-        state := CLINTState.sSend
-      }
-    }
-    is(CLINTState.sSend) {
-      when(io.r.fire) {
-        state := CLINTState.sIdle
-      }
-    }
-  }
 
 }
