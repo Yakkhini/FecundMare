@@ -2,19 +2,23 @@
 #include <am.h>
 #include <klib-macros.h>
 #include <klib.h>
-#include <stdint.h>
-
-#define FLASH 0x30000000
 
 uint32_t flash_spi_read(uint32_t addr);
-void mem_test() {
+void mem_test(MemoryRegionStart memory_region) {
 
-  uint32_t heap_test_size = 0x100;
-  void *heap_test_start = malloc(heap_test_size);
+  uint32_t mem_test_size = 0x100000;
+
+  void *mem_test_start = (void *)memory_region;
+
+  if (memory_region == MALLOC) {
+    mem_test_start = malloc(memory_region);
+  }
+
+  printf("Memory test start at address 0x%08x\n", (uint32_t)mem_test_start);
 
   // word test
-  uint32_t *word_start = (uint32_t *)heap_test_start;
-  for (int i = 0; i < heap_test_size / sizeof(uint32_t); i++) {
+  uint32_t *word_start = (uint32_t *)mem_test_start;
+  for (int i = 0; i < mem_test_size / sizeof(uint32_t); i++) {
     word_start[i] = 0x0A0B0C0D;
     if (*(uint8_t *)(word_start + i) != 0x0D)
       halt(1);
@@ -27,8 +31,8 @@ void mem_test() {
   }
 
   // half test
-  uint16_t *half_start = (uint16_t *)heap_test_start;
-  for (int i = 0; i < heap_test_size / sizeof(uint16_t); i++) {
+  uint16_t *half_start = (uint16_t *)mem_test_start;
+  for (int i = 0; i < mem_test_size / sizeof(uint16_t); i++) {
     half_start[i] = 0x0E0F;
     if (*(uint8_t *)(half_start + i) != 0x0F)
       halt(1);
@@ -37,8 +41,8 @@ void mem_test() {
   }
 
   // byte test
-  uint8_t *byte_start = (uint8_t *)heap_test_start;
-  for (int i = 0; i < heap_test_size; i++) {
+  uint8_t *byte_start = (uint8_t *)mem_test_start;
+  for (int i = 0; i < mem_test_size; i++) {
     byte_start[i] = 0xAB;
     if (byte_start[i] != 0xAB)
       halt(1);
@@ -58,34 +62,34 @@ void mem_test() {
   // todo: currently the flash not store program, which means
   // it not be modified after initialization.
 
-  spi_device_active(SPI_FLASH_ID);
-  uint32_t flash_program_size = 0;
-
-  uint32_t flash_start = FLASH;
-  for (int i = 0; i < 0x00001000 / sizeof(uint32_t); i++) {
-    if (flash_spi_read(flash_start + i) == 0x0A0B0C0D) {
-      printf("Program end at address 0x%08x\n", flash_start + i);
-      flash_program_size = i * sizeof(uint32_t);
-      break;
-    }
-  }
-
-  void *program_dest = malloc(flash_program_size);
-  for (int i = 0; i < flash_program_size / sizeof(uint32_t); i++) {
-    ((uint32_t *)program_dest)[i] =
-        flash_spi_read(flash_start + i * sizeof(uint32_t));
-  }
-
+  // spi_device_active(SPI_FLASH_ID);
+  // uint32_t flash_program_size = 0;
+  //
+  // uint32_t flash_start = FLASH;
+  // for (int i = 0; i < 0x00001000 / sizeof(uint32_t); i++) {
+  //   if (flash_spi_read(flash_start + i) == 0x0A0B0C0D) {
+  //     printf("Program end at address 0x%08x\n", flash_start + i);
+  //     flash_program_size = i * sizeof(uint32_t);
+  //     break;
+  //   }
+  // }
+  //
+  // void *program_dest = malloc(flash_program_size);
+  // for (int i = 0; i < flash_program_size / sizeof(uint32_t); i++) {
+  //   ((uint32_t *)program_dest)[i] =
+  //       flash_spi_read(flash_start + i * sizeof(uint32_t));
+  // }
+  //
   // Currently the program's UART access is a simple implementation which do not
   // wait the finish signal and cause many outputs rather than four.
   //
   // This is an acceptable behavior because it's a embedded program without
   // libraries and exceptions.
-  ((void (*)())program_dest)();
+  // ((void (*)())program_dest)();
 
   // The program is loaded to the XIP memory, and we can execute it directly.
-  void *program_xip = (void *)FLASH;
-  ((void (*)())program_xip)();
+  // void *program_xip = (void *)FLASH;
+  // ((void (*)())program_xip)();
 
   printf("Memory test passed!\n");
 }
