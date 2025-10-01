@@ -30,6 +30,17 @@ void mem_test(MemoryRegionStart memory_region) {
       halt(1);
   }
 
+  for (int i = 0; i < mem_test_size / sizeof(uint32_t); i++) {
+    if (*(uint8_t *)(word_start + i) != 0x0D)
+      halt(1);
+    if (*((uint8_t *)(word_start + i) + 1) != 0x0C)
+      halt(1);
+    if (*((uint8_t *)(word_start + i) + 2) != 0x0B)
+      halt(1);
+    if (*((uint8_t *)(word_start + i) + 3) != 0x0A)
+      halt(1);
+  }
+
   // half test
   uint16_t *half_start = (uint16_t *)mem_test_start;
   for (int i = 0; i < mem_test_size / sizeof(uint16_t); i++) {
@@ -40,10 +51,23 @@ void mem_test(MemoryRegionStart memory_region) {
       halt(1);
   }
 
+  // half test
+  for (int i = 0; i < mem_test_size / sizeof(uint16_t); i++) {
+    if (*(uint8_t *)(half_start + i) != 0x0F)
+      halt(1);
+    if (*((uint8_t *)(half_start + i) + 1) != 0x0E)
+      halt(1);
+  }
+
   // byte test
   uint8_t *byte_start = (uint8_t *)mem_test_start;
   for (int i = 0; i < mem_test_size; i++) {
     byte_start[i] = 0xAB;
+    if (byte_start[i] != 0xAB)
+      halt(1);
+  }
+
+  for (int i = 0; i < mem_test_size; i++) {
     if (byte_start[i] != 0xAB)
       halt(1);
   }
