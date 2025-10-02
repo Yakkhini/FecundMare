@@ -219,7 +219,7 @@ void cpu_sync() {
 
   if (cpu.check_cycle) {
     cpu.pc_prev = cpu.pc;
-    cpu.pc = cpu.top->ysyxSoCFull->asic->cpu->cpu->exu->io_toIFU_bits_nextPC;
+    cpu.pc = cpu.top->ysyxSoCFull->asic->cpu->cpu->ifu->pc;
     cpu.iCount = cpu.top->ysyxSoCFull->asic->cpu->cpu->ifu->iCount;
   }
 }
