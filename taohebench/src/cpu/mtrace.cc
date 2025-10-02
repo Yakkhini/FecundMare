@@ -1,4 +1,5 @@
 #include <cpu/cpu.h>
+#include <cpu/difftest.h>
 #include <cpu/mtrace.h>
 
 #include <VysyxSoCFull.h>
@@ -31,6 +32,10 @@ void mtrace() {
   if (axi4_interface.awvalid) {
     Log("AXI4 Write: addr = 0x%08x, size = %b, data = 0x%08x",
         axi4_interface.awaddr, axi4_interface.awsize, axi4_interface.wdata);
+    if (axi4_interface.awaddr >= 0x10000000 &&
+        axi4_interface.awaddr < 0x10001000) {
+      difftest_skip_ref();
+    }
   }
 
   if (axi4_interface.arvalid) {

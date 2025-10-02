@@ -213,11 +213,6 @@ void cpu_sync() {
       cpu.top->ysyxSoCFull->asic->cpu->cpu->ifu->iCount > cpu.iCount ||
       npc_state == TCHE_HALT || npc_state == TCHE_ABORT;
 
-  // In SoC development, the difftest is unusable temporarily.
-  // Maybe the skip feature will be fixed in the future.
-  // if (cpu.top->ysyxSoCFull->asic->cpu->cpu->xbar->difftestSkip)
-  //   difftest_skip_ref();
-
   if (cpu.check_cycle) {
     cpu.pc_prev = cpu.pc;
     cpu.pc = cpu.top->ysyxSoCFull->asic->cpu->cpu->ifu->pc;
