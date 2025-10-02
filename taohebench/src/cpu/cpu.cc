@@ -3,6 +3,7 @@
 #include <cpu/difftest.h>
 #include <cpu/disasm.h>
 #include <cpu/ftrace.h>
+#include <cpu/mtrace.h>
 #include <memory/vaddr.h>
 #include <sdb.h>
 #include <signal.h>
@@ -222,6 +223,8 @@ void cpu_sync() {
     cpu.pc = cpu.top->ysyxSoCFull->asic->cpu->cpu->ifu->pc;
     cpu.iCount = cpu.top->ysyxSoCFull->asic->cpu->cpu->ifu->iCount;
   }
+
+  axi4_interface_sync();
 }
 
 void cpu_check() {
@@ -233,6 +236,10 @@ void cpu_check() {
         cpu.pc_prev);
     npc_state = TCHE_ABORT;
   }
+
+#if CONFIG_MTRACE
+  mtrace();
+#endif
 
   if (cpu.check_cycle == false) {
     return;

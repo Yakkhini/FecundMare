@@ -1,4 +1,9 @@
 `verilator_config
+public -module "TaoHe" -var "*master*aw*"
+public -module "TaoHe" -var "*master*w*"
+public -module "TaoHe" -var "*master*ar*"
+public -module "TaoHe" -var "*master*r*"
+
 public -module "RegisterFile" -var "registers"
 public -module "RegisterFile" -var "*writeAddr"
 public -module "RegisterFile" -var "*writeData"
