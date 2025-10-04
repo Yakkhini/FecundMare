@@ -232,7 +232,7 @@ void cpu_check() {
     npc_state = TCHE_ABORT;
   }
 
-#if CONFIG_MTRACE
+#if CONFIG_MTRACE || CONFIG_DIFFTEST
   mtrace();
 #endif
 

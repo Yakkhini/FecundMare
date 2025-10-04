@@ -28,22 +28,43 @@ void axi4_interface_sync() {
       cpu.top->ysyxSoCFull->asic->cpu->cpu->io_master_rvalid;
 }
 
+bool in_mmio(uint32_t addr) {
+  if (addr >= 0x10000000 && addr < 0x10001000) {
+    return true;
+  }
+
+  if (addr >= 0x02000000 && addr < 0x02000008) {
+    printf("Skipping RTC read at addr = 0x%08x\n", addr);
+    return true;
+  }
+
+  return false;
+}
+
 void mtrace() {
   if (axi4_interface.awvalid) {
+#if CONFIG_MTRACE
     Log("AXI4 Write: addr = 0x%08x, size = %b, data = 0x%08x",
         axi4_interface.awaddr, axi4_interface.awsize, axi4_interface.wdata);
-    if (axi4_interface.awaddr >= 0x10000000 &&
-        axi4_interface.awaddr < 0x10001000) {
+#endif
+    if (in_mmio(axi4_interface.awaddr)) {
       difftest_skip_ref();
     }
   }
 
   if (axi4_interface.arvalid) {
+#if CONFIG_MTRACE
     Log("AXI4 Read: addr = 0x%08x, size = %b", axi4_interface.araddr,
         axi4_interface.arsize);
+#endif
+    if (in_mmio(axi4_interface.araddr)) {
+      difftest_skip_ref();
+    }
   }
 
+#if CONFIG_MTRACE
   if (axi4_interface.rvalid) {
     Log("AXI4 Read Data: data = 0x%08x", axi4_interface.rdata);
   }
+#endif
 }

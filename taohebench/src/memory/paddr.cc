@@ -1,9 +1,11 @@
-#include "cpu/cpu.h"
 #include <common.h>
+#include <cpu/cpu.h>
 #include <cpu/difftest.h>
+#include <cpu/mtrace.h>
 #include <device/device.h>
 #include <memory/host.h>
 #include <memory/paddr.h>
+#include <memory/vaddr.h>
 
 static uint8_t MEM[MSISE] __attribute((aligned(4096))) = {};
 
@@ -35,12 +37,11 @@ word_t paddr_read(paddr_t addr, int len) {
     return pmem_read(addr, len);
   }
 
-#if CONFIG_DEVICE
-  if (in_mmio(addr)) {
-    difftest_skip_ref();
-    return mmio_read(addr, len);
+  if (in_flash(addr)) {
+    int32_t flash_read_data;
+    flash_read(addr, &flash_read_data);
+    return flash_read_data;
   }
-#endif
 
   Log("Invalid memory access at address 0x%08x", addr);
   return 0;
@@ -51,14 +52,6 @@ void paddr_write(paddr_t addr, int len, word_t data) {
     pmem_write(addr, len, data);
     return;
   }
-
-#if CONFIG_DEVICE
-  if (in_mmio(addr)) {
-    difftest_skip_ref();
-    mmio_write(addr, len, data);
-    return;
-  }
-#endif
 
   Log("Invalid memory access at address 0x%08x", addr);
 }
