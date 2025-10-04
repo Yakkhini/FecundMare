@@ -44,8 +44,10 @@ bool in_mmio(uint32_t addr) {
 void mtrace() {
   if (axi4_interface.awvalid) {
 #if CONFIG_MTRACE
-    Log("AXI4 Write: addr = 0x%08x, size = %b, data = 0x%08x",
-        axi4_interface.awaddr, axi4_interface.awsize, axi4_interface.wdata);
+    Log("AXI4 Write addr = 0x%08x, size = %b, data = 0x%08x at inst count "
+        "0x%08x",
+        axi4_interface.awaddr, axi4_interface.awsize, axi4_interface.wdata,
+        cpu.iCount);
 #endif
     if (in_mmio(axi4_interface.awaddr)) {
       difftest_skip_ref();
@@ -54,8 +56,8 @@ void mtrace() {
 
   if (axi4_interface.arvalid) {
 #if CONFIG_MTRACE
-    Log("AXI4 Read: addr = 0x%08x, size = %b", axi4_interface.araddr,
-        axi4_interface.arsize);
+    Log("AXI4 Read addr = 0x%08x, size = %b at inst count 0x%08x",
+        axi4_interface.araddr, axi4_interface.arsize, cpu.iCount);
 #endif
     if (in_mmio(axi4_interface.araddr)) {
       difftest_skip_ref();
