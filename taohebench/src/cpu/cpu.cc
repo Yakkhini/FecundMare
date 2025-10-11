@@ -219,6 +219,13 @@ void cpu_sync() {
     cpu.iCount = cpu.top->ysyxSoCFull->asic->cpu->cpu->ifu->iCount;
   }
 
+  if (npc_state == TCHE_HALT) {
+    // Increase PC value since simulation will halt in this cycle immediately,
+    // without WB or Next IF stage.
+    cpu.pc_prev = cpu.pc;
+    cpu.pc += 0x4;
+  }
+
   axi4_interface_sync();
 }
 
