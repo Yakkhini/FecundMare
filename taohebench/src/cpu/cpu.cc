@@ -5,6 +5,7 @@
 #include <cpu/ftrace.h>
 #include <cpu/mtrace.h>
 #include <memory/vaddr.h>
+#include <nvboard.h>
 #include <sdb.h>
 #include <signal.h>
 
@@ -50,6 +51,9 @@ int return_status() {
 void cpu_sync();
 void cpu_check();
 void single_clock() {
+
+  nvboard_update();
+
 #if CONFIG_WAVE_RECORD
   contextp->timeInc(1);
 #endif
@@ -83,6 +87,9 @@ void reset() {
   cpu.top->reset = 1;
 
   for (int i = 0; i < 15; i++) {
+
+    nvboard_update();
+
 #if CONFIG_WAVE_RECORD
     tfp->dump(contextp->time());
     contextp->timeInc(1);
