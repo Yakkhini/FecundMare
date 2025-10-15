@@ -14,12 +14,14 @@ int main(const char *args) {
   case 'a':
     memory_region = SDRAM;
     break;
+  case 'n':
+    board_test();
+    return 0;
   default:
     memory_region = MALLOC;
   }
 
   mem_test(memory_region);
-  // spi_test();
 
   return 0;
 }

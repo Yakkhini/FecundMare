@@ -40,5 +40,6 @@ uint32_t spi_transfer(uint32_t input);
 
 void mem_test(MemoryRegionStart memory_region);
 void spi_test();
+void board_test();
 
 #endif
