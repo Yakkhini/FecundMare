@@ -6,7 +6,7 @@
 
 #include <VysyxSoCFull__Dpi.h>
 
-uint8_t FLASH[0x10000000] __attribute((aligned(4096))) = {};
+uint8_t FLASH[0x1000000] __attribute((aligned(4096))) = {};
 
 extern "C" {
 
@@ -22,7 +22,7 @@ void vaddr_write(int addr, int len, int data) { paddr_write(addr, len, data); }
 
 long flash_init(char *img_file) {
   uint32_t *flash_start = (uint32_t *)FLASH;
-  while (flash_start < (uint32_t *)(FLASH + 0x10000000)) {
+  while (flash_start < (uint32_t *)(FLASH + 0x1000000)) {
     *flash_start = 0x0A0B0C0D;
     flash_start++;
   }
@@ -49,11 +49,11 @@ extern "C" void mrom_read(int32_t addr, int32_t *data) {
 }
 
 extern "C" void flash_read(int32_t addr, int32_t *data) {
+  *data = *(uint32_t *)(FLASH + (addr & 0xFFFFFFFC));
 
 #if CONFIG_MTRACE_FLASH
-  Log("flash_read: addr = 0x%x", addr + 0x30000000);
+  Log("flash_read: addr = 0x%08x, data = 0x%08x", addr + 0x30000000, *data);
 #endif
 
-  *data = *(uint32_t *)(FLASH + (addr & 0xFFFFFFFC));
   return;
 }

@@ -7,5 +7,10 @@
 long flash_init(char *img_file);
 
 extern uint8_t FLASH[];
+extern "C" void flash_read(int32_t addr, int32_t *data);
+
+static inline bool in_flash(paddr_t addr) {
+  return addr - FLASH_BASE < 0x1000000;
+}
 
 #endif
