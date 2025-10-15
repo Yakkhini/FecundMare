@@ -20,4 +20,12 @@ void nvboard_bind_all_pins() {
                    SEG2D, SEG2E, SEG2F, SEG2G, DEC2P);
   nvboard_bind_pin(&cpu.top->externalPins_gpio_seg_3, 8, SEG3A, SEG3B, SEG3C,
                    SEG3D, SEG3E, SEG3F, SEG3G, DEC3P);
+  nvboard_bind_pin(&cpu.top->externalPins_gpio_seg_4, 8, SEG4A, SEG4B, SEG4C,
+                   SEG4D, SEG4E, SEG4F, SEG4G, DEC4P);
+  nvboard_bind_pin(&cpu.top->externalPins_gpio_seg_5, 8, SEG5A, SEG5B, SEG5C,
+                   SEG5D, SEG5E, SEG5F, SEG5G, DEC5P);
+  nvboard_bind_pin(&cpu.top->externalPins_gpio_seg_6, 8, SEG6A, SEG6B, SEG6C,
+                   SEG6D, SEG6E, SEG6F, SEG6G, DEC6P);
+  nvboard_bind_pin(&cpu.top->externalPins_gpio_seg_7, 8, SEG7A, SEG7B, SEG7C,
+                   SEG7D, SEG7E, SEG7F, SEG7G, DEC7P);
 }
