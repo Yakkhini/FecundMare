@@ -29,4 +29,6 @@ void nvboard_bind_all_pins() {
   nvboard_bind_pin(&cpu.top->externalPins_gpio_seg_7, 8, SEG7A, SEG7B, SEG7C,
                    SEG7D, SEG7E, SEG7F, SEG7G, DEC7P);
   nvboard_bind_pin(&cpu.top->externalPins_uart_tx, 1, UART_TX);
+  nvboard_bind_pin(&cpu.top->externalPins_ps2_clk, 1, PS2_CLK);
+  nvboard_bind_pin(&cpu.top->externalPins_ps2_data, 1, PS2_DAT);
 }
