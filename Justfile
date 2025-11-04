@@ -28,7 +28,7 @@ _compile:
     --timescale 1ns/1ns --no-timing \
     --x-assign fast --x-initial fast --noassert \
     --autoflush \
-    --build -j 6 -Wno-UNUSEDSIGNAL -Wno-DECLFILENAME \
+    --build -j 6 -Wno-UNUSEDSIGNAL -Wno-DECLFILENAME -Wno-UNOPTFLAT \
     `echo $VLTRC` `echo $CSRC` `echo $VSRC` `echo $PERIP_SRC` $YSYX_SOC_HOME/build/ysyxSoCFull {{NVBOARD_ARCHIVE}} \
     -I{{PERIP_DIR}}/uart16550/rtl -I{{PERIP_DIR}}/spi/rtl \
     -CFLAGS -I{{BUILD_DIR}}/verilator -CFLAGS -I{{INC_DIR}} -CFLAGS -I{{CONFIG_DIR}} -CFLAGS -g \

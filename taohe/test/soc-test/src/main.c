@@ -14,6 +14,9 @@ int main(const char *args) {
   case 'a':
     memory_region = SDRAM;
     break;
+  case 'c':
+    memory_region = CHIP_LINK;
+    break;
   case 'n':
     board_test();
     return 0;

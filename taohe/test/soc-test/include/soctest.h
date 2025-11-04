@@ -32,7 +32,8 @@ typedef enum {
   MALLOC = 0xdeadbeaf,
   FLASH = 0x30000000,
   PSRAM = 0x80000000,
-  SDRAM = 0xa0000000
+  SDRAM = 0xa0000000,
+  CHIP_LINK = 0xc0000000
 } MemoryRegionStart;
 
 void spi_device_active(SPIDeviceID device_id);
