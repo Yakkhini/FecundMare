@@ -18,6 +18,7 @@ class PowerManager extends BlackBox with HasBlackBoxInline {
     |  input [31:0] code
     |);
     |
+    |// synopsys translate_off
     |  import "DPI-C" function void halt(int code);
     |
     |  always_comb begin
@@ -25,6 +26,7 @@ class PowerManager extends BlackBox with HasBlackBoxInline {
     |      halt(code);
     |    end
     |  end
+    |// synopsys translate_on
     |endmodule
     |
     |""".stripMargin
