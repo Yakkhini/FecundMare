@@ -75,4 +75,10 @@ object Main extends App {
     args = Array("--target-dir", "out/verilog", "--split-verilog"),
     firtoolOpts = Array("-preserve-aggregate=1d-vec")
   )
+
+  ChiselStage.emitSystemVerilogFile(
+    gen = new TaoHe(),
+    args = Array("--target-dir", "out/sta"),
+    firtoolOpts = Array("--lowering-options=disallowLocalVariables")
+  )
 }

@@ -38,6 +38,9 @@ _compile:
 
 sim: (trace "Build TaoHe Simulator Program Binary.") sv _compile
 
+sta:
+  make -C $YOSYS_STA_HOME sta
+
 trace msg:
     #!/usr/bin/env zsh
     flock {{YSYX_HOME}}/.git/ make -C {{YSYX_HOME}} .git_commit MSG='{{msg}}'
