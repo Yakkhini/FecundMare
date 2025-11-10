@@ -181,7 +181,9 @@ void cpu_exec(int n) {
   signal(SIGINT, handle_sigint);
   switch (npc_state) {
   case TCHE_INIT:
+    perf_start_timer();
     reset();
+    perf_end_timer();
     npc_state = TCHE_RUNNING;
     break;
   case TCHE_HALT:
@@ -198,18 +200,26 @@ void cpu_exec(int n) {
 
   switch (n) {
   case -1:
+    perf_start_timer();
     while (npc_state == TCHE_RUNNING) {
       single_clock();
     }
+    perf_end_timer();
     break;
   default:
+    perf_start_timer();
     for (int i = 0; i < n; i++) {
       if (npc_state != TCHE_RUNNING) {
         break;
       }
       single_clock();
     }
+    perf_end_timer();
     break;
+  }
+
+  if (npc_state == TCHE_HALT || npc_state == TCHE_ABORT) {
+    finish();
   }
 }
 
@@ -271,8 +281,6 @@ void cpu_check() {
 #if CONFIG_WATCHPOINT
   check_wp();
 #endif
-
-  finish();
 
   cpu.check_cycle = false;
 
