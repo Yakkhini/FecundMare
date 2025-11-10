@@ -3,16 +3,16 @@ package taohe
 import chisel3._
 import chisel3.util.HasBlackBoxInline
 
-class PowerManager extends BlackBox with HasBlackBoxInline {
+class TaoHePowerManager extends BlackBox with HasBlackBoxInline {
   val io = IO(new Bundle {
     val reset = Input(Bool())
     val breakSignal = Input(Bool())
     val code = Input(UInt(32.W))
   })
   setInline(
-    "PowerManager.sv",
+    "TaoHePowerManager.sv",
     """
-    |module PowerManager(
+    |module TaoHePowerManager(
     |  input bit reset,
     |  input bit breakSignal,
     |  input [31:0] code

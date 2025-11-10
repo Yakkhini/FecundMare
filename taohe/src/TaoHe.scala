@@ -8,7 +8,10 @@ import chisel3.experimental.dataview._
 import taohe.idu.IDU
 import taohe.util.{YSYXSoCAXI4Bundle, AXI4Bundle}
 
-class TaoHe extends Module {
+class TaoHe(prefix: Boolean) extends Module {
+
+  override def localModulePrefix = if (prefix) Some("taohe_") else None
+
   val io = IO(new Bundle {
     val interrupt = Input(Bool())
     val master = new YSYXSoCAXI4Bundle()
@@ -71,14 +74,16 @@ class TaoHe extends Module {
 object Main extends App {
   println("Hello World, I will generate the Verilog file now!")
   ChiselStage.emitSystemVerilogFile(
-    gen = new TaoHe(),
+    gen = new TaoHe(false),
     args = Array("--target-dir", "out/verilog", "--split-verilog"),
     firtoolOpts = Array("-preserve-aggregate=1d-vec")
   )
 
   ChiselStage.emitSystemVerilogFile(
-    gen = new TaoHe(),
+    gen = new TaoHe(true),
     args = Array("--target-dir", "out/sta"),
-    firtoolOpts = Array("--lowering-options=disallowLocalVariables")
+    firtoolOpts = Array(
+      "--lowering-options=disallowLocalVariables,disallowExpressionInliningInPorts"
+    )
   )
 }

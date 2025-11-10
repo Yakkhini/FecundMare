@@ -164,7 +164,7 @@ class EXU extends Module {
     }
   }
 
-  val powerManager = Module(new PowerManager())
+  val powerManager = Module(new TaoHePowerManager())
   powerManager.io.reset := reset
   powerManager.io.breakSignal := io.fromIDU.bits.break
   powerManager.io.code := data1

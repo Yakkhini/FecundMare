@@ -11,6 +11,7 @@ NPC_NAME := "TaoHe"
 sv:
     #!/usr/bin/env zsh
     mill -i taohe.run
+    rm -r {{BUILD_DIR}}/sta/verification
     echo "SystemVerilog files are generated."
 
 soc-sv:
@@ -38,7 +39,7 @@ _compile:
 
 sim: (trace "Build TaoHe Simulator Program Binary.") sv _compile
 
-sta:
+sta: sv
   make -C $YOSYS_STA_HOME sta
 
 trace msg:
