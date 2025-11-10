@@ -4,6 +4,7 @@
 #include <cpu/disasm.h>
 #include <cpu/ftrace.h>
 #include <cpu/mtrace.h>
+#include <cpu/perf.h>
 #include <memory/vaddr.h>
 #include <nvboard.h>
 #include <sdb.h>
@@ -147,6 +148,7 @@ void cpu_init(int argc, char **argv) {
   cpu.iCount = 0;
   cpu.total_cycle = 0;
   cpu.check_cycle = false;
+  perf_init();
   Log("Welcome to TaoHe Processor Core Verilating Model.");
 
 #if CONFIG_WAVE_RECORD
@@ -293,14 +295,7 @@ void finish() {
     return;
   }
 
-  double cpi = (double)cpu.total_cycle / (double)cpu.iCount;
-  double ipc = (double)cpu.iCount / (double)cpu.total_cycle;
-
-  Log("TCHE: " ANSI_FMT("Run Total Instructions %d for %d cycles",
-                        ANSI_FG_YELLOW) ANSI_FG_BLUE,
-      cpu.iCount, cpu.total_cycle);
-  Log("TCHE: " ANSI_FMT("CPI %.4f, IPC %.4f", ANSI_FG_YELLOW) ANSI_FG_BLUE, cpi,
-      ipc);
+  perf_stat();
 }
 
 void cpu_exit() {

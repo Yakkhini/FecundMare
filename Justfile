@@ -53,8 +53,8 @@ perf:
     }
     if $update {
       just _sta
-      let freq = (head -n 5 ($env.YOSYS_STA_HOME + /result/taohe__TaoHe-500MHz/taohe__TaoHe.rpt) | tail -n 1 | awk '{print $(NF-1)}')
-      let area = (tail -n 3 ($env.YOSYS_STA_HOME + /result/taohe__TaoHe-500MHz/synth_stat.txt) | head -n 1 | awk '{print $NF}')
+      let freq = (head -n 5 ($env.YOSYS_STA_HOME + /result/taohe__TaoHe-500MHz/taohe__TaoHe.rpt) | tail -n 1 | awk '{print $(NF-1)}' | into float)
+      let area = (tail -n 3 ($env.YOSYS_STA_HOME + /result/taohe__TaoHe-500MHz/synth_stat.txt) | head -n 1 | awk '{print $NF}' | into float)
       let time = (date now | format date "%Y-%m-%d %H:%M:%S")
       let commit = (git rev-parse --short HEAD)
       {"TaoHe": {"freq(MHz)": $freq, "area(um^2)": $area, "commit": $commit, "time": $time}} | to toml | save -f ($env.NPC_CHISEL + /out/perf.toml)
