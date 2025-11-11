@@ -18,7 +18,9 @@ struct {
 struct timespec start_time, end_time;
 
 void perf_init() {
-  char *record_path = strcat(getenv("NPC_CHISEL"), "/out/perf.toml");
+  char record_path[80];
+  strcpy(record_path, getenv("NPC_CHISEL"));
+  strcat(record_path, "/out/perf.toml");
   try {
     perf_record = toml::parse_file(record_path);
   } catch (const toml::parse_error &err) {
