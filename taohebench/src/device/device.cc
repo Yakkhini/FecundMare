@@ -31,5 +31,6 @@ void mmio_write(paddr_t addr, int len, word_t data) {
 
 void device_init() {
   timer_init();
+  sdram_init();
   return;
 }
