@@ -27,13 +27,13 @@ _compile:
     verilator --cc -Mdir {{BUILD_DIR}}/verilator \
     --top-module ysyxSoCFull \
     --timescale 1ns/1ns --no-timing \
-    --x-assign fast --x-initial fast --noassert \
+    -O3 --x-assign fast --x-initial fast --noassert \
     --autoflush \
     --build -j 6 -Wno-UNUSEDSIGNAL -Wno-DECLFILENAME -Wno-UNOPTFLAT \
     `echo $VLTRC` `echo $CSRC` `echo $VSRC` `echo $PERIP_SRC` $YSYX_SOC_HOME/build/ysyxSoCFull {{NVBOARD_ARCHIVE}} \
     -I{{PERIP_DIR}}/uart16550/rtl -I{{PERIP_DIR}}/spi/rtl \
     -I{{BUILD_DIR}}/verilog/verification \
-    -CFLAGS -I{{BUILD_DIR}}/verilator -CFLAGS -I{{INC_DIR}} -CFLAGS -I{{CONFIG_DIR}} -CFLAGS -g \
+    -CFLAGS -I{{BUILD_DIR}}/verilator -CFLAGS -I{{INC_DIR}} -CFLAGS -I{{CONFIG_DIR}} -CFLAGS -g -CFLAGS -O3 \
     -LDFLAGS -lreadline -LDFLAGS -lcapstone -LDFLAGS -lSDL2 -LDFLAGS -lSDL2_image -LDFLAGS -lSDL2_ttf \
     --trace-fst --exe -o {{BUILD_DIR}}/bin/taohe
 
