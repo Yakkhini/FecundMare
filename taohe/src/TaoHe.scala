@@ -8,9 +8,9 @@ import chisel3.experimental.dataview._
 import taohe.idu.IDU
 import taohe.util.{YSYXSoCAXI4Bundle, AXI4Bundle}
 
-class TaoHe(prefix: Boolean) extends Module {
+class TaoHe(physicalVersion: Boolean) extends Module {
 
-  override def localModulePrefix = if (prefix) Some("taohe_") else None
+  override def localModulePrefix = if (physicalVersion) Some("taohe_") else None
 
   val io = IO(new Bundle {
     val interrupt = Input(Bool())
@@ -30,7 +30,7 @@ class TaoHe(prefix: Boolean) extends Module {
   val registerFile = Module(new RegisterFile())
   val csr = Module(new CSR())
   val lsu = Module(new LSU())
-  val ifu = Module(new IFU())
+  val ifu = Module(new IFU(physicalVersion))
   val idu = Module(new IDU())
   val exu = Module(new EXU())
 

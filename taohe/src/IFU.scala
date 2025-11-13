@@ -21,7 +21,14 @@ object IFUState extends ChiselEnum {
   val sIdle, sRequest, sFetch, sSend = Value
 }
 
-class IFU extends Module {
+/*
+ *  Instruction Fetch Unit
+ *
+ *  Data will not pass to IDU when io fire immediately
+ *  since the physical design complain a combinational loop.
+ *
+ * */
+class IFU(physicalVersion: Boolean) extends Module {
   val io = IO(new IFUBundle)
 
   val pc = RegInit("h30000000".U(32.W))
@@ -51,9 +58,15 @@ class IFU extends Module {
   val currentInst = Mux(io.axi4.r.fire, io.axi4.r.bits.data, inst)
 
   // State 4
-  io.toIDU.valid := ifuState === IFUState.sSend || io.axi4.r.fire
+  io.toIDU.valid := {
+    if (physicalVersion) (ifuState === IFUState.sSend)
+    else (ifuState === IFUState.sSend || io.axi4.r.fire)
+  }
   io.toIDU.bits.currentPC := pc
-  io.toIDU.bits.inst := currentInst
+  io.toIDU.bits.inst := {
+    if (physicalVersion) inst
+    else currentInst
+  }
 
   // Make write transaction silent
   io.axi4.aw.valid := false.B
@@ -82,11 +95,10 @@ class IFU extends Module {
     }
     is(IFUState.sFetch) {
       when(io.axi4.r.fire && !reset.asBool) {
-        // The IFU should finish in two cycles when there is no mem access
-        // instructions.
-        // Normal instructions FSM: (Request -> Fetch) -> (R -> F)
-        // Mem Access instructions(l*, s*) FSM: (Request -> Fetch -> Idle -> Idle) -> (...)
-        ifuState := Mux(io.fromEXU.valid, IFUState.sRequest, IFUState.sIdle)
+        ifuState := {
+          if (physicalVersion) IFUState.sSend
+          else Mux(io.fromEXU.valid, IFUState.sRequest, IFUState.sIdle)
+        }
       }
     }
     is(IFUState.sSend) {
