@@ -6,6 +6,7 @@ import chisel3.util.{switch, is}
 
 import taohe.util.EXUBundle
 import taohe.util.enum._
+import taohe.util.PerformanceCounter
 
 import chisel3.util.Fill
 
@@ -144,6 +145,14 @@ class EXU extends Module {
     (io.fromIDU.bits.instructionType === InstType.S.asUInt) || (io.fromIDU.bits.instructionType === InstType.B.asUInt),
     false.B,
     true.B
+  )
+
+  // Performance Counter
+  val arithmeticDoneCounter = PerformanceCounter(
+    io.toRegisterFile.valid &&
+      io.toRegisterFile.bits.writeEnable &&
+      io.fromIDU.bits.registerWriteType === RegWriteDataType.RESULT.asUInt,
+    32
   )
 
   switch(exuState) {

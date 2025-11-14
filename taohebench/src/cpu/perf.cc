@@ -5,6 +5,11 @@
 #include <time.h>
 #include <toml++/toml.h>
 
+#include <VysyxSoCFull.h>
+#include <VysyxSoCFull__Dpi.h>
+#include <VysyxSoCFull__Syms.h>
+
+char record_path[80];
 toml::table perf_record;
 
 double freq;
@@ -16,9 +21,9 @@ struct {
 } running_time;
 
 struct timespec start_time, end_time;
+void perf_counter_stat();
 
 void perf_init() {
-  char record_path[80];
   strcpy(record_path, getenv("NPC_CHISEL"));
   strcat(record_path, "/out/perf.toml");
   try {
@@ -59,6 +64,7 @@ void perf_stat() {
       exec_time, freq, exec_mips);
   Log("Real Simulation Time: %.4f ms in %.2f KHz Frequency for %.2f KIPS",
       sim_time, sim_freq, sim_mips);
+  perf_counter_stat();
 }
 
 void perf_start_timer() { clock_gettime(CLOCK_REALTIME, &start_time); }
@@ -76,4 +82,50 @@ void perf_end_timer() {
   }
   running_time.sec += sec_diff;
   running_time.usec += usec_diff;
+}
+
+void perf_counter_stat() {
+  uint32_t ifu_fetch_inst_count =
+      cpu.top->ysyxSoCFull->asic->cpu->cpu->ifu->fetchInstNumCounter;
+
+  uint32_t idu_jump_inst_count =
+      cpu.top->ysyxSoCFull->asic->cpu->cpu->idu->jumpInstCounter;
+  uint32_t idu_branch_inst_count =
+      cpu.top->ysyxSoCFull->asic->cpu->cpu->idu->branchInstCounter;
+  uint32_t idu_load_inst_count =
+      cpu.top->ysyxSoCFull->asic->cpu->cpu->idu->loadInstCounter;
+  uint32_t idu_store_inst_count =
+      cpu.top->ysyxSoCFull->asic->cpu->cpu->idu->storeInstCounter;
+  uint32_t idu_arith_inst_count =
+      cpu.top->ysyxSoCFull->asic->cpu->cpu->idu->arithInstCounter;
+
+  uint32_t exu_arith_done_count =
+      cpu.top->ysyxSoCFull->asic->cpu->cpu->exu->arithmeticDoneCounter;
+
+  uint32_t lsu_load_valid_count =
+      cpu.top->ysyxSoCFull->asic->cpu->cpu->lsu->loadDataValidCounter;
+
+  auto ifu_table = toml::table{{"fetchInstNumCount", ifu_fetch_inst_count}};
+
+  auto idu_table = toml::table{{"jumpInstCount", idu_jump_inst_count},
+                               {"branchInstCounter", idu_branch_inst_count},
+                               {"loadInstCounter", idu_load_inst_count},
+                               {"storeInstCounter", idu_store_inst_count},
+                               {"arithInstCounter", idu_arith_inst_count}};
+
+  auto exu_table = toml::table{{"arithmeticDoneCounter", exu_arith_done_count}};
+  auto lsu_table = toml::table{{"loadDataValidCounter", lsu_load_valid_count}};
+
+  auto taohe_perf_record = perf_record.get("TaoHe")->as_table();
+
+  taohe_perf_record->insert_or_assign("IFU", ifu_table);
+  taohe_perf_record->insert_or_assign("IDU", idu_table);
+  taohe_perf_record->insert_or_assign("EXU", exu_table);
+  taohe_perf_record->insert_or_assign("LSU", lsu_table);
+
+  std::ofstream perf_file;
+  perf_file.open(record_path, std::ios::out);
+  perf_file << toml::toml_formatter(perf_record) << std::endl;
+
+  perf_file.close();
 }

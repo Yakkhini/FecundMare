@@ -40,12 +40,9 @@ _compile:
     make -C {{BUILD_DIR}}/verilator -f VysyxSoCFull.mk -j $NIX_BUILD_CORES AR=gcc-ar
 
 
-sim: (trace "Build TaoHe Simulator Program Binary.") sv perf _compile
+sim: (trace "Build TaoHe Simulator Program Binary.") sv sta _compile
 
-_sta: sv
-  make --silent -C $YOSYS_STA_HOME sta > {{BUILD_DIR}}/sta/sta.log
-
-perf:
+sta:
     #!/usr/bin/env nu
     mut update = true
     if (($env.NPC_CHISEL + /out/perf.toml) | path exists) {
@@ -53,15 +50,21 @@ perf:
         $update = false
       }
     }
+    if (not ($env.NPC_CHISEL + /out/sta/filelist.f | path exists)) {
+      just sv
+    }
     if $update {
-      just _sta
+      make --silent -C $env.YOSYS_STA_HOME sta out+err> ($env.NPC_CHISEL + /out/sta/sta.log)
       let freq = (head -n 5 ($env.YOSYS_STA_HOME + /result/taohe__TaoHe-500MHz/taohe__TaoHe.rpt) | tail -n 1 | awk '{print $(NF-1)}' | into float)
       let area = (tail -n 3 ($env.YOSYS_STA_HOME + /result/taohe__TaoHe-500MHz/synth_stat.txt) | head -n 1 | awk '{print $NF}' | into float)
       let time = (date now | format date "%Y-%m-%d %H:%M:%S")
       let commit = (git rev-parse --short HEAD)
       {"TaoHe": {"freq(MHz)": $freq, "area(um^2)": $area, "commit": $commit, "time": $time}} | to toml | save -f ($env.NPC_CHISEL + /out/perf.toml)
     }
-    print "Performance data in current commit:"
+
+perf:
+    #!/usr/bin/env nu
+    print "Performance data:"
     cat ($env.NPC_CHISEL + /out/perf.toml) | from toml
 
 trace msg:

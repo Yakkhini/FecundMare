@@ -7,6 +7,7 @@ import chisel3.util.{switch, is}
 
 import taohe.util.enum._
 import taohe.util.IDUBundle
+import taohe.util.PerformanceCounter
 
 object IDUState extends ChiselEnum {
   val sIdle, sSend = Value
@@ -114,4 +115,34 @@ class IDU extends Module {
   val decodeSupport = Wire(Bool())
   decodeSupport := decodeResult(DecodeSupportField) | ~io.fromIFU.valid
   dontTouch(decodeSupport)
+
+  // Performance Counter
+  val jumpInstCounter = PerformanceCounter(
+    io.toEXU.fire && decodeResult(
+      NextPCDataTypeField
+    ) === NextPCDataType.RESULT.asUInt,
+    32
+  )
+  val branchInstCounter = PerformanceCounter(
+    io.toEXU.fire && decodeResult(
+      NextPCDataTypeField
+    ) === NextPCDataType.BRANCH.asUInt,
+    32
+  )
+  val loadInstCounter = PerformanceCounter(
+    io.toEXU.fire && io.toEXU.bits.lsuReadEnable,
+    32
+  )
+  val storeInstCounter = PerformanceCounter(
+    io.toEXU.fire && io.toEXU.bits.lsuWriteEnable,
+    32
+  )
+  val arithInstCounter = PerformanceCounter(
+    io.toEXU.fire &&
+      decodeResult(RegWriteDataTypeField) === RegWriteDataType.RESULT.asUInt &&
+      (decodeResult(InstTypeField) === InstType.I.asUInt || decodeResult(
+        InstTypeField
+      ) === InstType.R.asUInt),
+    32
+  )
 }

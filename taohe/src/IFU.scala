@@ -5,6 +5,7 @@ import chisel3.util.{switch, is}
 
 import taohe.util.IFUBundle
 import taohe.util.enum.MemSize
+import taohe.util.PerformanceCounter
 
 object IFUState extends ChiselEnum {
   /*
@@ -80,6 +81,9 @@ class IFU(physicalVersion: Boolean) extends Module {
   io.axi4.w.bits.strb := 0.U
   io.axi4.w.bits.last := false.B
   io.axi4.b.ready := false.B
+
+  // Performance Counter
+  val fetchInstNumCounter = PerformanceCounter(io.axi4.r.fire, 32)
 
   switch(ifuState) {
     is(IFUState.sIdle) {
