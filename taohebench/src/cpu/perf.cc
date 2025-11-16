@@ -1,6 +1,7 @@
 #include <common.h>
 #include <cpu/cpu.h>
 #include <cpu/perf.h>
+#include <cstdint>
 #include <string>
 #include <time.h>
 #include <toml++/toml.h>
@@ -90,14 +91,24 @@ void perf_counter_stat() {
   uint32_t ifu_fetch_waiting_cycle =
       cpu.top->ysyxSoCFull->asic->cpu->cpu->ifu->fetchWaitingCycleCounter;
 
+  uint32_t idu_jump_inst_cycle_count =
+      cpu.top->ysyxSoCFull->asic->cpu->cpu->idu->jumpInstCycleCounter;
   uint32_t idu_jump_inst_count =
       cpu.top->ysyxSoCFull->asic->cpu->cpu->idu->jumpInstCounter;
+  uint32_t idu_branch_inst_cycle_count =
+      cpu.top->ysyxSoCFull->asic->cpu->cpu->idu->branchInstCycleCounter;
   uint32_t idu_branch_inst_count =
       cpu.top->ysyxSoCFull->asic->cpu->cpu->idu->branchInstCounter;
+  uint32_t idu_load_inst_cycle_count =
+      cpu.top->ysyxSoCFull->asic->cpu->cpu->idu->loadInstCycleCounter;
   uint32_t idu_load_inst_count =
       cpu.top->ysyxSoCFull->asic->cpu->cpu->idu->loadInstCounter;
+  uint32_t idu_store_inst_cycle_count =
+      cpu.top->ysyxSoCFull->asic->cpu->cpu->idu->storeInstCycleCounter;
   uint32_t idu_store_inst_count =
       cpu.top->ysyxSoCFull->asic->cpu->cpu->idu->storeInstCounter;
+  uint32_t idu_arith_inst_cycle_count =
+      cpu.top->ysyxSoCFull->asic->cpu->cpu->idu->arithInstCycleCounter;
   uint32_t idu_arith_inst_count =
       cpu.top->ysyxSoCFull->asic->cpu->cpu->idu->arithInstCounter;
 
@@ -131,14 +142,25 @@ void perf_counter_stat() {
           ->lsuArbiterStoreWaitingCycleCounter;
 
   auto ifu_table =
-      toml::table{{"fetchInstNumCount", ifu_fetch_inst_count},
+      toml::table{{"fetchInstNumCounter", ifu_fetch_inst_count},
                   {"fetchWaitingCycleCounter", ifu_fetch_waiting_cycle}};
 
-  auto idu_table = toml::table{{"jumpInstCount", idu_jump_inst_count},
-                               {"branchInstCounter", idu_branch_inst_count},
-                               {"loadInstCounter", idu_load_inst_count},
-                               {"storeInstCounter", idu_store_inst_count},
-                               {"arithInstCounter", idu_arith_inst_count}};
+  auto idu_table = toml::table{
+      {"Jump Inst",
+       toml::table{{"jumpInstCounter", idu_jump_inst_count},
+                   {"jumpInstCycleCounter", idu_jump_inst_cycle_count}}},
+      {"Branch Inst",
+       toml::table{{"branchInstCounter", idu_branch_inst_count},
+                   {"branchInstCycleCounter", idu_branch_inst_cycle_count}}},
+      {"Load Inst",
+       toml::table{{"loadInstCounter", idu_load_inst_count},
+                   {"loadInstCycleCounter", idu_load_inst_cycle_count}}},
+      {"Store Inst",
+       toml::table{{"storeInstCounter", idu_store_inst_count},
+                   {"storeInstCycleCounter", idu_store_inst_cycle_count}}},
+      {"Arithmetic Inst",
+       toml::table{{"arithInstCounter", idu_arith_inst_count},
+                   {"arithInstCycleCounter", idu_arith_inst_cycle_count}}}};
 
   auto exu_table = toml::table{{"arithmeticDoneCounter", exu_arith_done_count}};
 
