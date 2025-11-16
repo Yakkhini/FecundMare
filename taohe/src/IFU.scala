@@ -84,6 +84,8 @@ class IFU(physicalVersion: Boolean) extends Module {
 
   // Performance Counter
   val fetchInstNumCounter = PerformanceCounter(io.axi4.r.fire, 32)
+  val fetchWaitingCycleCounter =
+    PerformanceCounter(io.axi4.r.ready && !io.axi4.r.fire, 32)
 
   switch(ifuState) {
     is(IFUState.sIdle) {

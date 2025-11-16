@@ -3,6 +3,7 @@ package taohe
 import chisel3._
 import taohe.util.{AXI4LiteBundle, AXI4Bundle}
 import chisel3.util.{switch, is}
+import taohe.util.PerformanceCounter
 
 object AXIArbiterState extends ChiselEnum {
   val sIdle, sIFU, sLSU = Value
@@ -57,6 +58,27 @@ class AXIArbiter extends Module {
   io.ifu.b.valid := false.B
   io.ifu.b.bits.resp := 0.U
   io.ifu.b.bits.id := 0.U
+
+  // Performance Counter
+  val ifuAXIWaiting =
+    state === AXIArbiterState.sIFU && io.ifu.r.ready && !io.ifu.r.fire
+  val ifuArbiterWaiting = state =/= AXIArbiterState.sIFU && io.ifu.r.ready
+  val ifuAXIWaitingCycleCounter = PerformanceCounter(ifuAXIWaiting, 32)
+  val ifuArbiterWaitingCycleCounter = PerformanceCounter(ifuArbiterWaiting, 32)
+
+  val lsuAXILoadWaiting =
+    !ifuDrive && io.lsu.r.ready && !io.lsu.r.fire
+  val lsuAXIStoreWaiting =
+    !ifuDrive && io.lsu.b.ready && !io.lsu.b.fire
+  val lsuArbiterLoadWaiting = ifuDrive && io.lsu.r.ready
+  val lsuArbiterStoreWaiting = ifuDrive && io.lsu.b.ready
+  val lsuAXILoadWaitingCycleCounter = PerformanceCounter(lsuAXILoadWaiting, 32)
+  val lsuAXIStoreWaitingCycleCounter =
+    PerformanceCounter(lsuAXIStoreWaiting, 32)
+  val lsuArbiterLoadWaitingCycleCounter =
+    PerformanceCounter(lsuArbiterLoadWaiting, 32)
+  val lsuArbiterStoreWaitingCycleCounter =
+    PerformanceCounter(lsuArbiterStoreWaiting, 32)
 
   switch(state) {
     is(AXIArbiterState.sIdle) {

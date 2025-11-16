@@ -106,6 +106,10 @@ class LSU extends Module {
 
   // Performance Counter
   val loadDataValidCounter = PerformanceCounter(io.axi4.r.fire, 32)
+  val loadWaitingCycleCounter =
+    PerformanceCounter(io.axi4.r.ready && !io.axi4.r.fire, 32)
+  val storeWaitingCycleCounter =
+    PerformanceCounter(io.axi4.b.ready && !io.axi4.b.fire, 32)
 
   switch(lsuState) {
     is(LSUState.sIdle) {

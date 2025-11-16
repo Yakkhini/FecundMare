@@ -87,6 +87,8 @@ void perf_end_timer() {
 void perf_counter_stat() {
   uint32_t ifu_fetch_inst_count =
       cpu.top->ysyxSoCFull->asic->cpu->cpu->ifu->fetchInstNumCounter;
+  uint32_t ifu_fetch_waiting_cycle =
+      cpu.top->ysyxSoCFull->asic->cpu->cpu->ifu->fetchWaitingCycleCounter;
 
   uint32_t idu_jump_inst_count =
       cpu.top->ysyxSoCFull->asic->cpu->cpu->idu->jumpInstCounter;
@@ -104,8 +106,33 @@ void perf_counter_stat() {
 
   uint32_t lsu_load_valid_count =
       cpu.top->ysyxSoCFull->asic->cpu->cpu->lsu->loadDataValidCounter;
+  uint32_t lsu_load_waiting_cycle =
+      cpu.top->ysyxSoCFull->asic->cpu->cpu->lsu->loadWaitingCycleCounter;
+  uint32_t lsu_store_waiting_cycle =
+      cpu.top->ysyxSoCFull->asic->cpu->cpu->lsu->storeWaitingCycleCounter;
 
-  auto ifu_table = toml::table{{"fetchInstNumCount", ifu_fetch_inst_count}};
+  uint32_t arbiter_ifu_axi_waiting_cycle =
+      cpu.top->ysyxSoCFull->asic->cpu->cpu->axiArbiter
+          ->ifuAXIWaitingCycleCounter;
+  uint32_t arbiter_ifu_arbiter_waiting_cycle =
+      cpu.top->ysyxSoCFull->asic->cpu->cpu->axiArbiter
+          ->ifuArbiterWaitingCycleCounter;
+  uint32_t arbiter_lsu_axi_load_waiting_cycle =
+      cpu.top->ysyxSoCFull->asic->cpu->cpu->axiArbiter
+          ->lsuAXILoadWaitingCycleCounter;
+  uint32_t arbiter_lsu_axi_store_waiting_cycle =
+      cpu.top->ysyxSoCFull->asic->cpu->cpu->axiArbiter
+          ->lsuAXIStoreWaitingCycleCounter;
+  uint32_t arbiter_lsu_arbiter_load_waiting_cycle =
+      cpu.top->ysyxSoCFull->asic->cpu->cpu->axiArbiter
+          ->lsuArbiterLoadWaitingCycleCounter;
+  uint32_t arbiter_lsu_arbiter_store_waiting_cycle =
+      cpu.top->ysyxSoCFull->asic->cpu->cpu->axiArbiter
+          ->lsuArbiterStoreWaitingCycleCounter;
+
+  auto ifu_table =
+      toml::table{{"fetchInstNumCount", ifu_fetch_inst_count},
+                  {"fetchWaitingCycleCounter", ifu_fetch_waiting_cycle}};
 
   auto idu_table = toml::table{{"jumpInstCount", idu_jump_inst_count},
                                {"branchInstCounter", idu_branch_inst_count},
@@ -114,7 +141,21 @@ void perf_counter_stat() {
                                {"arithInstCounter", idu_arith_inst_count}};
 
   auto exu_table = toml::table{{"arithmeticDoneCounter", exu_arith_done_count}};
-  auto lsu_table = toml::table{{"loadDataValidCounter", lsu_load_valid_count}};
+
+  auto lsu_table =
+      toml::table{{"loadDataValidCounter", lsu_load_valid_count},
+                  {"loadWaitingCycleCounter", lsu_load_waiting_cycle},
+                  {"storeWaitingCycleCounter", lsu_store_waiting_cycle}};
+
+  auto axi_arbiter_table = toml::table{
+      {"ifuAXIWaitingCycleCounter", arbiter_ifu_axi_waiting_cycle},
+      {"ifuArbiterWaitingCycleCounter", arbiter_ifu_arbiter_waiting_cycle},
+      {"lsuAXILoadWaitingCycleCounter", arbiter_lsu_axi_load_waiting_cycle},
+      {"lsuAXIStoreWaitingCycleCounter", arbiter_lsu_axi_store_waiting_cycle},
+      {"lsuArbiterLoadWaitingCycleCounter",
+       arbiter_lsu_arbiter_load_waiting_cycle},
+      {"lsuArbiterStoreWaitingCycleCounter",
+       arbiter_lsu_arbiter_store_waiting_cycle}};
 
   auto taohe_perf_record = perf_record.get("TaoHe")->as_table();
 
@@ -122,6 +163,7 @@ void perf_counter_stat() {
   taohe_perf_record->insert_or_assign("IDU", idu_table);
   taohe_perf_record->insert_or_assign("EXU", exu_table);
   taohe_perf_record->insert_or_assign("LSU", lsu_table);
+  taohe_perf_record->insert_or_assign("AXI Arbiter", axi_arbiter_table);
 
   std::ofstream perf_file;
   perf_file.open(record_path, std::ios::out);
