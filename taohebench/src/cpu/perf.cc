@@ -85,6 +85,23 @@ void perf_end_timer() {
   running_time.usec += usec_diff;
 }
 
+toml::table perf_branch_table(uint32_t inst_count, uint32_t inst_cycle_count) {
+  toml::table table;
+
+  double average_cycle = (double)inst_cycle_count / (double)inst_count;
+  double inst_persentage = (double)inst_count / (double)cpu.iCount * 100.0;
+  double cycle_persentage =
+      (double)inst_cycle_count / (double)cpu.total_cycle * 100.0;
+
+  table.insert_or_assign("Average Cycle per Inst", average_cycle);
+  table.insert_or_assign("Inst Count", inst_count);
+  table.insert_or_assign("Inst Percentage", inst_persentage);
+  table.insert_or_assign("Cycle Count", inst_cycle_count);
+  table.insert_or_assign("Cycle Percentage", cycle_persentage);
+
+  return table;
+}
+
 void perf_counter_stat() {
   uint32_t ifu_fetch_inst_count =
       cpu.top->ysyxSoCFull->asic->cpu->cpu->ifu->fetchInstNumCounter;
@@ -147,20 +164,15 @@ void perf_counter_stat() {
 
   auto idu_table = toml::table{
       {"Jump Inst",
-       toml::table{{"jumpInstCounter", idu_jump_inst_count},
-                   {"jumpInstCycleCounter", idu_jump_inst_cycle_count}}},
+       perf_branch_table(idu_jump_inst_count, idu_jump_inst_cycle_count)},
       {"Branch Inst",
-       toml::table{{"branchInstCounter", idu_branch_inst_count},
-                   {"branchInstCycleCounter", idu_branch_inst_cycle_count}}},
+       perf_branch_table(idu_branch_inst_count, idu_branch_inst_cycle_count)},
       {"Load Inst",
-       toml::table{{"loadInstCounter", idu_load_inst_count},
-                   {"loadInstCycleCounter", idu_load_inst_cycle_count}}},
+       perf_branch_table(idu_load_inst_count, idu_load_inst_cycle_count)},
       {"Store Inst",
-       toml::table{{"storeInstCounter", idu_store_inst_count},
-                   {"storeInstCycleCounter", idu_store_inst_cycle_count}}},
+       perf_branch_table(idu_store_inst_count, idu_store_inst_cycle_count)},
       {"Arithmetic Inst",
-       toml::table{{"arithInstCounter", idu_arith_inst_count},
-                   {"arithInstCycleCounter", idu_arith_inst_cycle_count}}}};
+       perf_branch_table(idu_arith_inst_count, idu_arith_inst_cycle_count)}};
 
   auto exu_table = toml::table{{"arithmeticDoneCounter", exu_arith_done_count}};
 
@@ -181,6 +193,7 @@ void perf_counter_stat() {
 
   auto taohe_perf_record = perf_record.get("TaoHe")->as_table();
 
+  taohe_perf_record->insert_or_assign("Total Cycle", cpu.total_cycle);
   taohe_perf_record->insert_or_assign("IFU", ifu_table);
   taohe_perf_record->insert_or_assign("IDU", idu_table);
   taohe_perf_record->insert_or_assign("EXU", exu_table);
