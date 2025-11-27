@@ -58,6 +58,15 @@ class IFU(physicalVersion: Boolean) extends Module {
   inst := Mux(io.axi4.r.fire, io.axi4.r.bits.data, inst)
   val currentInst = Mux(io.axi4.r.fire, io.axi4.r.bits.data, inst)
 
+  val receiveFenceInstruction = inst(6, 0) === "b0001111".U
+  val nopInstruction = inst === "h00000013".U
+
+  val physicalInstruction = Mux(
+    receiveFenceInstruction,
+    nopInstruction,
+    inst
+  )
+
   // State 4
   io.toIDU.valid := {
     if (physicalVersion) (ifuState === IFUState.sSend)
@@ -65,7 +74,7 @@ class IFU(physicalVersion: Boolean) extends Module {
   }
   io.toIDU.bits.currentPC := pc
   io.toIDU.bits.inst := {
-    if (physicalVersion) inst
+    if (physicalVersion) physicalInstruction
     else currentInst
   }
 
