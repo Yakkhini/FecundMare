@@ -59,13 +59,24 @@ sta:
       let area = (tail -n 3 ($env.YOSYS_STA_HOME + /result/taohe__TaoHe-500MHz/synth_stat.txt) | head -n 1 | awk '{print $NF}' | into float)
       let time = (date now | format date "%Y-%m-%d %H:%M:%S")
       let commit = (git rev-parse --short HEAD)
-      {"TaoHe": {"freq(MHz)": $freq, "area(um^2)": $area, "commit": $commit, "time": $time}} | to toml | save -f ($env.NPC_CHISEL + /out/perf.toml)
+      let message = (git log -1 --pretty=%B | str trim)
+      {"TaoHe": {"freq(MHz)": $freq, "area(um^2)": $area, "commit": $commit, "message": $message "time": $time}} | to toml | save -f ($env.NPC_CHISEL + /out/perf.toml)
     }
 
 perf:
     #!/usr/bin/env nu
     print "Performance data:"
     cat ($env.NPC_CHISEL + /out/perf.toml) | from toml
+
+archive-perf:
+    #!/usr/bin/env nu
+    if (not ($env.NPC_CHISEL + /out/perf.toml | path exists)) {
+      print "Performance data not found."
+      exit 1
+    }
+    let index = (ls ($env.NPC_CHISEL + /perf-archive) | length)
+    let commit = (git rev-parse --short HEAD)
+    cp ($env.NPC_CHISEL + /out/perf.toml) ($env.NPC_CHISEL + /perf-archive/taohe-perf-($index)-($commit).toml)
 
 trace msg:
     #!/usr/bin/env zsh
