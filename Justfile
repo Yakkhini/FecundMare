@@ -17,7 +17,7 @@ sv:
 soc-sv:
     make -C $YSYX_SOC_HOME verilog
 
-_compile:
+_compile target:
     #!/usr/bin/env zsh
     mkdir -p {{BUILD_DIR}}/bin
     VSRC=`find {{BUILD_DIR}}/verilog -name '*.sv' | tr '\n' ' '` # we use echo command latter cause dollar var will cause error
@@ -25,7 +25,7 @@ _compile:
     VLTRC=`find $NPC_CHISEL -name '*.vlt' | tr '\n' ' '` # we use echo command latter cause dollar var will cause error
     PERIP_SRC=`find {{PERIP_DIR}} -name '*.v' | tr '\n' ' '` # we use echo command latter cause dollar var will cause error
     verilator --cc -Mdir {{BUILD_DIR}}/verilator \
-    --top-module ysyxSoCFull \
+    --top-module {{target}} \
     --timescale 1ns/1ns --no-timing \
     -O3 --x-assign fast --x-initial fast --noassert \
     --autoflush \
@@ -35,12 +35,15 @@ _compile:
     -I{{BUILD_DIR}}/verilog/verification \
     -CFLAGS -I{{BUILD_DIR}}/verilator -CFLAGS -I{{INC_DIR}} -CFLAGS -I{{CONFIG_DIR}} -CFLAGS -g \
     -CFLAGS -O3 -CFLAGS -flto -LDFLAGS -flto \
+    -CFLAGS -DCONFIG_TARGET_{{target}} \
     -LDFLAGS -lreadline -LDFLAGS -lcapstone -LDFLAGS -lSDL2 -LDFLAGS -lSDL2_image -LDFLAGS -lSDL2_ttf \
     --trace-fst --exe -o {{BUILD_DIR}}/bin/taohe
-    make -C {{BUILD_DIR}}/verilator -f VysyxSoCFull.mk -j $NIX_BUILD_CORES AR=gcc-ar
+    make -C {{BUILD_DIR}}/verilator -f V{{target}}.mk -j $NIX_BUILD_CORES AR=gcc-ar
 
 
-sim: (trace "Build TaoHe Simulator Program Binary.") sv sta _compile
+soc-sim: (trace "Build TaoHe Simulator Program Binary in Full SoC Mode.") sv sta (_compile "ysyxSoCFull")
+
+core-sim: (trace "Build TaoHe Simulator Program Binary in Single Core Mode.") sv sta (_compile "TaoHe")
 
 sta:
     #!/usr/bin/env nu

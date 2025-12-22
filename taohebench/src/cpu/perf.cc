@@ -6,10 +6,6 @@
 #include <time.h>
 #include <toml++/toml.h>
 
-#include <VysyxSoCFull.h>
-#include <VysyxSoCFull__Dpi.h>
-#include <VysyxSoCFull__Syms.h>
-
 char record_path[80];
 toml::table perf_record;
 
@@ -22,7 +18,7 @@ struct {
 } running_time;
 
 struct timespec start_time, end_time;
-void perf_counter_stat();
+void perf_counter_stat(core_symbol_t *cpu_symbol);
 
 void perf_init() {
   strcpy(record_path, getenv("NPC_CHISEL"));
@@ -44,7 +40,7 @@ void perf_init() {
   Log("CPU Area: %.2f um^2", area);
 }
 
-void perf_stat() {
+void perf_stat(core_symbol_t *cpu_symbol) {
 
   double cpi = (double)cpu.total_cycle / (double)cpu.iCount;
   double ipc = (double)cpu.iCount / (double)cpu.total_cycle;
@@ -65,7 +61,7 @@ void perf_stat() {
       exec_time, freq, exec_mips);
   Log("Real Simulation Time: %.4f ms in %.2f KHz Frequency for %.2f KIPS",
       sim_time, sim_freq, sim_mips);
-  perf_counter_stat();
+  perf_counter_stat(cpu_symbol);
 }
 
 void perf_start_timer() { clock_gettime(CLOCK_REALTIME, &start_time); }
@@ -102,61 +98,40 @@ toml::table perf_branch_table(uint32_t inst_count, uint32_t inst_cycle_count) {
   return table;
 }
 
-void perf_counter_stat() {
-  uint32_t ifu_fetch_inst_count =
-      cpu.top->ysyxSoCFull->asic->cpu->cpu->ifu->fetchInstNumCounter;
-  uint32_t ifu_fetch_waiting_cycle =
-      cpu.top->ysyxSoCFull->asic->cpu->cpu->ifu->fetchWaitingCycleCounter;
+void perf_counter_stat(core_symbol_t *cpu_symbol) {
+  uint32_t ifu_fetch_inst_count = cpu_symbol->ifu->fetchInstNumCounter;
+  uint32_t ifu_fetch_waiting_cycle = cpu_symbol->ifu->fetchWaitingCycleCounter;
 
-  uint32_t idu_jump_inst_cycle_count =
-      cpu.top->ysyxSoCFull->asic->cpu->cpu->idu->jumpInstCycleCounter;
-  uint32_t idu_jump_inst_count =
-      cpu.top->ysyxSoCFull->asic->cpu->cpu->idu->jumpInstCounter;
   uint32_t idu_branch_inst_cycle_count =
-      cpu.top->ysyxSoCFull->asic->cpu->cpu->idu->branchInstCycleCounter;
-  uint32_t idu_branch_inst_count =
-      cpu.top->ysyxSoCFull->asic->cpu->cpu->idu->branchInstCounter;
-  uint32_t idu_load_inst_cycle_count =
-      cpu.top->ysyxSoCFull->asic->cpu->cpu->idu->loadInstCycleCounter;
-  uint32_t idu_load_inst_count =
-      cpu.top->ysyxSoCFull->asic->cpu->cpu->idu->loadInstCounter;
-  uint32_t idu_store_inst_cycle_count =
-      cpu.top->ysyxSoCFull->asic->cpu->cpu->idu->storeInstCycleCounter;
-  uint32_t idu_store_inst_count =
-      cpu.top->ysyxSoCFull->asic->cpu->cpu->idu->storeInstCounter;
-  uint32_t idu_arith_inst_cycle_count =
-      cpu.top->ysyxSoCFull->asic->cpu->cpu->idu->arithInstCycleCounter;
-  uint32_t idu_arith_inst_count =
-      cpu.top->ysyxSoCFull->asic->cpu->cpu->idu->arithInstCounter;
+      cpu_symbol->idu->branchInstCycleCounter;
+  uint32_t idu_branch_inst_count = cpu_symbol->idu->branchInstCounter;
+  uint32_t idu_jump_inst_cycle_count = cpu_symbol->idu->jumpInstCycleCounter;
+  uint32_t idu_jump_inst_count = cpu_symbol->idu->jumpInstCounter;
+  uint32_t idu_load_inst_cycle_count = cpu_symbol->idu->loadInstCycleCounter;
+  uint32_t idu_load_inst_count = cpu_symbol->idu->loadInstCounter;
+  uint32_t idu_store_inst_cycle_count = cpu_symbol->idu->storeInstCycleCounter;
+  uint32_t idu_store_inst_count = cpu_symbol->idu->storeInstCounter;
+  uint32_t idu_arith_inst_cycle_count = cpu_symbol->idu->arithInstCycleCounter;
+  uint32_t idu_arith_inst_count = cpu_symbol->idu->arithInstCounter;
 
-  uint32_t exu_arith_done_count =
-      cpu.top->ysyxSoCFull->asic->cpu->cpu->exu->arithmeticDoneCounter;
+  uint32_t exu_arith_done_count = cpu_symbol->exu->arithmeticDoneCounter;
 
-  uint32_t lsu_load_valid_count =
-      cpu.top->ysyxSoCFull->asic->cpu->cpu->lsu->loadDataValidCounter;
-  uint32_t lsu_load_waiting_cycle =
-      cpu.top->ysyxSoCFull->asic->cpu->cpu->lsu->loadWaitingCycleCounter;
-  uint32_t lsu_store_waiting_cycle =
-      cpu.top->ysyxSoCFull->asic->cpu->cpu->lsu->storeWaitingCycleCounter;
+  uint32_t lsu_load_valid_count = cpu_symbol->lsu->loadDataValidCounter;
+  uint32_t lsu_load_waiting_cycle = cpu_symbol->lsu->loadWaitingCycleCounter;
+  uint32_t lsu_store_waiting_cycle = cpu_symbol->lsu->storeWaitingCycleCounter;
 
   uint32_t arbiter_ifu_axi_waiting_cycle =
-      cpu.top->ysyxSoCFull->asic->cpu->cpu->axiArbiter
-          ->ifuAXIWaitingCycleCounter;
+      cpu_symbol->axiArbiter->ifuAXIWaitingCycleCounter;
   uint32_t arbiter_ifu_arbiter_waiting_cycle =
-      cpu.top->ysyxSoCFull->asic->cpu->cpu->axiArbiter
-          ->ifuArbiterWaitingCycleCounter;
+      cpu_symbol->axiArbiter->ifuArbiterWaitingCycleCounter;
   uint32_t arbiter_lsu_axi_load_waiting_cycle =
-      cpu.top->ysyxSoCFull->asic->cpu->cpu->axiArbiter
-          ->lsuAXILoadWaitingCycleCounter;
+      cpu_symbol->axiArbiter->lsuAXILoadWaitingCycleCounter;
   uint32_t arbiter_lsu_axi_store_waiting_cycle =
-      cpu.top->ysyxSoCFull->asic->cpu->cpu->axiArbiter
-          ->lsuAXIStoreWaitingCycleCounter;
+      cpu_symbol->axiArbiter->lsuAXIStoreWaitingCycleCounter;
   uint32_t arbiter_lsu_arbiter_load_waiting_cycle =
-      cpu.top->ysyxSoCFull->asic->cpu->cpu->axiArbiter
-          ->lsuArbiterLoadWaitingCycleCounter;
+      cpu_symbol->axiArbiter->lsuArbiterLoadWaitingCycleCounter;
   uint32_t arbiter_lsu_arbiter_store_waiting_cycle =
-      cpu.top->ysyxSoCFull->asic->cpu->cpu->axiArbiter
-          ->lsuArbiterStoreWaitingCycleCounter;
+      cpu_symbol->axiArbiter->lsuArbiterStoreWaitingCycleCounter;
 
   auto ifu_table =
       toml::table{{"fetchInstNumCounter", ifu_fetch_inst_count},

@@ -3,7 +3,22 @@
 
 #include <config.h>
 
+#ifdef CONFIG_TARGET_ysyxSoCFull
 #include <VysyxSoCFull.h>
+#include <VysyxSoCFull__Dpi.h>
+#include <VysyxSoCFull__Syms.h>
+
+#define core_symbol_t VysyxSoCFull_TaoHe
+#endif
+
+#ifdef CONFIG_TARGET_TaoHe
+#include <VTaoHe.h>
+#include <VTaoHe__Dpi.h>
+#include <VTaoHe__Syms.h>
+
+#define core_symbol_t VTaoHe_TaoHe
+#endif
+
 #include <verilated.h>
 #include <verilated_fst_c.h>
 

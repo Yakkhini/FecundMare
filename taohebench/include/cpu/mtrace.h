@@ -15,7 +15,7 @@ typedef struct {
   bool rvalid;
 } AXI4Interface;
 
-void axi4_interface_sync();
+void axi4_interface_sync(core_symbol_t *cpu_symbol);
 void mtrace();
 
 #endif

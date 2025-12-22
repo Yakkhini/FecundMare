@@ -4,8 +4,6 @@
 #include <memory/paddr.h>
 #include <memory/vaddr.h>
 
-#include <VysyxSoCFull__Dpi.h>
-
 uint8_t FLASH[0x1000000] __attribute((aligned(4096))) = {};
 
 extern "C" {

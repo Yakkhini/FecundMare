@@ -10,11 +10,20 @@
 #include <sdb.h>
 #include <signal.h>
 
+#ifdef CONFIG_TARGET_ysyxSoCFull
 #include <VysyxSoCFull.h>
 #include <VysyxSoCFull__Dpi.h>
 #include <VysyxSoCFull__Syms.h>
+#endif
+
+#ifdef CONFIG_TARGET_TaoHe
+#include <VTaoHe.h>
+#include <VTaoHe__Dpi.h>
+#include <VTaoHe__Syms.h>
+#endif
 
 CPU cpu;
+core_symbol_t *cpu_symbol;
 NPCState npc_state = TCHE_INIT;
 
 static char *NPC_CHISEL = getenv("NPC_CHISEL");
@@ -144,7 +153,15 @@ void cpu_init(int argc, char **argv) {
   contextp = new VerilatedContext;
   contextp->commandArgs(argc, argv);
 
+#ifdef CONFIG_TARGET_ysyxSoCFull
   cpu.top = new VysyxSoCFull(contextp);
+  cpu_symbol = cpu.top->ysyxSoCFull->asic->cpu->cpu;
+#endif
+
+#ifdef CONFIG_TARGET_TaoHe
+  cpu.top = new VTaoHe(contextp);
+  cpu_symbol = cpu.top->TaoHe;
+#endif
   cpu.iCount = 0;
   cpu.total_cycle = 0;
   cpu.check_cycle = false;
@@ -224,18 +241,15 @@ void cpu_exec(int n) {
 }
 
 void cpu_sync() {
-  memcpy(cpu.regs,
-         cpu.top->ysyxSoCFull->asic->cpu->cpu->registerFile->registers,
-         sizeof(cpu.regs));
-  cpu.inst = cpu.top->ysyxSoCFull->asic->cpu->cpu->ifu->io_toIDU_bits_inst;
-  cpu.check_cycle =
-      cpu.top->ysyxSoCFull->asic->cpu->cpu->ifu->iCount > cpu.iCount ||
-      npc_state == TCHE_HALT || npc_state == TCHE_ABORT;
+  memcpy(cpu.regs, cpu_symbol->registerFile->registers, sizeof(cpu.regs));
+  cpu.inst = cpu_symbol->ifu->io_toIDU_bits_inst;
+  cpu.check_cycle = cpu_symbol->ifu->iCount > cpu.iCount ||
+                    npc_state == TCHE_HALT || npc_state == TCHE_ABORT;
 
   if (cpu.check_cycle) {
     cpu.pc_prev = cpu.pc;
-    cpu.pc = cpu.top->ysyxSoCFull->asic->cpu->cpu->ifu->pc;
-    cpu.iCount = cpu.top->ysyxSoCFull->asic->cpu->cpu->ifu->iCount;
+    cpu.pc = cpu_symbol->ifu->pc;
+    cpu.iCount = cpu_symbol->ifu->iCount;
   }
 
   if (npc_state == TCHE_HALT) {
@@ -245,12 +259,12 @@ void cpu_sync() {
     cpu.pc += 0x4;
   }
 
-  axi4_interface_sync();
+  axi4_interface_sync(cpu_symbol);
 }
 
 void cpu_check() {
 
-  if (cpu.top->ysyxSoCFull->asic->cpu->cpu->idu->decodeSupport == 0) {
+  if (cpu_symbol->idu->decodeSupport == 0) {
     Log(ANSI_FMT("ERROR INST NOT SUPPORT: ", ANSI_FG_RED) ANSI_FG_BLUE
         "DECODE " ANSI_FMT("FAILED ", ANSI_FG_RED) ANSI_FG_BLUE
         "at pc = 0x%08X",
@@ -303,7 +317,7 @@ void finish() {
     return;
   }
 
-  perf_stat();
+  perf_stat(cpu_symbol);
 }
 
 void cpu_exit() {

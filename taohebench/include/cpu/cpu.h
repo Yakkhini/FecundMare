@@ -6,7 +6,14 @@
 enum NPCState { TCHE_INIT, TCHE_RUNNING, TCHE_PAUSE, TCHE_HALT, TCHE_ABORT };
 
 typedef struct cpu {
+#ifdef CONFIG_TARGET_ysyxSoCFull
   VysyxSoCFull *top;
+#endif
+
+#ifdef CONFIG_TARGET_TaoHe
+  VTaoHe *top;
+#endif
+
   word_t regs[32];
   word_t pc = 0x30000000;
   word_t pc_prev;

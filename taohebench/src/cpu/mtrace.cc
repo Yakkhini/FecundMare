@@ -2,30 +2,19 @@
 #include <cpu/difftest.h>
 #include <cpu/mtrace.h>
 
-#include <VysyxSoCFull.h>
-#include <VysyxSoCFull__Dpi.h>
-#include <VysyxSoCFull__Syms.h>
-
 AXI4Interface axi4_interface;
 
-void axi4_interface_sync() {
-  axi4_interface.awaddr =
-      cpu.top->ysyxSoCFull->asic->cpu->cpu->io_master_awaddr;
-  axi4_interface.awsize =
-      cpu.top->ysyxSoCFull->asic->cpu->cpu->io_master_awsize;
-  axi4_interface.awvalid =
-      cpu.top->ysyxSoCFull->asic->cpu->cpu->io_master_awvalid;
-  axi4_interface.wdata = cpu.top->ysyxSoCFull->asic->cpu->cpu->io_master_wdata;
+void axi4_interface_sync(core_symbol_t *cpu_symbol) {
+  axi4_interface.awaddr = cpu_symbol->io_master_awaddr;
+  axi4_interface.awsize = cpu_symbol->io_master_awsize;
+  axi4_interface.awvalid = cpu_symbol->io_master_awvalid;
+  axi4_interface.wdata = cpu_symbol->io_master_wdata;
 
-  axi4_interface.araddr =
-      cpu.top->ysyxSoCFull->asic->cpu->cpu->io_master_araddr;
-  axi4_interface.arsize =
-      cpu.top->ysyxSoCFull->asic->cpu->cpu->io_master_arsize;
-  axi4_interface.arvalid =
-      cpu.top->ysyxSoCFull->asic->cpu->cpu->io_master_arvalid;
-  axi4_interface.rdata = cpu.top->ysyxSoCFull->asic->cpu->cpu->io_master_rdata;
-  axi4_interface.rvalid =
-      cpu.top->ysyxSoCFull->asic->cpu->cpu->io_master_rvalid;
+  axi4_interface.araddr = cpu_symbol->io_master_araddr;
+  axi4_interface.arsize = cpu_symbol->io_master_arsize;
+  axi4_interface.arvalid = cpu_symbol->io_master_arvalid;
+  axi4_interface.rdata = cpu_symbol->io_master_rdata;
+  axi4_interface.rvalid = cpu_symbol->io_master_rvalid;
 }
 
 bool in_mmio(uint32_t addr) {

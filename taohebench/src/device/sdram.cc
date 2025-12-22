@@ -1,8 +1,6 @@
 #include <common.h>
 #include <device/device.h>
 
-#include <VysyxSoCFull__Dpi.h>
-
 typedef uint16_t sdram_row_t[512];
 
 typedef struct SDRAMBank {
