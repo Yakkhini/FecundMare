@@ -11,8 +11,11 @@ int main(int argc, char **argv) {
   cpu_init(argc, argv);
 
   device_init();
+
+#ifdef CONFIG_TARGET_ysyxSoCFull
   nvboard_bind_all_pins();
   nvboard_init();
+#endif
 
   sdb_mainloop();
 

@@ -62,7 +62,9 @@ void cpu_sync();
 void cpu_check();
 void single_clock() {
 
+#ifdef CONFIG_TARGET_ysyxSoCFull
   nvboard_update();
+#endif
 
 #if CONFIG_WAVE_RECORD
   contextp->timeInc(1);
@@ -98,7 +100,9 @@ void reset() {
 
   for (int i = 0; i < 15; i++) {
 
+#ifdef CONFIG_TARGET_ysyxSoCFull
     nvboard_update();
+#endif
 
 #if CONFIG_WAVE_RECORD
     tfp->dump(contextp->time());
