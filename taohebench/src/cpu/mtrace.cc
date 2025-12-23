@@ -1,6 +1,7 @@
 #include <cpu/cpu.h>
 #include <cpu/difftest.h>
 #include <cpu/mtrace.h>
+#include <device/device.h>
 #include <memory/vaddr.h>
 
 AXI4Interface axi4_interface;
@@ -49,6 +50,7 @@ void mtrace() {
     uint32_t wdata =
         axi4_interface.wdata >> ((axi4_interface.awaddr & 0b11) * 8);
     if (in_mmio(axi4_interface.awaddr)) {
+      mmio_write(axi4_interface.awaddr, 0b00, wdata);
       difftest_skip_ref();
     } else {
 #ifdef CONFIG_TARGET_TaoHe
