@@ -1,6 +1,7 @@
 #include <cpu/cpu.h>
 #include <cpu/difftest.h>
 #include <cpu/mtrace.h>
+#include <memory/vaddr.h>
 
 AXI4Interface axi4_interface;
 
@@ -15,6 +16,12 @@ void axi4_interface_sync(core_symbol_t *cpu_symbol) {
   axi4_interface.arvalid = cpu_symbol->io_master_arvalid;
   axi4_interface.rdata = cpu_symbol->io_master_rdata;
   axi4_interface.rvalid = cpu_symbol->io_master_rvalid;
+
+#ifdef CONFIG_TARGET_TaoHe
+  cpu.top->io_master_awready = 1;
+  cpu.top->io_master_wready = 1;
+  cpu.top->io_master_arready = 1;
+#endif
 }
 
 bool in_mmio(uint32_t addr) {
@@ -38,8 +45,28 @@ void mtrace() {
         axi4_interface.awaddr, axi4_interface.awsize, axi4_interface.wdata,
         cpu.iCount);
 #endif
+
+    uint32_t wdata =
+        axi4_interface.wdata >> ((axi4_interface.awaddr & 0b11) * 8);
     if (in_mmio(axi4_interface.awaddr)) {
       difftest_skip_ref();
+    } else {
+#ifdef CONFIG_TARGET_TaoHe
+      switch (axi4_interface.awsize) {
+      case 0b000:
+        *(uint8_t *)(&FLASH[axi4_interface.awaddr - 0x30000000]) =
+            (uint8_t)(wdata & 0xFF);
+        break;
+      case 0b001:
+        *(uint16_t *)(&FLASH[axi4_interface.awaddr - 0x30000000]) =
+            (uint16_t)(wdata & 0xFFFF);
+        break;
+      case 0b010:
+        *(uint32_t *)(&FLASH[axi4_interface.awaddr - 0x30000000]) = wdata;
+        break;
+      }
+      cpu.top->io_master_bvalid = 1;
+#endif
     }
   }
 
@@ -50,6 +77,13 @@ void mtrace() {
 #endif
     if (in_mmio(axi4_interface.araddr)) {
       difftest_skip_ref();
+    } else {
+#ifdef CONFIG_TARGET_TaoHe
+      uint32_t index = (axi4_interface.araddr & 0xFFFFFFFC) - 0x30000000;
+      uint32_t rdata = *(uint32_t *)(&FLASH[index]);
+      cpu.top->io_master_rdata = rdata;
+      cpu.top->io_master_rvalid = 1;
+#endif
     }
   }
 

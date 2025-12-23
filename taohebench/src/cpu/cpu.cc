@@ -276,7 +276,7 @@ void cpu_check() {
     npc_state = TCHE_ABORT;
   }
 
-#if CONFIG_MTRACE || CONFIG_DIFFTEST
+#if CONFIG_MTRACE || CONFIG_DIFFTEST || CONFIG_TARGET_TaoHe
   mtrace();
 #endif
 
