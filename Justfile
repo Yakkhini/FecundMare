@@ -71,12 +71,11 @@ perf:
     print "Performance data:"
     cat ($env.NPC_CHISEL + /out/perf.toml) | from toml
 
-archive-perf:
+archive-perf: clean sta
     #!/usr/bin/env nu
-    if (not ($env.NPC_CHISEL + /out/perf.toml | path exists)) {
-      print "Performance data not found."
-      exit 1
-    }
+    cd ($env.NPC_CHISEL + /../am-kernels/benchmarks/microbench)
+    make ARCH=riscv32e-ysyxsoc run mainargs=test
+    cd $env.NPC_CHISEL
     let index = (ls ($env.NPC_CHISEL + /perf-archive) | length)
     let commit = (git rev-parse --short HEAD)
     cp ($env.NPC_CHISEL + /out/perf.toml) ($env.NPC_CHISEL + /perf-archive/taohe-perf-($index)-($commit).toml)

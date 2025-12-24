@@ -11,6 +11,7 @@
 !.scalafmt.conf
 !Justfile
 !Makefile
+!perf-archive/*
 .metals
 out
 build

@@ -1,0 +1,62 @@
+[TaoHe]
+'Total Cycle' = 24684376
+'area(um^2)' = 21506.799999999999
+commit = '27b64408'
+'freq(MHz)' = 395.01400000000001
+message = '[taohe] support `riscv32e-npc` target running on single core sim'
+time = '2025-12-24 20:02:19'
+
+    [TaoHe.'AXI Arbiter']
+    ifuAXIWaitingCycleCounter = 13301116
+    ifuArbiterWaitingCycleCounter = 0
+    lsuAXILoadWaitingCycleCounter = 8435381
+    lsuAXIStoreWaitingCycleCounter = 8395481
+    lsuArbiterLoadWaitingCycleCounter = 0
+    lsuArbiterStoreWaitingCycleCounter = 0
+
+    [TaoHe.EXU]
+    arithmeticDoneCounter = 349714
+
+    [TaoHe.IDU.'Arithmetic Inst']
+    'Average Cycle per Inst' = 22.778536925927362
+    'Cycle Count' = 7634705
+    'Cycle Percentage' = 30.929301190356203
+    'Inst Count' = 335171
+    'Inst Percentage' = 49.908869716453779
+
+    [TaoHe.IDU.'Branch Inst']
+    'Average Cycle per Inst' = 23.069586441926866
+    'Cycle Count' = 3005598
+    'Cycle Percentage' = 12.176114964380707
+    'Inst Count' = 130284
+    'Inst Percentage' = 19.400029185515645
+
+    [TaoHe.IDU.'Jump Inst']
+    'Average Cycle per Inst' = 30.36099928514993
+    'Cycle Count' = 806965
+    'Cycle Percentage' = 3.2691326691831302
+    'Inst Count' = 26579
+    'Inst Percentage' = 3.9577643895015528
+
+    [TaoHe.IDU.'Load Inst']
+    'Average Cycle per Inst' = 105.19225917194028
+    'Cycle Count' = 10172933
+    'Cycle Percentage' = 41.212032258785882
+    'Inst Count' = 96708
+    'Inst Percentage' = 14.400371668607404
+
+    [TaoHe.IDU.'Store Inst']
+    'Average Cycle per Inst' = 39.704544455998011
+    'Cycle Count' = 2711066
+    'Cycle Percentage' = 10.982922963092118
+    'Inst Count' = 68281
+    'Inst Percentage' = 10.167429560162367
+
+    [TaoHe.IFU]
+    fetchInstNumCounter = 671566
+    fetchWaitingCycleCounter = 13301116
+
+    [TaoHe.LSU]
+    loadDataValidCounter = 96662
+    loadWaitingCycleCounter = 8435381
+    storeWaitingCycleCounter = 8395481
