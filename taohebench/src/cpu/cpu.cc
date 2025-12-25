@@ -170,6 +170,7 @@ void cpu_init(int argc, char **argv) {
   cpu.total_cycle = 0;
   cpu.check_cycle = false;
   perf_init();
+  mtrace_init();
   Log("Welcome to TaoHe Processor Core Verilating Model.");
 
 #if CONFIG_WAVE_RECORD
@@ -321,6 +322,7 @@ void finish() {
     return;
   }
 
+  mtrace_finish();
   perf_stat(cpu_symbol);
 }
 

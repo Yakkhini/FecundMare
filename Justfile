@@ -17,6 +17,9 @@ sv:
 soc-sv:
     make -C $YSYX_SOC_HOME verilog
 
+_rmdb:
+    rm -f $NPC_CHISEL/out/mtrace.db
+
 _compile target:
     #!/usr/bin/env zsh
     mkdir -p {{BUILD_DIR}}/bin
@@ -37,13 +40,14 @@ _compile target:
     -CFLAGS -O3 -CFLAGS -flto -LDFLAGS -flto \
     -CFLAGS -DCONFIG_TARGET_{{target}} \
     -LDFLAGS -lreadline -LDFLAGS -lcapstone -LDFLAGS -lSDL2 -LDFLAGS -lSDL2_image -LDFLAGS -lSDL2_ttf \
+    -LDFLAGS -lsqlite3 \
     --trace-fst --exe -o {{BUILD_DIR}}/bin/taohe
     make -C {{BUILD_DIR}}/verilator -f V{{target}}.mk -j $NIX_BUILD_CORES AR=gcc-ar
 
 
-soc-sim: (trace "Build TaoHe Simulator Program Binary in Full SoC Mode.") sv sta (_compile "ysyxSoCFull")
+soc-sim: (trace "Build TaoHe Simulator Program Binary in Full SoC Mode.") sv sta _rmdb (_compile "ysyxSoCFull")
 
-core-sim: (trace "Build TaoHe Simulator Program Binary in Single Core Mode.") sv sta (_compile "TaoHe")
+core-sim: (trace "Build TaoHe Simulator Program Binary in Single Core Mode.") sv sta _rmdb (_compile "TaoHe")
 
 sta:
     #!/usr/bin/env nu
