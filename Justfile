@@ -23,11 +23,12 @@ _rmdb:
 _compile target:
     #!/usr/bin/env zsh
     mkdir -p {{BUILD_DIR}}/bin
+    mkdir -p {{BUILD_DIR}}/verilator
     VSRC=`find {{BUILD_DIR}}/verilog -name '*.sv' | tr '\n' ' '` # we use echo command latter cause dollar var will cause error
     CSRC=`find $NPC_CHISEL -name '*.cc' | tr '\n' ' '` # we use echo command latter cause dollar var will cause error
     VLTRC=`find $NPC_CHISEL -name '*.vlt' | tr '\n' ' '` # we use echo command latter cause dollar var will cause error
     PERIP_SRC=`find {{PERIP_DIR}} -name '*.v' | tr '\n' ' '` # we use echo command latter cause dollar var will cause error
-    verilator --cc -Mdir {{BUILD_DIR}}/verilator \
+    verilator --cc -Mdir {{BUILD_DIR}}/verilator/{{target}} \
     --top-module {{target}} \
     --timescale 1ns/1ns --no-timing \
     -O3 --x-assign fast --x-initial fast --noassert \
@@ -42,7 +43,7 @@ _compile target:
     -LDFLAGS -lreadline -LDFLAGS -lcapstone -LDFLAGS -lSDL2 -LDFLAGS -lSDL2_image -LDFLAGS -lSDL2_ttf \
     -LDFLAGS -lsqlite3 \
     --trace-fst --exe -o {{BUILD_DIR}}/bin/taohe
-    make -C {{BUILD_DIR}}/verilator -f V{{target}}.mk -j $NIX_BUILD_CORES AR=gcc-ar
+    make -C {{BUILD_DIR}}/verilator/{{target}} -f V{{target}}.mk -j $NIX_BUILD_CORES AR=gcc-ar
 
 
 soc-sim: (trace "Build TaoHe Simulator Program Binary in Full SoC Mode.") sv sta _rmdb (_compile "ysyxSoCFull")
