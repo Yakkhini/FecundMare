@@ -32,6 +32,7 @@ void mtrace_init() {
         "VALUES (?, ?, ?, ?, ?)";
   sqlite3_prepare_v2(mtrace_database, sql.c_str(), sql.length(), &mtrace_stmt,
                      NULL);
+  sqlite3_exec(mtrace_database, "BEGIN", NULL, NULL, NULL);
 #endif
 
   return;
