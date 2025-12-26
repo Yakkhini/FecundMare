@@ -1,0 +1,25 @@
+name = "MemoryAnalyzer"
+uuid = "a40bb054-19de-42ac-a2c9-fbe960d9ed29"
+authors = ["Yaksis <59007159+Yakkhini@users.noreply.github.com> and contributors"]
+version = "1.0.0-DEV"
+
+[deps]
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+PackageCompiler = "9b87118b-4619-50d2-8e1e-99f35a4d4d9d"
+Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+SQLite = "0aa819cd-b072-5ff4-a722-6bc24af294d9"
+StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
+
+[compat]
+DataFrames = "1.8.1"
+PackageCompiler = "2.2.4"
+Plots = "1.41.3"
+SQLite = "1.6.1"
+StatsBase = "0.34.9"
+julia = "1.10.10"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]

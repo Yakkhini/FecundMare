@@ -93,6 +93,13 @@ trace msg:
 wave:
     surfer -s WaveLayout.ron {{BUILD_DIR}}/waveform.fst
 
+mtrace-view:
+    #!/usr/bin/env nu
+    if (($env.NPC_CHISEL + /out/mtrace.db) | path exists) {
+      julia --project=MemoryAnalyzer -m MemoryAnalyzer
+      okular ./out/memory_heatmap.png
+    }
+
 fmt:
     scalafmt
     find $NPC_CHISEL -iname *.h -o -iname *.cc -o -iname *.c | xargs clang-format -i
