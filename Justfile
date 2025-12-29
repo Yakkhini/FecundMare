@@ -102,7 +102,7 @@ mtrace-view:
 
 fmt:
     scalafmt
-    find $NPC_CHISEL -iname *.h -o -iname *.cc -o -iname *.c | xargs clang-format -i
+    fd -e h -e cc -e c -a | xargs clang-format -i
 
 clean:
     rm -rf out
