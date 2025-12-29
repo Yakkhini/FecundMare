@@ -87,32 +87,6 @@ class ICacheToIFUBundle extends Bundle {
   val readData = UInt(32.W)
 }
 
-class AXI4LiteAWChannel extends Bundle {
-  val addr = Output(UInt(32.W))
-  // Not required to differentiate between Non-secure and Secure accesses
-  // val prot = Output(UInt(3.W))
-}
-
-class AXI4LiteWChannel extends Bundle {
-  val data = Output(UInt(32.W))
-  val strb = Output(UInt(4.W))
-}
-
-class AXI4LiteBChannel extends Bundle {
-  val resp = Output(UInt(2.W))
-}
-
-class AXI4LiteARChannel extends Bundle {
-  val addr = Output(UInt(32.W))
-  // Not required to differentiate between Non-secure and Secure accesses
-  // val prot = Output(UInt(3.W))
-}
-
-class AXI4LiteRChannel extends Bundle {
-  val data = Output(UInt(32.W))
-  val resp = Output(UInt(2.W))
-}
-
 class AXI4AWChannel extends Bundle {
   val addr = Output(UInt(32.W))
   val id = Output(UInt(4.W))
@@ -148,15 +122,6 @@ class AXI4RChannel extends Bundle {
 }
 
 // Public interfaces
-class AXI4LiteBundle extends Bundle {
-  // Manager to Subordinate
-  val aw = Decoupled(new AXI4LiteAWChannel)
-  val w = Decoupled(new AXI4LiteWChannel)
-  val b = Flipped(Decoupled(new AXI4LiteBChannel))
-  val ar = Decoupled(new AXI4LiteARChannel)
-  val r = Flipped(Decoupled(new AXI4LiteRChannel))
-}
-
 class AXI4Bundle extends Bundle {
   // Manager to Subordinate
   val aw = Decoupled(new AXI4AWChannel)

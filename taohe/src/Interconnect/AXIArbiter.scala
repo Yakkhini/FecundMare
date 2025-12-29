@@ -1,8 +1,9 @@
 package taohe
 
 import chisel3._
-import taohe.util.{AXI4LiteBundle, AXI4Bundle}
 import chisel3.util.{switch, is}
+
+import taohe.util.AXI4Bundle
 import taohe.util.PerformanceCounter
 
 object AXIArbiterState extends ChiselEnum {
