@@ -77,6 +77,16 @@ class EXUToLSUBundle extends Bundle {
   val length = UInt(32.W)
 }
 
+class IFUToICacheBundle extends Bundle {
+  val pc = UInt(32.W)
+  val writeEnable = Bool()
+  val writeData = UInt(32.W)
+}
+
+class ICacheToIFUBundle extends Bundle {
+  val readData = UInt(32.W)
+}
+
 class AXI4LiteAWChannel extends Bundle {
   val addr = Output(UInt(32.W))
   // Not required to differentiate between Non-secure and Secure accesses
