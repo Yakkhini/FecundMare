@@ -101,6 +101,7 @@ toml::table perf_branch_table(uint32_t inst_count, uint32_t inst_cycle_count) {
 void perf_counter_stat(core_symbol_t *cpu_symbol) {
   uint32_t ifu_fetch_inst_count = cpu_symbol->ifu->fetchInstNumCounter;
   uint32_t ifu_fetch_waiting_cycle = cpu_symbol->ifu->fetchWaitingCycleCounter;
+  uint32_t ifu_icache_hit_counter = cpu_symbol->ifu->iCacheHitCounter;
 
   uint32_t idu_branch_inst_cycle_count =
       cpu_symbol->idu->branchInstCycleCounter;
@@ -135,7 +136,8 @@ void perf_counter_stat(core_symbol_t *cpu_symbol) {
 
   auto ifu_table =
       toml::table{{"fetchInstNumCounter", ifu_fetch_inst_count},
-                  {"fetchWaitingCycleCounter", ifu_fetch_waiting_cycle}};
+                  {"fetchWaitingCycleCounter", ifu_fetch_waiting_cycle},
+                  {"iCacheHitCounter", ifu_icache_hit_counter}};
 
   auto idu_table = toml::table{
       {"Jump Inst",

@@ -85,6 +85,7 @@ class IFUToICacheBundle extends Bundle {
 
 class ICacheToIFUBundle extends Bundle {
   val readData = UInt(32.W)
+  val hit = Bool()
 }
 
 class AXI4AWChannel extends Bundle {
@@ -148,9 +149,16 @@ class CSRBundle extends Bundle {
   val toEXU = Decoupled(new CSRToEXUBundle)
 }
 
+class ICacheBundle extends Bundle {
+  val fromIFU = Flipped(Decoupled(new IFUToICacheBundle))
+  val toIFU = Decoupled(new ICacheToIFUBundle)
+}
+
 class IFUBundle extends Bundle {
   val fromEXU = Flipped(Decoupled(new EXUToIFUBundle))
   val toIDU = Decoupled(new IFUToIDUBundle)
+  val fromICache = Flipped(Decoupled(new ICacheToIFUBundle))
+  val toICache = Decoupled(new IFUToICacheBundle)
   val axi4 = new AXI4Bundle
 }
 

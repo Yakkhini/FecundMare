@@ -29,6 +29,9 @@ class TaoHe(physicalVersion: Boolean) extends Module {
 
   val registerFile = Module(new RegisterFile())
   val csr = Module(new CSR())
+
+  val iCache = Module(new ICache())
+
   val lsu = Module(new LSU())
   val ifu = Module(new IFU(physicalVersion))
   val idu = Module(new IDU())
@@ -41,6 +44,9 @@ class TaoHe(physicalVersion: Boolean) extends Module {
   axiArbiter.io.lsu <> lsu.io.axi4
 
   axiArbiter.io.out <> ioView.master
+
+  iCache.io.fromIFU <> ifu.io.toICache
+  iCache.io.toIFU <> ifu.io.fromICache
 
   ifu.io.toIDU <> idu.io.fromIFU
   idu.io.toEXU <> exu.io.fromIDU
