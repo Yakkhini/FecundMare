@@ -63,7 +63,7 @@ sta:
     }
     if $update {
       make --silent -C $env.YOSYS_STA_HOME sta out+err> ($env.NPC_CHISEL + /out/sta/sta.log)
-      let freq = (head -n 5 ($env.YOSYS_STA_HOME + /result/taohe__TaoHe-500MHz/taohe__TaoHe.rpt) | tail -n 1 | awk '{print $(NF-1)}' | into float)
+      let freq = (head -n 6 ($env.YOSYS_STA_HOME + /result/taohe__TaoHe-500MHz/taohe__TaoHe.rpt) | tail -n 1 | awk '{print $(NF-1)}' | into float)
       let area = (tail -n 3 ($env.YOSYS_STA_HOME + /result/taohe__TaoHe-500MHz/synth_stat.txt) | head -n 1 | awk '{print $NF}' | into float)
       let time = (date now | format date "%Y-%m-%d %H:%M:%S")
       let commit = (git rev-parse --short HEAD)
