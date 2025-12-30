@@ -96,7 +96,9 @@ void mtrace() {
     uint32_t wdata =
         axi4_interface.wdata >> ((axi4_interface.awaddr & 0b11) * 8);
     if (in_mmio(axi4_interface.awaddr)) {
+#ifdef CONFIG_TARGET_TaoHe
       mmio_write(axi4_interface.awaddr, 0b00, wdata);
+#endif
       difftest_skip_ref();
     } else {
 #ifdef CONFIG_TARGET_TaoHe
