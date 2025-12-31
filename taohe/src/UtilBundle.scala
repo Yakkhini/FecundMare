@@ -12,6 +12,14 @@ class IFUToIDUBundle extends Bundle {
   val inst = UInt(32.W)
 }
 
+class IFUToICacheBundle extends Bundle {
+  val pc = UInt(32.W)
+}
+
+class ICacheToIFUBundle extends Bundle {
+  val readInst = UInt(32.W)
+}
+
 class IDUToEXUBundle extends Bundle {
   val currentPC = UInt(32.W)
   val registerReadData1 = UInt(32.W)
@@ -75,17 +83,6 @@ class EXUToLSUBundle extends Bundle {
   val writeData = UInt(32.W)
   val address = UInt(32.W)
   val length = UInt(32.W)
-}
-
-class IFUToICacheBundle extends Bundle {
-  val pc = UInt(32.W)
-  val writeEnable = Bool()
-  val writeData = UInt(32.W)
-}
-
-class ICacheToIFUBundle extends Bundle {
-  val readData = UInt(32.W)
-  val hit = Bool()
 }
 
 class AXI4AWChannel extends Bundle {
@@ -152,6 +149,7 @@ class CSRBundle extends Bundle {
 class ICacheBundle extends Bundle {
   val fromIFU = Flipped(Decoupled(new IFUToICacheBundle))
   val toIFU = Decoupled(new ICacheToIFUBundle)
+  val axi4 = new AXI4Bundle
 }
 
 class IFUBundle extends Bundle {
@@ -159,7 +157,6 @@ class IFUBundle extends Bundle {
   val toIDU = Decoupled(new IFUToIDUBundle)
   val fromICache = Flipped(Decoupled(new ICacheToIFUBundle))
   val toICache = Decoupled(new IFUToICacheBundle)
-  val axi4 = new AXI4Bundle
 }
 
 class IDUBundle extends Bundle {

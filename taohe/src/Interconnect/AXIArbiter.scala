@@ -11,8 +11,8 @@ object AXIArbiterState extends ChiselEnum {
 }
 
 class AXIArbiterIO extends Bundle {
-  val ifu = Flipped(new AXI4Bundle)
-  val lsu = Flipped(new AXI4Bundle)
+  val instructionFetch = Flipped(new AXI4Bundle)
+  val loadStore = Flipped(new AXI4Bundle)
   val out = new AXI4Bundle
 }
 
@@ -23,56 +23,69 @@ class AXIArbiter extends Module {
   val state = RegInit(AXIArbiterState.sIdle)
 
   val ifuDrive =
-    state === AXIArbiterState.sIFU || (state === AXIArbiterState.sIdle && io.ifu.ar.valid)
+    state === AXIArbiterState.sIFU || (state === AXIArbiterState.sIdle && io.instructionFetch.ar.valid)
 
   // Write transaction
   //
   // We still block the write transaction from LSU
   // when IFU is driving.
-  io.out.aw.bits := io.lsu.aw.bits
-  io.out.aw.valid := io.lsu.aw.valid && !ifuDrive
-  io.lsu.aw.ready := io.out.aw.ready && !ifuDrive
+  io.out.aw.bits := io.loadStore.aw.bits
+  io.out.aw.valid := io.loadStore.aw.valid && !ifuDrive
+  io.loadStore.aw.ready := io.out.aw.ready && !ifuDrive
 
-  io.out.w.bits := io.lsu.w.bits
-  io.out.w.valid := io.lsu.w.valid && !ifuDrive
-  io.lsu.w.ready := io.out.w.ready && !ifuDrive
+  io.out.w.bits := io.loadStore.w.bits
+  io.out.w.valid := io.loadStore.w.valid && !ifuDrive
+  io.loadStore.w.ready := io.out.w.ready && !ifuDrive
 
-  io.lsu.b.bits := io.out.b.bits
-  io.lsu.b.valid := io.out.b.valid && !ifuDrive
-  io.out.b.ready := io.lsu.b.ready && !ifuDrive
+  io.loadStore.b.bits := io.out.b.bits
+  io.loadStore.b.valid := io.out.b.valid && !ifuDrive
+  io.out.b.ready := io.loadStore.b.ready && !ifuDrive
 
   // Read transaction
-  io.out.ar.bits := Mux(ifuDrive, io.ifu.ar.bits, io.lsu.ar.bits)
-  io.out.ar.valid := Mux(ifuDrive, io.ifu.ar.valid, io.lsu.ar.valid)
-  io.ifu.ar.ready := io.out.ar.ready && ifuDrive
-  io.lsu.ar.ready := io.out.ar.ready && !ifuDrive
+  io.out.ar.bits := Mux(
+    ifuDrive,
+    io.instructionFetch.ar.bits,
+    io.loadStore.ar.bits
+  )
+  io.out.ar.valid := Mux(
+    ifuDrive,
+    io.instructionFetch.ar.valid,
+    io.loadStore.ar.valid
+  )
+  io.instructionFetch.ar.ready := io.out.ar.ready && ifuDrive
+  io.loadStore.ar.ready := io.out.ar.ready && !ifuDrive
 
-  io.out.r.ready := Mux(ifuDrive, io.ifu.r.ready, io.lsu.r.ready)
-  io.ifu.r.valid := io.out.r.valid && ifuDrive
-  io.lsu.r.valid := io.out.r.valid && !ifuDrive
-  io.ifu.r.bits := io.out.r.bits
-  io.lsu.r.bits := io.out.r.bits
+  io.out.r.ready := Mux(
+    ifuDrive,
+    io.instructionFetch.r.ready,
+    io.loadStore.r.ready
+  )
+  io.instructionFetch.r.valid := io.out.r.valid && ifuDrive
+  io.loadStore.r.valid := io.out.r.valid && !ifuDrive
+  io.instructionFetch.r.bits := io.out.r.bits
+  io.loadStore.r.bits := io.out.r.bits
 
   // IFU no need to write data
-  io.ifu.aw.ready := false.B
-  io.ifu.w.ready := false.B
-  io.ifu.b.valid := false.B
-  io.ifu.b.bits.resp := 0.U
-  io.ifu.b.bits.id := 0.U
+  io.instructionFetch.aw.ready := false.B
+  io.instructionFetch.w.ready := false.B
+  io.instructionFetch.b.valid := false.B
+  io.instructionFetch.b.bits.resp := 0.U
+  io.instructionFetch.b.bits.id := 0.U
 
   // Performance Counter
   val ifuAXIWaiting =
-    state === AXIArbiterState.sIFU && io.ifu.r.ready && !io.ifu.r.fire
-  val ifuArbiterWaiting = state =/= AXIArbiterState.sIFU && io.ifu.r.ready
+    state === AXIArbiterState.sIFU && io.instructionFetch.r.ready && !io.instructionFetch.r.fire
+  val ifuArbiterWaiting =
+    state =/= AXIArbiterState.sIFU && io.instructionFetch.r.ready
   val ifuAXIWaitingCycleCounter = PerformanceCounter(ifuAXIWaiting, 32)
   val ifuArbiterWaitingCycleCounter = PerformanceCounter(ifuArbiterWaiting, 32)
 
   val lsuAXILoadWaiting =
-    !ifuDrive && io.lsu.r.ready && !io.lsu.r.fire
+    !ifuDrive && io.loadStore.r.ready && !io.loadStore.r.fire
   val lsuAXIStoreWaiting =
-    !ifuDrive && io.lsu.b.ready && !io.lsu.b.fire
-  val lsuArbiterLoadWaiting = ifuDrive && io.lsu.r.ready
-  val lsuArbiterStoreWaiting = ifuDrive && io.lsu.b.ready
+    !ifuDrive && io.loadStore.b.ready && !io.loadStore.b.fire
+  val lsuArbiterLoadWaiting = ifuDrive && io.loadStore.r.ready
+  val lsuArbiterStoreWaiting = ifuDrive && io.loadStore.b.ready
   val lsuAXILoadWaitingCycleCounter = PerformanceCounter(lsuAXILoadWaiting, 32)
   val lsuAXIStoreWaitingCycleCounter =
     PerformanceCounter(lsuAXIStoreWaiting, 32)
@@ -83,25 +96,25 @@ class AXIArbiter extends Module {
 
   switch(state) {
     is(AXIArbiterState.sIdle) {
-      when(io.ifu.ar.valid) {
+      when(io.instructionFetch.ar.valid) {
         state := AXIArbiterState.sIFU
-      }.elsewhen(io.lsu.ar.valid) {
+      }.elsewhen(io.loadStore.ar.valid) {
         state := AXIArbiterState.sLSU
       }
     }
     is(AXIArbiterState.sIFU) {
-      when(io.ifu.r.fire) {
+      when(io.instructionFetch.r.fire) {
         state := Mux(
-          io.lsu.ar.valid || io.lsu.aw.valid,
+          io.loadStore.ar.valid || io.loadStore.aw.valid,
           AXIArbiterState.sLSU,
           AXIArbiterState.sIdle
         )
       }
     }
     is(AXIArbiterState.sLSU) {
-      when(io.lsu.r.fire || io.lsu.aw.fire) {
+      when(io.loadStore.r.fire || io.loadStore.aw.fire) {
         state := Mux(
-          io.ifu.ar.valid,
+          io.instructionFetch.ar.valid,
           AXIArbiterState.sIFU,
           AXIArbiterState.sIdle
         )

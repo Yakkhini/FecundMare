@@ -39,9 +39,8 @@ class TaoHe(physicalVersion: Boolean) extends Module {
 
   val axiArbiter = Module(new AXIArbiter())
 
-  // IFU has Connected to the master port
-  axiArbiter.io.ifu <> ifu.io.axi4
-  axiArbiter.io.lsu <> lsu.io.axi4
+  axiArbiter.io.instructionFetch <> iCache.io.axi4
+  axiArbiter.io.loadStore <> lsu.io.axi4
 
   axiArbiter.io.out <> ioView.master
 
@@ -71,9 +70,9 @@ class TaoHe(physicalVersion: Boolean) extends Module {
   dontTouch(exu.io.toLSU.bits.writeData)
   dontTouch(exu.io.toLSU.bits.writeEnable)
 
-  dontTouch(ifu.io.axi4.aw.ready)
-  dontTouch(ifu.io.axi4.w.ready)
-  dontTouch(ifu.io.axi4.b.valid)
+  dontTouch(iCache.io.axi4.aw.ready)
+  dontTouch(iCache.io.axi4.w.ready)
+  dontTouch(iCache.io.axi4.b.valid)
 
 }
 
