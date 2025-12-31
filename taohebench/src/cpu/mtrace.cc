@@ -76,8 +76,15 @@ bool in_mmio(uint32_t addr) {
     return true;
   }
 
+  if (addr >= 0x10011000 && addr < 0x10011008) {
+    return true;
+  }
+
   if (addr >= 0x02000000 && addr < 0x02000008) {
-    printf("Skipping RTC read at addr = 0x%08x\n", addr);
+    return true;
+  }
+
+  if (addr >= 0x21000000 && addr < 0x211FFFFF) {
     return true;
   }
 
