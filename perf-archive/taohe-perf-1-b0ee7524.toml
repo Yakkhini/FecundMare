@@ -1,0 +1,63 @@
+[TaoHe]
+'Total Cycle' = 20050178
+'area(um^2)' = 32063.360000000001
+commit = 'b0ee7524'
+'freq(MHz)' = 362.22300000000001
+message = '[taohe] implement 16[4 index] x [1 valid + 26 tag + 32 data] instruction cache'
+time = '2025-12-31 19:14:53'
+
+    [TaoHe.'AXI Arbiter']
+    ifuAXIWaitingCycleCounter = 7869745
+    ifuArbiterWaitingCycleCounter = 0
+    lsuAXILoadWaitingCycleCounter = 8746325
+    lsuAXIStoreWaitingCycleCounter = 8741099
+    lsuArbiterLoadWaitingCycleCounter = 0
+    lsuArbiterStoreWaitingCycleCounter = 0
+
+    [TaoHe.EXU]
+    arithmeticDoneCounter = 384503
+
+    [TaoHe.IDU.'Arithmetic Inst']
+    'Average Cycle per Inst' = 13.772912426377774
+    'Cycle Count' = 5095468
+    'Cycle Percentage' = 25.413579869465497
+    'Inst Count' = 369963
+    'Inst Percentage' = 47.689164453840007
+
+    [TaoHe.IDU.'Branch Inst']
+    'Average Cycle per Inst' = 8.7300443593348529
+    'Cycle Count' = 1440597
+    'Cycle Percentage' = 7.1849586572248878
+    'Inst Count' = 165016
+    'Inst Percentage' = 21.270978885766585
+
+    [TaoHe.IDU.'Jump Inst']
+    'Average Cycle per Inst' = 32.250159876612869
+    'Cycle Count' = 857306
+    'Cycle Percentage' = 4.2758024392601399
+    'Inst Count' = 26583
+    'Inst Percentage' = 3.4266157931372296
+
+    [TaoHe.IDU.'Load Inst']
+    'Average Cycle per Inst' = 77.249611848514363
+    'Cycle Count' = 10149981
+    'Cycle Percentage' = 50.622897213181851
+    'Inst Count' = 131392
+    'Inst Percentage' = 16.936760421769058
+
+    [TaoHe.IDU.'Store Inst']
+    'Average Cycle per Inst' = 31.614020443429109
+    'Cycle Count' = 2158795
+    'Cycle Percentage' = 10.766961769616209
+    'Inst Count' = 68286
+    'Inst Percentage' = 8.8022377478151022
+
+    [TaoHe.IFU]
+    fetchInstNumCounter = 775780
+    fetchWaitingCycleCounter = 7869745
+    iCacheHitCounter = 472562
+
+    [TaoHe.LSU]
+    loadDataValidCounter = 131346
+    loadWaitingCycleCounter = 8746325
+    storeWaitingCycleCounter = 8741099
