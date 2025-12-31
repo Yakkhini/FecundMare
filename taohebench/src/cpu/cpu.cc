@@ -294,7 +294,11 @@ void cpu_check() {
 #endif
 
 #if CONFIG_DIFFTEST
-  difftest_step(cpu.pc_prev, cpu.pc);
+  if (cpu_symbol->exu->difftestSkip) {
+    difftest_skip_ref();
+  } else {
+    difftest_step(cpu.pc_prev, cpu.pc);
+  }
 #endif
 
 #if CONFIG_WATCHPOINT

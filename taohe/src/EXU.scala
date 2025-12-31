@@ -31,6 +31,9 @@ class EXU extends Module {
   io.toLSU.valid := exuState === EXUState.sLS && !skipLSState
   io.fromLSU.ready := exuState === EXUState.sLS
 
+  val difftestSkip = io.fromIDU.bits.lsuReadEnable && clint.io.clintChosen
+  dontTouch(difftestSkip)
+
   // State 3
   io.toRegisterFile.valid := exuState === EXUState.sWB || skipLSState
   io.toIFU.valid := exuState === EXUState.sWB || skipLSState
