@@ -11,7 +11,6 @@ NPC_NAME := "TaoHe"
 sv:
     #!/usr/bin/env zsh
     mill -i taohe.run
-    rm -r {{BUILD_DIR}}/sta/verification
     echo "SystemVerilog files are generated."
 
 soc-sv:

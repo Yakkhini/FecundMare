@@ -1,9 +1,10 @@
 package taohe
 
 import chisel3._
-import circt.stage.ChiselStage
-
 import chisel3.experimental.dataview._
+import chisel3.test.AllUnitTests
+
+import circt.stage.ChiselStage
 
 import taohe.idu.IDU
 import taohe.util.{YSYXSoCAXI4Bundle, AXI4Bundle}
@@ -80,7 +81,7 @@ object Main extends App {
   println("Hello World, I will generate the Verilog file now!")
   ChiselStage.emitSystemVerilogFile(
     gen = new TaoHe(false),
-    args = Array("--target-dir", "out/verilog", "--split-verilog"),
+    args = Array("--target-dir", "out/verilog"),
     firtoolOpts = Array("-preserve-aggregate=1d-vec")
   )
 
@@ -88,7 +89,8 @@ object Main extends App {
     gen = new TaoHe(true),
     args = Array("--target-dir", "out/sta"),
     firtoolOpts = Array(
-      "--lowering-options=disallowLocalVariables,disallowExpressionInliningInPorts"
+      "--lowering-options=disallowLocalVariables,disallowExpressionInliningInPorts",
+      "-disable-layers=Verification"
     )
   )
 }
