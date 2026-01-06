@@ -1,0 +1,22 @@
+[tasks]
+basic bmc
+basic: default
+
+[options]
+fst on
+bmc: mode bmc
+depth 20
+skip 6
+
+[engines]
+smtbmc z3
+
+[script]
+read -formal ICacheTest.sv ICache.sv
+prep -top ICacheTest
+select -module ICacheTest
+fminit -seq reset 1'b1,1'b1,1'b1,1'b1,'z
+
+[files]
+out/formal/ICacheTest.sv
+out/formal/ICache.sv

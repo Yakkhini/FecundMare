@@ -2,7 +2,6 @@ package taohe
 
 import chisel3._
 import chisel3.experimental.dataview._
-import chisel3.test.AllUnitTests
 
 import circt.stage.ChiselStage
 
@@ -93,4 +92,13 @@ object Main extends App {
       "-disable-layers=Verification"
     )
   )
+
+  ChiselStage.emitSystemVerilogFile(
+    gen = new ICacheTest(),
+    args = Array("--target-dir", "out/formal"),
+    firtoolOpts = Array(
+      "--lowering-options=disallowLocalVariables,disallowExpressionInliningInPorts,disallowPackedArrays"
+    )
+  )
+
 }

@@ -70,6 +70,9 @@ sta:
       {"TaoHe": {"freq(MHz)": $freq, "area(um^2)": $area, "commit": $commit, "message": $message "time": $time}} | to toml | save -f ($env.NPC_CHISEL + /out/perf.toml)
     }
 
+formal: sv
+    sby -f -d ./out/formal/result ./formal/ICache.sby
+
 perf:
     #!/usr/bin/env nu
     print "Performance data:"
