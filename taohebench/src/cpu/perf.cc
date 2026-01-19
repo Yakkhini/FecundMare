@@ -55,7 +55,7 @@ void perf_stat(core_symbol_t *cpu_symbol) {
   double sim_freq = (double)cpu.total_cycle / (sim_time * 1e-3) / 1e3;
 
   Log("Performance Statistics:");
-  Log("Total Instructions: %d for %d Cycles", cpu.iCount, cpu.total_cycle);
+  Log("Total Instructions: %u for %u Cycles", cpu.iCount, cpu.total_cycle);
   Log("CPI: %.4f, IPC: %.4f", cpi, ipc);
   Log("Expected Execution Time: %.4f ms in %.2f MHz Frequency for %.2f MIPS",
       exec_time, freq, exec_mips);
