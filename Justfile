@@ -49,6 +49,9 @@ soc-sim: (trace "Build TaoHe Simulator Program Binary in Full SoC Mode.") sv sta
 
 core-sim: (trace "Build TaoHe Simulator Program Binary in Single Core Mode.") sv sta _rmdb (_compile "TaoHe")
 
+micro-sim:
+  cd $NPC_CHISEL/micro-sim && cargo build --release && cargo build
+
 sta:
     #!/usr/bin/env nu
     mut update = true
@@ -105,6 +108,8 @@ mtrace-view:
 fmt:
     scalafmt
     fd -e h -e cc -e c -a | xargs clang-format -i
+    cd micro-sim && cargo fmt -v
 
 clean:
     rm -rf out
+    cd micro-sim && cargo clean
