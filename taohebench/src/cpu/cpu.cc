@@ -277,6 +277,10 @@ void cpu_check() {
     npc_state = TCHE_ABORT;
   }
 
+  if (cpu_symbol->exu->haltUnit->halt) {
+    halt(cpu_symbol->exu->haltUnit->code);
+  }
+
 #if CONFIG_MTRACE || CONFIG_DIFFTEST || CONFIG_TARGET_TaoHe
   mtrace();
 #endif
