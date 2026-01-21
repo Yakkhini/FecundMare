@@ -2,5 +2,9 @@
 name = "micro-sim"
 version = "0.1.0"
 edition = "2024"
+description = "A lightweight microarchitecture simulation framework for TaoHe."
+repository = "https://github.com/Yakkhini/YSYXWorkbench"
+license = "MulanPSL-2.0"
 
 [dependencies]
+clap = { version = "4.5.54", features = ["cargo"] }

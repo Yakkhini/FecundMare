@@ -17,6 +17,7 @@
 !perf-archive/*
 !MemoryAnalyzer/*
 !micro-sim/*
+!micro-sim/examples/*
 .metals
 out
 build

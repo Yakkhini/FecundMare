@@ -108,7 +108,7 @@ mtrace-view:
 fmt:
     scalafmt
     fd -e h -e cc -e c -a | xargs clang-format -i
-    cd micro-sim && cargo fmt -v
+    cd micro-sim && cargo fmt -v && taplo fmt Cargo.toml
 
 clean:
     rm -rf out
