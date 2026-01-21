@@ -84,7 +84,7 @@ perf:
 archive-perf: clean sta
     #!/usr/bin/env nu
     cd ($env.NPC_CHISEL + /../am-kernels/benchmarks/microbench)
-    make ARCH=riscv32e-ysyxsoc run mainargs=test
+    make ARCH=riscv32e-ysyxsoc run mainargs=train
     cd $env.NPC_CHISEL
     let index = (ls ($env.NPC_CHISEL + /perf-archive) | length)
     let commit = (git rev-parse --short HEAD)
