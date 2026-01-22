@@ -1,5 +1,7 @@
 package taohe
 
+import scala.math
+
 import chisel3._
 import chisel3.util.{switch, is}
 import chisel3.util.Cat
@@ -34,17 +36,24 @@ object ICacheState extends ChiselEnum {
 }
 
 /*
- * Cache Structure:
+ * Configurable Cache Structure:
  * 
- * 16 x [[1 bit Valid] [26 bit Tag] [4 bit Index] [32 bit data]] Cache Line
+ * pow(2, indexWidth) x [[1 bit Valid] [tagWidth] [indexWidth] [32 bit data * pow(2, offsetWidth - 2)]] Cache Line
  *
  * */
-class ICache extends Module {
+class ICache(indexWidth: Int, offsetWidth: Int) extends Module {
 
   val io = IO(new ICacheBundle)
   val state = RegInit(ICacheState.sReady)
 
-  val cache = RegInit(VecInit(Seq.fill(16)(0.U(59.W))))
+  val tagWidth = 32 - indexWidth - offsetWidth
+  val cachelineWidth =
+    1 + tagWidth + 32 * math.pow(2, (offsetWidth - 2)).toInt
+  val cache = RegInit(
+    VecInit(
+      Seq.fill(math.pow(2, indexWidth).toInt)(0.U(cachelineWidth.W))
+    )
+  )
 
   // Ready State
   io.fromIFU.ready := state === ICacheState.sReady
@@ -53,24 +62,38 @@ class ICache extends Module {
   pcBuffer := Mux(io.fromIFU.fire, io.fromIFU.bits.pc, pcBuffer)
 
   val index =
-    Mux(state === ICacheState.sReady, io.fromIFU.bits.pc(5, 2), pcBuffer(5, 2))
+    Mux(
+      state === ICacheState.sReady,
+      io.fromIFU.bits.pc(indexWidth + offsetWidth - 1, offsetWidth),
+      pcBuffer(indexWidth + offsetWidth - 1, offsetWidth)
+    )
   val readCacheLine = cache(index)
 
   val cacheHit = RegInit(false.B)
-  val cacheReadData = RegInit(0.U(32.W))
-  val readValid = readCacheLine(58)
-  val readTag = readCacheLine(57, 32)
+  val cacheReadData = RegInit(
+    VecInit(Seq.fill(math.pow(2, offsetWidth - 2).toInt)(0.U(32.W)))
+  )
+  val readValid = readCacheLine(cachelineWidth - 1)
+  val readTag = readCacheLine(cachelineWidth - 2, cachelineWidth - 1 - tagWidth)
 
   cacheHit := Mux(
     io.fromIFU.fire,
-    readValid && (readTag === io.fromIFU.bits.pc(31, 6)),
+    readValid && (readTag === io.fromIFU.bits.pc(31, 32 - tagWidth)),
     cacheHit
   )
-  cacheReadData := readCacheLine(31, 0)
+
+  for (i <- 0 until math.pow(2, offsetWidth - 2).toInt) {
+    cacheReadData(i) :=
+      readCacheLine((i + 1) * 32 - 1, 0 + i * 32)
+  }
 
   // Request State
+  val readCount = RegInit(0.U((offsetWidth - 2).W))
   io.axi4.ar.valid := state === ICacheState.sRequest
-  io.axi4.ar.bits.addr := pcBuffer
+  io.axi4.ar.bits.addr := (pcBuffer(
+    31,
+    offsetWidth
+  ) << offsetWidth) + (readCount << 2)
   io.axi4.ar.bits.id := 0.U
   io.axi4.ar.bits.len := 0.U
   io.axi4.ar.bits.size := MemSize.W.asUInt
@@ -79,16 +102,38 @@ class ICache extends Module {
   // Fetch State
   io.axi4.r.ready := state === ICacheState.sFetch
 
-  val memoryReadData = RegInit(0.U(32.W))
-  memoryReadData := Mux(io.axi4.r.fire, io.axi4.r.bits.data, memoryReadData)
+  val readCountNext = Mux(io.axi4.r.fire, readCount + 1.U, readCount)
+  readCount := Mux(
+    state === ICacheState.sRequest || state === ICacheState.sFetch,
+    readCountNext,
+    0.U
+  )
+
+  val memoryReadData = RegInit(
+    VecInit(Seq.fill(math.pow(2, offsetWidth - 2).toInt)(0.U(32.W)))
+  )
+  memoryReadData(readCount) := Mux(
+    io.axi4.r.fire,
+    io.axi4.r.bits.data,
+    memoryReadData(readCount)
+  )
 
   // Send State
+  val offset = {
+    if (offsetWidth == 2) 0.U
+    else pcBuffer(offsetWidth - 1, 2)
+  }
+
   io.toIFU.valid := state === ICacheState.sSend
-  io.toIFU.bits.readInst := Mux(cacheHit, cacheReadData, memoryReadData)
+  io.toIFU.bits.readInst := Mux(
+    cacheHit,
+    cacheReadData(offset),
+    memoryReadData(offset)
+  )
 
   cache(index) := Mux(
     !cacheHit && state === ICacheState.sSend,
-    Cat(1.U(1.W), pcBuffer(31, 6), memoryReadData),
+    Cat(1.U(1.W), pcBuffer(31, 32 - tagWidth), memoryReadData.asUInt),
     readCacheLine
   )
 
@@ -107,7 +152,8 @@ class ICache extends Module {
 
   // Performance Counter
   val iCacheHitCounter = PerformanceCounter(
-    io.fromIFU.fire && readValid && (readTag === io.fromIFU.bits.pc(31, 6)),
+    io.fromIFU.fire && readValid && (readTag === io.fromIFU.bits
+      .pc(31, 32 - tagWidth)),
     32
   )
 
@@ -115,7 +161,7 @@ class ICache extends Module {
     is(ICacheState.sReady) {
       when(io.fromIFU.fire) {
         state := Mux(
-          readValid && (readTag === io.fromIFU.bits.pc(31, 6)),
+          readValid && (readTag === io.fromIFU.bits.pc(31, 32 - tagWidth)),
           ICacheState.sSend,
           ICacheState.sRequest
         )
@@ -128,7 +174,11 @@ class ICache extends Module {
     }
     is(ICacheState.sFetch) {
       when(io.axi4.r.fire) {
-        state := ICacheState.sSend
+        state := Mux(
+          readCount === math.pow(2, offsetWidth - 2).toInt.U - 1.U,
+          ICacheState.sSend,
+          ICacheState.sRequest
+        )
       }
     }
     is(ICacheState.sSend) {
@@ -146,7 +196,7 @@ class ICacheTest extends Module {
     val valid = Input(Bool())
   })
 
-  val dut = Module(new ICache())
+  val dut = Module(new ICache(4, 2))
 
   dut.io.fromIFU.valid := io.valid && !reset.asBool
   dut.io.fromIFU.bits.pc := 0.U(22.W) ## io.addr ## 0.U(2.W)
