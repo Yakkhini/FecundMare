@@ -19,7 +19,7 @@ object ICacheState extends ChiselEnum {
    * 1. Ready State: ICache is waiting IFU request
    * and could know cache hit or miss in same cycle.
    * 2. Request State: When hit miss, send request
-   * to memory via AXI4 interface.
+   * to memory via AXI4 interface in burst read.
    * 3. Fetch State: After AR channel fire, waiting
    * respond from bus.
    * 4. Send State: Send back instruction data to IFU,
@@ -89,15 +89,13 @@ class ICache(indexWidth: Int, offsetWidth: Int) extends Module {
 
   // Request State
   val readCount = RegInit(0.U((offsetWidth - 2).W))
-  io.axi4.ar.valid := state === ICacheState.sRequest
-  io.axi4.ar.bits.addr := (pcBuffer(
-    31,
-    offsetWidth
-  ) << offsetWidth) + (readCount << 2)
-  io.axi4.ar.bits.id := 0.U
-  io.axi4.ar.bits.len := 0.U
+  io.axi4.ar.bits.burst := 1.U // INCR Address Type
+  io.axi4.ar.bits.len := 3.U // 4 beats
   io.axi4.ar.bits.size := MemSize.W.asUInt
-  io.axi4.ar.bits.burst := 0.U
+  io.axi4.ar.valid := state === ICacheState.sRequest
+  io.axi4.ar.bits.addr := pcBuffer(31, offsetWidth) << offsetWidth
+
+  io.axi4.ar.bits.id := 0.U
 
   // Fetch State
   io.axi4.r.ready := state === ICacheState.sFetch
@@ -173,12 +171,13 @@ class ICache(indexWidth: Int, offsetWidth: Int) extends Module {
       }
     }
     is(ICacheState.sFetch) {
-      when(io.axi4.r.fire) {
-        state := Mux(
-          readCount === math.pow(2, offsetWidth - 2).toInt.U - 1.U,
-          ICacheState.sSend,
-          ICacheState.sRequest
-        )
+      when(
+        io.axi4.r.fire && (readCount === math
+          .pow(2, offsetWidth - 2)
+          .toInt
+          .U - 1.U)
+      ) {
+        state := ICacheState.sSend
       }
     }
     is(ICacheState.sSend) {

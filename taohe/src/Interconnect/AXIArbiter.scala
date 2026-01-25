@@ -103,7 +103,7 @@ class AXIArbiter extends Module {
       }
     }
     is(AXIArbiterState.sIFU) {
-      when(io.instructionFetch.r.fire) {
+      when(io.instructionFetch.r.fire && io.instructionFetch.r.bits.last) {
         state := Mux(
           io.loadStore.ar.valid || io.loadStore.aw.valid,
           AXIArbiterState.sLSU,
