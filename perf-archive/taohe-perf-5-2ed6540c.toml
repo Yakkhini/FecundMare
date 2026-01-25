@@ -1,0 +1,64 @@
+[TaoHe]
+'Total Cycle' = 1767388228
+'area(um^2)' = 76018.600000000006
+commit = '2ed6540c'
+'freq(MHz)' = 426.17399999999998
+message = '(AXI4 with Delayer in SoC) [icache] make icache configurable with index width and offset width arguments'
+time = '2026-01-25 13:57:27'
+
+    [TaoHe.'AXI Arbiter']
+    ifuAXIWaitingCycleCounter = 536546756
+    ifuArbiterWaitingCycleCounter = 0
+    lsuAXILoadWaitingCycleCounter = 234332185
+    lsuAXIStoreWaitingCycleCounter = 234016226
+    lsuArbiterLoadWaitingCycleCounter = 0
+    lsuArbiterStoreWaitingCycleCounter = 0
+
+    [TaoHe.EXU]
+    arithmeticDoneCounter = 118399296
+
+    [TaoHe.IDU.'Arithmetic Inst']
+    'Average Cycle per Inst' = 6.2779501670834934
+    'Cycle Count' = 727957213
+    'Cycle Percentage' = 41.188302686827669
+    'Inst Count' = 115954602
+    'Inst Percentage' = 57.292249551201344
+
+    [TaoHe.IDU.'Branch Inst']
+    'Average Cycle per Inst' = 5.2028767339569004
+    'Cycle Count' = 274667485
+    'Cycle Percentage' = 15.54086876038647
+    'Inst Count' = 52791465
+    'Inst Percentage' = 26.083844321707144
+
+    [TaoHe.IDU.'Jump Inst']
+    'Average Cycle per Inst' = 45.761367010295039
+    'Cycle Count' = 185569482
+    'Cycle Percentage' = 10.499644563661766
+    'Inst Count' = 4055156
+    'Inst Percentage' = 2.0036204300114924
+
+    [TaoHe.IDU.'Load Inst']
+    'Average Cycle per Inst' = 22.608377317033302
+    'Cycle Count' = 406763210
+    'Cycle Percentage' = 23.014932630862813
+    'Inst Count' = 17991703
+    'Inst Percentage' = 8.8895578126955055
+
+    [TaoHe.IDU.'Store Inst']
+    'Average Cycle per Inst' = 17.041288172091878
+    'Cycle Count' = 155992680
+    'Cycle Percentage' = 8.8261694589039674
+    'Inst Count' = 9153808
+    'Inst Percentage' = 4.5228239607064786
+
+    [TaoHe.IFU]
+    'Cache AMAT' = 3.1558694513689116
+    fetchInstNumCounter = 202391429
+    fetchWaitingCycleCounter = 638720928
+    iCacheHitCounter = 195684831
+
+    [TaoHe.LSU]
+    loadDataValidCounter = 17991657
+    loadWaitingCycleCounter = 234332185
+    storeWaitingCycleCounter = 234016226
