@@ -9,6 +9,7 @@
 !*.jl
 !*.sby
 !*.rs
+!*.zig
 !verilator.vlt
 !.gitignore
 !.scalafmt.conf
