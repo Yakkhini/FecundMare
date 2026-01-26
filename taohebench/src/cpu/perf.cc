@@ -181,6 +181,11 @@ void perf_counter_stat(core_symbol_t *cpu_symbol) {
   auto taohe_perf_record = perf_record.get("TaoHe")->as_table();
 
   taohe_perf_record->insert_or_assign("Total Cycle", cpu.total_cycle);
+  taohe_perf_record->insert_or_assign("Total Instructions", cpu.iCount);
+  taohe_perf_record->insert_or_assign("CPI", (double)cpu.total_cycle /
+                                                 (double)cpu.iCount);
+  taohe_perf_record->insert_or_assign("IPC", (double)cpu.iCount /
+                                                 (double)cpu.total_cycle);
   taohe_perf_record->insert_or_assign("IFU", ifu_table);
   taohe_perf_record->insert_or_assign("IDU", idu_table);
   taohe_perf_record->insert_or_assign("EXU", exu_table);
