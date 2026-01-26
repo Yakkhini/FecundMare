@@ -102,8 +102,12 @@ void perf_counter_stat(core_symbol_t *cpu_symbol) {
   uint32_t ifu_fetch_inst_count = cpu_symbol->ifu->fetchInstNumCounter;
   uint32_t ifu_fetch_waiting_cycle = cpu_symbol->ifu->fetchWaitingCycleCounter;
   uint32_t ifu_icache_hit_counter = cpu_symbol->iCache->iCacheHitCounter;
+  uint32_t ifu_icache_miss_counter = cpu_symbol->iCache->iCacheMissCounter;
+  uint32_t ifu_icache_tmt_counter = cpu_symbol->iCache->iCacheTMTCounter;
   double ifu_icache_amat =
       (double)ifu_fetch_waiting_cycle / (double)ifu_fetch_inst_count;
+  double ifu_icache_amp =
+      (double)ifu_icache_tmt_counter / (double)ifu_icache_miss_counter;
 
   uint32_t idu_branch_inst_cycle_count =
       cpu_symbol->idu->branchInstCycleCounter;
@@ -139,8 +143,11 @@ void perf_counter_stat(core_symbol_t *cpu_symbol) {
   auto ifu_table =
       toml::table{{"fetchInstNumCounter", ifu_fetch_inst_count},
                   {"fetchWaitingCycleCounter", ifu_fetch_waiting_cycle},
-                  {"iCacheHitCounter", ifu_icache_hit_counter},
-                  {"Cache AMAT", ifu_icache_amat}};
+                  {"Cache Hit", ifu_icache_hit_counter},
+                  {"Cache Miss", ifu_icache_miss_counter},
+                  {"Cache TMT", ifu_icache_tmt_counter},
+                  {"Cache AMAT", ifu_icache_amat},
+                  {"Cache AMP", ifu_icache_amp}};
 
   auto idu_table = toml::table{
       {"Jump Inst",

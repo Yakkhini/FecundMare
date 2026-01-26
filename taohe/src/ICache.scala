@@ -154,6 +154,15 @@ class ICache(indexWidth: Int, offsetWidth: Int) extends Module {
       .pc(31, 32 - tagWidth)),
     32
   )
+  val iCacheMissCounter = PerformanceCounter(
+    io.fromIFU.fire && !(readValid && (readTag === io.fromIFU.bits
+      .pc(31, 32 - tagWidth))),
+    32
+  )
+  val iCacheTMTCounter = PerformanceCounter(
+    state === ICacheState.sRequest || state === ICacheState.sFetch,
+    32
+  )
 
   switch(state) {
     is(ICacheState.sReady) {
