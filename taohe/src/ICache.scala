@@ -90,7 +90,7 @@ class ICache(indexWidth: Int, offsetWidth: Int) extends Module {
   // Request State
   val readCount = RegInit(0.U((offsetWidth - 2).W))
   io.axi4.ar.bits.burst := 1.U // INCR Address Type
-  io.axi4.ar.bits.len := 3.U // 4 beats
+  io.axi4.ar.bits.len := (math.pow(2, offsetWidth - 2).toInt - 1).U // 4 beats
   io.axi4.ar.bits.size := MemSize.W.asUInt
   io.axi4.ar.valid := state === ICacheState.sRequest
   io.axi4.ar.bits.addr := pcBuffer(31, offsetWidth) << offsetWidth
