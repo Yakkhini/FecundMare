@@ -122,18 +122,28 @@ class ICache(indexWidth: Int, offsetWidth: Int) extends Module {
     else pcBuffer(offsetWidth - 1, 2)
   }
 
+  val nopInstruction = "h00000013".U
+  val readInst = Mux(cacheHit, cacheReadData(offset), memoryReadData(offset))
   io.toIFU.valid := state === ICacheState.sSend
   io.toIFU.bits.readInst := Mux(
-    cacheHit,
-    cacheReadData(offset),
-    memoryReadData(offset)
+    readInst === "h0000100f".U,
+    nopInstruction,
+    readInst
   )
 
-  cache(index) := Mux(
-    !cacheHit && state === ICacheState.sSend,
-    Cat(1.U(1.W), pcBuffer(31, 32 - tagWidth), memoryReadData.asUInt),
-    readCacheLine
-  )
+  // FENCE.I Handle
+  val receiveFENCEIInstruction = io.toIFU.fire && readInst === "h0000100f".U
+
+  for (i <- 0 until math.pow(2, indexWidth).toInt) {
+    val cacheLineFreshData =
+      Mux(receiveFENCEIInstruction, 0.U(cachelineWidth.W), cache(i))
+
+    cache(i) := Mux(
+      !cacheHit && io.toIFU.fire && i.U === index && !receiveFENCEIInstruction,
+      Cat(1.U(1.W), pcBuffer(31, 32 - tagWidth), memoryReadData.asUInt),
+      cacheLineFreshData
+    )
+  }
 
   // Make write transaction silent
   io.axi4.aw.valid := false.B

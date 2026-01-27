@@ -53,25 +53,13 @@ class IFU(physicalVersion: Boolean) extends Module {
   inst := Mux(io.fromICache.fire, io.fromICache.bits.readInst, inst)
   val currentInst = Mux(io.fromICache.fire, io.fromICache.bits.readInst, inst)
 
-  val receiveFenceInstruction = inst(6, 0) === "b0001111".U
-  val nopInstruction = inst === "h00000013".U
-
-  val physicalInstruction = Mux(
-    receiveFenceInstruction,
-    nopInstruction,
-    inst
-  )
-
   // State 4
   io.toIDU.valid := {
     if (physicalVersion) (ifuState === IFUState.sSend)
     else (ifuState === IFUState.sSend || io.fromICache.fire)
   }
   io.toIDU.bits.currentPC := pc
-  io.toIDU.bits.inst := {
-    if (physicalVersion) physicalInstruction
-    else currentInst
-  }
+  io.toIDU.bits.inst := currentInst
 
   // Performance Counter
   val fetchInstNumCounter = PerformanceCounter(io.fromICache.fire, 32)

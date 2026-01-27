@@ -8,7 +8,7 @@ pub fn build(b: *std.Build) void {
             .root_source_file = b.path("src/main.zig"),
             .target = b.resolveTargetQuery(.{
                 .cpu_arch = .riscv32,
-                .cpu_features_add = std.Target.riscv.featureSet(&.{ .e, .zicsr }),
+                .cpu_features_add = std.Target.riscv.featureSet(&.{ .e, .zicsr, .zifencei }),
                 .cpu_features_sub = std.Target.riscv.featureSet(&.{ .i, .m, .a, .f, .d, .c }),
                 .os_tag = .other,
                 .abi = .ilp32,
