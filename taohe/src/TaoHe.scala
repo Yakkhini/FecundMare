@@ -8,7 +8,7 @@ import circt.stage.ChiselStage
 import taohe.idu.IDU
 import taohe.util.{YSYXSoCAXI4Bundle, AXI4Bundle}
 
-class TaoHe(physicalVersion: Boolean) extends Module {
+class TaoHe(physicalVersion: Boolean, registerAddrWidth: Int) extends Module {
 
   override def localModulePrefix = if (physicalVersion) Some("taohe_") else None
 
@@ -27,7 +27,7 @@ class TaoHe(physicalVersion: Boolean) extends Module {
     val slave = io.slave.viewAs[AXI4Bundle]
   }
 
-  val registerFile = Module(new RegisterFile())
+  val registerFile = Module(new RegisterFile(registerAddrWidth))
   val csr = Module(new CSR())
 
   val iCache = Module(new ICache(4, 4))
@@ -79,13 +79,13 @@ class TaoHe(physicalVersion: Boolean) extends Module {
 object Main extends App {
   println("Hello World, I will generate the Verilog file now!")
   ChiselStage.emitSystemVerilogFile(
-    gen = new TaoHe(false),
+    gen = new TaoHe(false, 4),
     args = Array("--target-dir", "out/verilog"),
     firtoolOpts = Array("-preserve-aggregate=1d-vec")
   )
 
   ChiselStage.emitSystemVerilogFile(
-    gen = new TaoHe(true),
+    gen = new TaoHe(true, 4),
     args = Array("--target-dir", "out/sta"),
     firtoolOpts = Array(
       "--lowering-options=disallowLocalVariables,disallowExpressionInliningInPorts",
