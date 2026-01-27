@@ -10,6 +10,7 @@ typedef struct {
   uint32_t wdata;
   uint32_t araddr;
   uint32_t arsize;
+  uint32_t arburst;
   bool arvalid;
   uint32_t rdata;
   bool rvalid;

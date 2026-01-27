@@ -11,6 +11,10 @@ sqlite3 *mtrace_database;
 sqlite3_stmt *mtrace_stmt;
 uint32_t database_insert_count = 0;
 
+bool bursting;
+uint32_t burst_count;
+uint32_t burst_start_address;
+
 typedef enum {
   MTRACE_READ,
   MTRACE_WRITE,
@@ -60,6 +64,7 @@ void axi4_interface_sync(core_symbol_t *cpu_symbol) {
 
   axi4_interface.araddr = cpu_symbol->io_master_araddr;
   axi4_interface.arsize = cpu_symbol->io_master_arsize;
+  axi4_interface.arburst = cpu_symbol->io_master_arburst;
   axi4_interface.arvalid = cpu_symbol->io_master_arvalid;
   axi4_interface.rdata = cpu_symbol->io_master_rdata;
   axi4_interface.rvalid = cpu_symbol->io_master_rvalid;
@@ -68,6 +73,7 @@ void axi4_interface_sync(core_symbol_t *cpu_symbol) {
   cpu.top->io_master_awready = 1;
   cpu.top->io_master_wready = 1;
   cpu.top->io_master_arready = 1;
+  cpu.top->io_master_rlast = 0;
 #endif
 }
 
@@ -137,6 +143,24 @@ void mtrace() {
 #endif
   }
 
+#ifdef CONFIG_TARGET_TaoHe
+  if (bursting) {
+    burst_count++;
+    uint32_t index = (burst_start_address + (burst_count << 2)) - 0x30000000;
+    uint32_t rdata = *(uint32_t *)(&FLASH[index]);
+    axi4_interface.rdata = rdata;
+    cpu.top->io_master_rdata = rdata;
+    cpu.top->io_master_rvalid = 1;
+  }
+
+  if (burst_count == 4) {
+    bursting = false;
+    burst_count = 0;
+    cpu.top->io_master_rvalid = 1;
+    cpu.top->io_master_rlast = 1;
+  }
+#endif
+
   if (axi4_interface.arvalid) {
 #if CONFIG_MTRACE
     Log("AXI4 Read addr = 0x%08x, size = %b at inst count 0x%08x",
@@ -146,6 +170,11 @@ void mtrace() {
       difftest_skip_ref();
     } else {
 #ifdef CONFIG_TARGET_TaoHe
+      if (axi4_interface.arburst) {
+        bursting = true;
+        burst_start_address = axi4_interface.araddr;
+        burst_count = 0;
+      }
       uint32_t index = (axi4_interface.araddr & 0xFFFFFFFC) - 0x30000000;
       uint32_t rdata = *(uint32_t *)(&FLASH[index]);
       axi4_interface.rdata = rdata;
@@ -153,6 +182,7 @@ void mtrace() {
       cpu.top->io_master_rvalid = 1;
 #endif
     }
+
 #if CONFIG_MTRACE_DB
     mtrace_db_insert_trace(MTRACE_READ, axi4_interface.araddr,
                            axi4_interface.arsize, axi4_interface.rdata);
