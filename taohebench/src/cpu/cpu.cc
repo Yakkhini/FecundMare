@@ -281,7 +281,7 @@ void cpu_check() {
     halt(cpu_symbol->exu->haltUnit->code);
   }
 
-#if CONFIG_MTRACE || CONFIG_DIFFTEST || CONFIG_TARGET_TaoHe
+#if CONFIG_MTRACE || CONFIG_DIFFTEST || CONFIG_MTRACE_DB || CONFIG_TARGET_TaoHe
   mtrace();
 #endif
 
