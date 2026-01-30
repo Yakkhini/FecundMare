@@ -8,3 +8,4 @@ license = "MulanPSL-2.0"
 
 [dependencies]
 clap = { version = "4.5.54", features = ["cargo"] }
+rusqlite = { version = "0.38.0", features = ["bundled"] }
