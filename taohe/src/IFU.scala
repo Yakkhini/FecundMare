@@ -89,7 +89,12 @@ class IFU(physicalVersion: Boolean) extends Module {
       when(io.fromICache.fire && !reset.asBool) {
         ifuState := {
           if (physicalVersion) IFUState.sSend
-          else Mux(updatePC, IFUState.sRequest, IFUState.sIdle)
+          else
+            Mux(
+              io.toIDU.fire,
+              Mux(updatePC, IFUState.sRequest, IFUState.sIdle),
+              IFUState.sSend
+            )
         }
       }
     }
