@@ -21,7 +21,7 @@ class IDU extends Module {
   val pcRegister = RegInit(0.U(32.W))
   val instRegister = RegInit(0.U(32.W))
 
-  io.fromIFU.ready := true.B
+  io.fromIFU.ready := state === IDUState.sIdle || io.toEXU.fire
   pcRegister := Mux(io.fromIFU.fire, io.fromIFU.bits.currentPC, pcRegister)
   instRegister := Mux(io.fromIFU.fire, io.fromIFU.bits.inst, instRegister)
   val pc = Mux(io.fromIFU.fire, io.fromIFU.bits.currentPC, pcRegister)
@@ -38,13 +38,18 @@ class IDU extends Module {
       }
     }
     is(IDUState.sSend) {
-      state := IDUState.sIdle
+      when(io.toEXU.fire) {
+        state := IDUState.sIdle
+      }
     }
   }
 
   import IDUTable.decodeTable
 
   val decodeResult = decodeTable.decode(inst)
+
+  io.toIFU.normalNextPC := decodeResult(NextPCDataTypeField) ===
+    NextPCDataType.NORMAL.asUInt
 
   io.toEXU.bits.currentPC := pc
 

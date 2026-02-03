@@ -116,6 +116,7 @@ class EXU extends Module {
     io.fromIDU.bits.currentPC + 4.U
   )
 
+  io.toIFU.bits.prevPC := iduSkidBuffer.currentPC
   io.toIFU.bits.nextPC := MuxLookup(
     io.fromIDU.bits.nextPCType,
     0.U(32.W)

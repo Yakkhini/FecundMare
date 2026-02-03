@@ -12,6 +12,10 @@ class IFUToIDUBundle extends Bundle {
   val inst = UInt(32.W)
 }
 
+class IDUToIFUBundle extends Bundle {
+  val normalNextPC = Bool()
+}
+
 class IFUToICacheBundle extends Bundle {
   val pc = UInt(32.W)
 }
@@ -70,6 +74,7 @@ class EXUToCSRBundle extends Bundle {
 }
 
 class EXUToIFUBundle extends Bundle {
+  val prevPC = UInt(32.W)
   val nextPC = UInt(32.W)
 }
 
@@ -155,12 +160,14 @@ class ICacheBundle extends Bundle {
 class IFUBundle extends Bundle {
   val fromEXU = Flipped(Decoupled(new EXUToIFUBundle))
   val toIDU = Decoupled(new IFUToIDUBundle)
+  val fromIDU = Input(new IDUToIFUBundle)
   val fromICache = Flipped(Decoupled(new ICacheToIFUBundle))
   val toICache = Decoupled(new IFUToICacheBundle)
 }
 
 class IDUBundle extends Bundle {
   val fromIFU = Flipped(Decoupled(new IFUToIDUBundle))
+  val toIFU = Output(new IDUToIFUBundle)
   val toEXU = Decoupled(new IDUToEXUBundle)
   val fromRegisterFile = Flipped(Decoupled(new RegisterFileToIDUBundle))
   val toRegisterFile = Decoupled(new IDUToRegisterFileBundle)

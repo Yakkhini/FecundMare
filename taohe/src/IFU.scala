@@ -39,7 +39,11 @@ class IFU(physicalVersion: Boolean) extends Module {
 
   // State 1
   io.fromEXU.ready := ifuState === IFUState.sIdle || io.fromICache.fire
-  pc := Mux(io.fromEXU.fire, io.fromEXU.bits.nextPC, pc)
+
+  val updatePC =
+    (ifuState === IFUState.sIdle && io.fromIDU.normalNextPC) || (io.fromEXU.fire && io.fromEXU.bits.prevPC === pc)
+  val nextPC = Mux(io.fromIDU.normalNextPC, pc + 4.U, io.fromEXU.bits.nextPC)
+  pc := Mux(updatePC, nextPC, pc)
   iCount := Mux(io.fromEXU.fire, iCount + 1.U, iCount)
 
   dontTouch(iCount)
@@ -68,7 +72,7 @@ class IFU(physicalVersion: Boolean) extends Module {
 
   switch(ifuState) {
     is(IFUState.sIdle) {
-      when(io.fromEXU.fire && !reset.asBool) {
+      when(updatePC && !reset.asBool) {
         // Skip the request state if the PC accepted in the same cycle.
         ifuState := Mux(io.toICache.fire, IFUState.sFetch, IFUState.sRequest)
       }

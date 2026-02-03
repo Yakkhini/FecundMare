@@ -48,6 +48,8 @@ class TaoHe(physicalVersion: Boolean, registerAddrWidth: Int) extends Module {
   iCache.io.toIFU <> ifu.io.fromICache
 
   ifu.io.toIDU <> idu.io.fromIFU
+
+  idu.io.toIFU <> ifu.io.fromIDU
   idu.io.toEXU <> exu.io.fromIDU
 
   idu.io.fromRegisterFile <> registerFile.io.toIDU
