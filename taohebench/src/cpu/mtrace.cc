@@ -115,17 +115,22 @@ void mtrace() {
       difftest_skip_ref();
     } else {
 #ifdef CONFIG_TARGET_TaoHe
+      uint32_t index = axi4_interface.awaddr - 0x30000000;
+      if (index < 0 || index + 4 > 0x1000000) {
+        Log("AXI4 Write addr 0x%08x out of flash memory range!",
+            axi4_interface.awaddr);
+        npc_state = TCHE_ABORT;
+        return;
+      }
       switch (axi4_interface.awsize) {
       case 0b000:
-        *(uint8_t *)(&FLASH[axi4_interface.awaddr - 0x30000000]) =
-            (uint8_t)(wdata & 0xFF);
+        *(uint8_t *)(&FLASH[index]) = (uint8_t)(wdata & 0xFF);
         break;
       case 0b001:
-        *(uint16_t *)(&FLASH[axi4_interface.awaddr - 0x30000000]) =
-            (uint16_t)(wdata & 0xFFFF);
+        *(uint16_t *)(&FLASH[index]) = (uint16_t)(wdata & 0xFFFF);
         break;
       case 0b010:
-        *(uint32_t *)(&FLASH[axi4_interface.awaddr - 0x30000000]) = wdata;
+        *(uint32_t *)(&FLASH[index]) = wdata;
         break;
       }
       cpu.top->io_master_bvalid = 1;
@@ -176,6 +181,12 @@ void mtrace() {
         burst_count = 0;
       }
       uint32_t index = (axi4_interface.araddr & 0xFFFFFFFC) - 0x30000000;
+      if (index < 0 || index + 4 > 0x1000000) {
+        Log("AXI4 Read addr 0x%08x out of flash memory range!",
+            axi4_interface.araddr);
+        npc_state = TCHE_ABORT;
+        return;
+      }
       uint32_t rdata = *(uint32_t *)(&FLASH[index]);
       axi4_interface.rdata = rdata;
       cpu.top->io_master_rdata = rdata;
