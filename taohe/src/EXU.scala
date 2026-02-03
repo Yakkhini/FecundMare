@@ -18,20 +18,22 @@ class EXU extends Module {
   val io = IO(new EXUBundle)
   val exuState = RegInit(EXUState.sIdle)
 
-  val clint = Module(new CLINT())
-  clint.io.mmioAddress := io.fromIDU.bits.registerReadData1 + io.fromIDU.bits.imm
-  clint.io.readEnable := io.fromIDU.bits.lsuReadEnable
-
   // State 1
   io.fromIDU.ready := exuState === EXUState.sIdle
+  val iduSkidBuffer = RegInit(0.U.asTypeOf(io.fromIDU.bits))
+  iduSkidBuffer := Mux(io.fromIDU.fire, io.fromIDU.bits, iduSkidBuffer)
 
   // State 2
+  val clint = Module(new CLINT())
+  clint.io.mmioAddress := iduSkidBuffer.registerReadData1 + iduSkidBuffer.imm
+  clint.io.readEnable := iduSkidBuffer.lsuReadEnable
+
   val skipLSState =
-    exuState === EXUState.sLS && (!io.fromIDU.bits.lsuReadEnable || clint.io.clintChosen) && !io.fromIDU.bits.lsuWriteEnable
+    exuState === EXUState.sLS && (!iduSkidBuffer.lsuReadEnable || clint.io.clintChosen) && !iduSkidBuffer.lsuWriteEnable
   io.toLSU.valid := exuState === EXUState.sLS && !skipLSState
   io.fromLSU.ready := exuState === EXUState.sLS
 
-  val difftestSkip = io.fromIDU.bits.lsuReadEnable && clint.io.clintChosen
+  val difftestSkip = iduSkidBuffer.lsuReadEnable && clint.io.clintChosen
   dontTouch(difftestSkip)
 
   // State 3
@@ -41,48 +43,48 @@ class EXU extends Module {
 
   io.fromCSR.ready := true.B
 
-  io.toRegisterFile.bits.writeAddr := io.fromIDU.bits.registerWriteAddr
+  io.toRegisterFile.bits.writeAddr := iduSkidBuffer.registerWriteAddr
 
-  io.toCSR.bits.address := io.fromIDU.bits.csrAddress
-  io.toCSR.bits.currentPC := io.fromIDU.bits.currentPC
-  io.toCSR.bits.operation := io.fromIDU.bits.csrOperation
-  io.toCSR.bits.rs1data := io.fromIDU.bits.registerReadData1
+  io.toCSR.bits.address := iduSkidBuffer.csrAddress
+  io.toCSR.bits.currentPC := iduSkidBuffer.currentPC
+  io.toCSR.bits.operation := iduSkidBuffer.csrOperation
+  io.toCSR.bits.rs1data := iduSkidBuffer.registerReadData1
 
-  io.toLSU.bits.address := io.fromIDU.bits.registerReadData1 + io.fromIDU.bits.imm
-  io.toLSU.bits.length := io.fromIDU.bits.lsuLength
-  io.toLSU.bits.writeData := io.fromIDU.bits.registerReadData2
-  io.toLSU.bits.writeEnable := io.fromIDU.bits.lsuWriteEnable
-  io.toLSU.bits.readEnable := io.fromIDU.bits.lsuReadEnable && !clint.io.clintChosen
+  io.toLSU.bits.address := iduSkidBuffer.registerReadData1 + iduSkidBuffer.imm
+  io.toLSU.bits.length := iduSkidBuffer.lsuLength
+  io.toLSU.bits.writeData := iduSkidBuffer.registerReadData2
+  io.toLSU.bits.writeEnable := iduSkidBuffer.lsuWriteEnable
+  io.toLSU.bits.readEnable := iduSkidBuffer.lsuReadEnable && !clint.io.clintChosen
 
-  val data1 = MuxLookup(io.fromIDU.bits.data1Type, 0.U(32.W))(
+  val data1 = MuxLookup(iduSkidBuffer.data1Type, 0.U(32.W))(
     Seq(
-      Data1Type.RS1.asUInt -> io.fromIDU.bits.registerReadData1,
-      Data1Type.PC.asUInt -> io.fromIDU.bits.currentPC
+      Data1Type.RS1.asUInt -> iduSkidBuffer.registerReadData1,
+      Data1Type.PC.asUInt -> iduSkidBuffer.currentPC
     )
   )
 
-  val data2 = MuxLookup(io.fromIDU.bits.data2Type, 0.U(32.W))(
+  val data2 = MuxLookup(iduSkidBuffer.data2Type, 0.U(32.W))(
     Seq(
-      Data2Type.RS2.asUInt -> io.fromIDU.bits.registerReadData2,
-      Data2Type.IMM.asUInt -> io.fromIDU.bits.imm
+      Data2Type.RS2.asUInt -> iduSkidBuffer.registerReadData2,
+      Data2Type.IMM.asUInt -> iduSkidBuffer.imm
     )
   )
 
-  val lsuReadData = MuxLookup(io.fromIDU.bits.lsuLength, 0.U(32.W))(
+  val lsuReadData = MuxLookup(iduSkidBuffer.lsuLength, 0.U(32.W))(
     Seq(
       MemSize.B.asUInt -> Fill(
         24,
-        io.fromLSU.bits.readData(7) & ~io.fromIDU.bits.unsigned
+        io.fromLSU.bits.readData(7) & ~iduSkidBuffer.unsigned
       ) ## io.fromLSU.bits.readData(7, 0),
       MemSize.H.asUInt -> Fill(
         16,
-        io.fromLSU.bits.readData(15) & ~io.fromIDU.bits.unsigned
+        io.fromLSU.bits.readData(15) & ~iduSkidBuffer.unsigned
       ) ## io.fromLSU.bits.readData(15, 0),
       MemSize.W.asUInt -> io.fromLSU.bits.readData
     )
   )
 
-  val result = MuxLookup(io.fromIDU.bits.aluOp, 0.U(32.W))(
+  val result = MuxLookup(iduSkidBuffer.aluOp, 0.U(32.W))(
     Seq(
       ALUOpType.ADD.asUInt -> (data1 + data2),
       ALUOpType.SUB.asUInt -> (data1 - data2),
@@ -97,7 +99,7 @@ class EXU extends Module {
     )
   )
 
-  val compareCheck = MuxLookup(io.fromIDU.bits.compareOp, false.B)(
+  val compareCheck = MuxLookup(iduSkidBuffer.compareOp, false.B)(
     Seq(
       CompareOpType.EQ.asUInt -> (data1 === data2),
       CompareOpType.NE.asUInt -> (data1 =/= data2),
@@ -112,30 +114,30 @@ class EXU extends Module {
 
   branchTarget := Mux(
     compareCheck,
-    io.fromIDU.bits.currentPC + io.fromIDU.bits.imm,
-    io.fromIDU.bits.currentPC + 4.U
+    iduSkidBuffer.currentPC + iduSkidBuffer.imm,
+    iduSkidBuffer.currentPC + 4.U
   )
 
   io.toIFU.bits.prevPC := iduSkidBuffer.currentPC
   io.toIFU.bits.nextPC := MuxLookup(
-    io.fromIDU.bits.nextPCType,
+    iduSkidBuffer.nextPCType,
     0.U(32.W)
   )(
     Seq(
       NextPCDataType.RESULT.asUInt -> (result & (~1.U(32.W))),
       NextPCDataType.BRANCH.asUInt -> branchTarget,
       NextPCDataType.CSRDATA.asUInt -> io.fromCSR.bits.readData,
-      NextPCDataType.NORMAL.asUInt -> (io.fromIDU.bits.currentPC + 4.U)
+      NextPCDataType.NORMAL.asUInt -> (iduSkidBuffer.currentPC + 4.U)
     )
   )
 
   io.toRegisterFile.bits.writeData := MuxLookup(
-    io.fromIDU.bits.registerWriteType,
+    iduSkidBuffer.registerWriteType,
     0.U(32.W)
   )(
     Seq(
       RegWriteDataType.RESULT.asUInt -> result,
-      RegWriteDataType.NEXTPC.asUInt -> (io.fromIDU.bits.currentPC + 4.U),
+      RegWriteDataType.NEXTPC.asUInt -> (iduSkidBuffer.currentPC + 4.U),
       RegWriteDataType.MEMREAD.asUInt -> Mux(
         clint.io.clintChosen,
         clint.io.outputMTime,
@@ -146,7 +148,7 @@ class EXU extends Module {
   )
 
   io.toRegisterFile.bits.writeEnable := Mux(
-    (io.fromIDU.bits.instructionType === InstType.S.asUInt) || (io.fromIDU.bits.instructionType === InstType.B.asUInt),
+    (iduSkidBuffer.instructionType === InstType.S.asUInt) || (iduSkidBuffer.instructionType === InstType.B.asUInt),
     false.B,
     true.B
   )
@@ -155,7 +157,7 @@ class EXU extends Module {
   val arithmeticDoneCounter = PerformanceCounter(
     io.toRegisterFile.valid &&
       io.toRegisterFile.bits.writeEnable &&
-      io.fromIDU.bits.registerWriteType === RegWriteDataType.RESULT.asUInt,
+      iduSkidBuffer.registerWriteType === RegWriteDataType.RESULT.asUInt,
     32
   )
 
@@ -179,6 +181,6 @@ class EXU extends Module {
 
   val haltUnit = Module(new HaltUnit())
   haltUnit.io.reset := reset
-  haltUnit.io.breakSignal := io.fromIDU.bits.break
+  haltUnit.io.breakSignal := iduSkidBuffer.break
   haltUnit.io.code := data1
 }
