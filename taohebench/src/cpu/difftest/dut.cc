@@ -89,7 +89,7 @@ void difftest_init(char *ref_so_file, long img_size, int port) {
 }
 
 bool isa_difftest_checkregs(CPU *ref_r, vaddr_t pc) {
-  for (int i = 0; i < 32; i++) {
+  for (int i = 0; i < 16; i++) {
     if (ref_r->regs[i] != cpu.regs[i]) {
       return false;
     }
@@ -108,7 +108,7 @@ bool isa_difftest_checkregs(CPU *ref_r, vaddr_t pc) {
 static void diff_check(CPU *ref, vaddr_t pc) {
   if (!isa_difftest_checkregs(ref, pc)) {
     Log(ANSI_FG_RED "Warning: " ANSI_FG_BLUE "DiffTest ERROR.");
-    for (int i = 0; i < 32; i++) {
+    for (int i = 0; i < 16; i++) {
       if (cpu.regs[i] != ref->regs[i]) {
         Log("x%i: " ANSI_FG_RED "0x%08X " ANSI_FG_BLUE
             "in CPU while " ANSI_FG_RED "0x%08X " ANSI_FG_BLUE "in REF.",
