@@ -150,18 +150,17 @@ void mtrace() {
 
 #ifdef CONFIG_TARGET_TaoHe
   if (bursting) {
-    burst_count++;
     uint32_t index = (burst_start_address + (burst_count << 2)) - 0x30000000;
     uint32_t rdata = *(uint32_t *)(&FLASH[index]);
     axi4_interface.rdata = rdata;
     cpu.top->io_master_rdata = rdata;
     cpu.top->io_master_rvalid = 1;
+    burst_count++;
   }
 
   if (burst_count == 4) {
     bursting = false;
     burst_count = 0;
-    cpu.top->io_master_rvalid = 1;
     cpu.top->io_master_rlast = 1;
   }
 #endif
@@ -179,18 +178,19 @@ void mtrace() {
         bursting = true;
         burst_start_address = axi4_interface.araddr;
         burst_count = 0;
+      } else {
+        uint32_t index = (axi4_interface.araddr & 0xFFFFFFFC) - 0x30000000;
+        if (index < 0 || index + 4 > 0x1000000) {
+          Log("AXI4 Read addr 0x%08x out of flash memory range!",
+              axi4_interface.araddr);
+          npc_state = TCHE_ABORT;
+          return;
+        }
+        uint32_t rdata = *(uint32_t *)(&FLASH[index]);
+        axi4_interface.rdata = rdata;
+        cpu.top->io_master_rdata = rdata;
+        cpu.top->io_master_rvalid = 1;
       }
-      uint32_t index = (axi4_interface.araddr & 0xFFFFFFFC) - 0x30000000;
-      if (index < 0 || index + 4 > 0x1000000) {
-        Log("AXI4 Read addr 0x%08x out of flash memory range!",
-            axi4_interface.araddr);
-        npc_state = TCHE_ABORT;
-        return;
-      }
-      uint32_t rdata = *(uint32_t *)(&FLASH[index]);
-      axi4_interface.rdata = rdata;
-      cpu.top->io_master_rdata = rdata;
-      cpu.top->io_master_rvalid = 1;
 #endif
     }
 
