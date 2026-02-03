@@ -18,14 +18,13 @@ class IDU extends Module {
 
   val state = RegInit(IDUState.sIdle)
 
-  val pcRegister = RegInit(0.U(32.W))
-  val instRegister = RegInit(0.U(32.W))
+  val pc = RegInit(0.U(32.W))
+  val inst = RegInit(0.U(32.W))
 
   io.fromIFU.ready := state === IDUState.sIdle || io.toEXU.fire
-  pcRegister := Mux(io.fromIFU.fire, io.fromIFU.bits.currentPC, pcRegister)
-  instRegister := Mux(io.fromIFU.fire, io.fromIFU.bits.inst, instRegister)
-  val pc = Mux(io.fromIFU.fire, io.fromIFU.bits.currentPC, pcRegister)
-  val inst = Mux(io.fromIFU.fire, io.fromIFU.bits.inst, instRegister)
+
+  pc := Mux(io.fromIFU.fire, io.fromIFU.bits.currentPC, pc)
+  inst := Mux(io.fromIFU.fire, io.fromIFU.bits.inst, inst)
 
   io.toEXU.valid := state === IDUState.sSend
   io.toRegisterFile.valid := true.B
@@ -39,7 +38,7 @@ class IDU extends Module {
     }
     is(IDUState.sSend) {
       when(io.toEXU.fire) {
-        state := IDUState.sIdle
+        state := Mux(io.fromIFU.fire, IDUState.sSend, IDUState.sIdle)
       }
     }
   }
@@ -118,7 +117,9 @@ class IDU extends Module {
   io.toEXU.bits.csrOperation := decodeResult(CSROPTypeField)
 
   val decodeSupport = Wire(Bool())
-  decodeSupport := decodeResult(DecodeSupportField) | ~io.fromIFU.valid
+  decodeSupport := decodeResult(
+    DecodeSupportField
+  ) || (state === IDUState.sIdle)
   dontTouch(decodeSupport)
 
   // Performance Counter
