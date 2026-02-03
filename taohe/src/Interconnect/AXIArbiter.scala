@@ -96,10 +96,14 @@ class AXIArbiter extends Module {
 
   switch(state) {
     is(AXIArbiterState.sIdle) {
-      when(io.instructionFetch.ar.valid) {
-        state := AXIArbiterState.sIFU
-      }.elsewhen(io.loadStore.ar.valid) {
-        state := AXIArbiterState.sLSU
+      when(
+        io.instructionFetch.ar.valid || io.loadStore.ar.valid || io.loadStore.aw.valid
+      ) {
+        state := Mux(
+          io.instructionFetch.ar.valid,
+          AXIArbiterState.sIFU,
+          AXIArbiterState.sLSU
+        )
       }
     }
     is(AXIArbiterState.sIFU) {
@@ -112,7 +116,7 @@ class AXIArbiter extends Module {
       }
     }
     is(AXIArbiterState.sLSU) {
-      when(io.loadStore.r.fire || io.loadStore.aw.fire) {
+      when(io.loadStore.r.fire || io.loadStore.b.fire) {
         state := Mux(
           io.instructionFetch.ar.valid,
           AXIArbiterState.sIFU,
