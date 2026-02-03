@@ -253,7 +253,7 @@ void cpu_sync() {
 
   if (cpu.check_cycle) {
     cpu.pc_prev = cpu.pc;
-    cpu.pc = cpu_symbol->ifu->pc;
+    cpu.pc = cpu_symbol->ifu->diffNextPC;
     cpu.iCount = cpu_symbol->ifu->iCount;
   }
 

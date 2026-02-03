@@ -34,6 +34,7 @@ class IFU(physicalVersion: Boolean) extends Module {
   val pc = RegInit("h30000000".U(32.W))
   val inst = RegInit(0.U(32.W))
   val iCount = RegInit(0.U(32.W))
+  val diffNextPC = RegInit(0.U(32.W))
 
   val ifuState = RegInit(IFUState.sRequest)
 
@@ -44,9 +45,11 @@ class IFU(physicalVersion: Boolean) extends Module {
     (ifuState === IFUState.sIdle && io.fromIDU.normalNextPC) || (io.fromEXU.fire && io.fromEXU.bits.prevPC === pc)
   val nextPC = Mux(io.fromIDU.normalNextPC, pc + 4.U, io.fromEXU.bits.nextPC)
   pc := Mux(updatePC, nextPC, pc)
-  iCount := Mux(io.fromEXU.fire, iCount + 1.U, iCount)
 
+  iCount := Mux(io.fromEXU.fire, iCount + 1.U, iCount)
+  diffNextPC := Mux(io.fromEXU.fire, io.fromEXU.bits.nextPC, diffNextPC)
   dontTouch(iCount)
+  dontTouch(diffNextPC)
 
   // State 2
   io.toICache.valid := (ifuState === IFUState.sRequest) && !reset.asBool
