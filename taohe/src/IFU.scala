@@ -67,7 +67,7 @@ class IFU extends Module {
   io.toICache.bits.pc := Mux(IFUState.sRequest === state, pc, nextPC)
 
   // Receive Inst from ICache
-  io.fromICache.ready := !stall && io.toIDU.fire
+  io.fromICache.ready := (!stall && io.toIDU.fire) || (state === IFUState.sRequest && io.toICache.fire)
   inst := io.fromICache.bits.readInst
 
   // Send Inst to IDU
@@ -81,7 +81,7 @@ class IFU extends Module {
   // Performance Counter
   val fetchInstNumCounter = PerformanceCounter(io.fromICache.fire, 32)
   val fetchWaitingCycleCounter =
-    PerformanceCounter(io.fromICache.ready && !io.fromICache.fire, 32)
+    PerformanceCounter(!io.fromICache.valid, 32)
 
   switch(state) {
     is(IFUState.sWork) {
