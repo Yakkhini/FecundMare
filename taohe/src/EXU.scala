@@ -11,40 +11,44 @@ import taohe.util.PerformanceCounter
 import chisel3.util.Fill
 
 object EXUState extends ChiselEnum {
-  val sIdle, sLS, sWB = Value
+  val sInit, sWork, sLS = Value
 }
 
 class EXU extends Module {
   val io = IO(new EXUBundle)
-  val exuState = RegInit(EXUState.sIdle)
+  val exuState = RegInit(EXUState.sInit)
 
   // State 1
-  io.fromIDU.ready := exuState === EXUState.sIdle
+  io.fromIDU.ready := exuState === EXUState.sInit || (exuState === EXUState.sWork && io.toIFU.ready)
   val iduSkidBuffer = RegInit(0.U.asTypeOf(io.fromIDU.bits))
   iduSkidBuffer := Mux(io.fromIDU.fire, io.fromIDU.bits, iduSkidBuffer)
 
-  // State 2
   val clint = Module(new CLINT())
   clint.io.mmioAddress := iduSkidBuffer.registerReadData1 + iduSkidBuffer.imm
   clint.io.readEnable := iduSkidBuffer.lsuReadEnable
 
-  val skipLSState =
-    exuState === EXUState.sLS && (!iduSkidBuffer.lsuReadEnable || clint.io.clintChosen) && !iduSkidBuffer.lsuWriteEnable
-  io.toLSU.valid := exuState === EXUState.sLS && !skipLSState
-  io.fromLSU.ready := exuState === EXUState.sLS
-
   val difftestSkip = iduSkidBuffer.lsuReadEnable && clint.io.clintChosen
   dontTouch(difftestSkip)
 
-  // State 3
-  io.toRegisterFile.valid := exuState === EXUState.sWB || skipLSState
-  io.toIFU.valid := exuState === EXUState.sWB || skipLSState
-  io.toCSR.valid := exuState === EXUState.sWB || skipLSState
+  val switchToLSU =
+    exuState === EXUState.sWork && (io.fromIDU.bits.lsuReadEnable || io.fromIDU.bits.lsuWriteEnable)
+  val lsDone = Wire(Bool())
+
+  io.toIFU.valid := exuState === EXUState.sWork || lsDone
+  io.toRegisterFile.valid := (exuState === EXUState.sWork && io.toIFU.fire) || lsDone
+  io.toCSR.valid := (exuState === EXUState.sWork && io.toIFU.fire) || lsDone
 
   io.fromCSR.ready := true.B
 
   io.toIFU.bits.commit := io.fromIDU.fire
 
+  // State 2
+  io.toLSU.valid := exuState === EXUState.sLS && !clint.io.clintChosen
+  io.fromLSU.ready := exuState === EXUState.sLS && !clint.io.clintChosen
+
+  lsDone := exuState === EXUState.sLS && (io.fromLSU.fire || clint.io.clintChosen)
+
+  // Inner Logic
   io.toRegisterFile.bits.writeAddr := iduSkidBuffer.registerWriteAddr
 
   io.toCSR.bits.address := iduSkidBuffer.csrAddress
@@ -164,19 +168,19 @@ class EXU extends Module {
   )
 
   switch(exuState) {
-    is(EXUState.sIdle) {
+    is(EXUState.sInit) {
       when(io.fromIDU.fire) {
+        exuState := EXUState.sWork
+      }
+    }
+    is(EXUState.sWork) {
+      when(io.fromIDU.fire && switchToLSU) {
         exuState := EXUState.sLS
       }
     }
     is(EXUState.sLS) {
-      when(io.fromLSU.fire || io.toIFU.fire) {
-        exuState := Mux(io.toIFU.fire, EXUState.sIdle, EXUState.sWB)
-      }
-    }
-    is(EXUState.sWB) {
-      when(io.toRegisterFile.fire && io.toIFU.fire) {
-        exuState := EXUState.sIdle
+      when(lsDone) {
+        exuState := EXUState.sWork
       }
     }
   }
