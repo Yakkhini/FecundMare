@@ -70,6 +70,7 @@ class EXUToCSRBundle extends Bundle {
 }
 
 class EXUToIFUBundle extends Bundle {
+  val commit = Bool()
   val prevPC = UInt(32.W)
   val nextPC = UInt(32.W)
 }

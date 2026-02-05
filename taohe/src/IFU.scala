@@ -42,7 +42,7 @@ class IFU extends Module {
   val iCount = RegInit(0.U(32.W))
   val diffNextPC = RegInit(0.U(32.W))
 
-  iCount := Mux(io.fromEXU.fire, iCount + 1.U, iCount)
+  iCount := Mux(io.fromEXU.fire && io.fromEXU.bits.commit, iCount + 1.U, iCount)
   diffNextPC := Mux(io.fromEXU.fire, io.fromEXU.bits.nextPC, diffNextPC)
   dontTouch(iCount)
   dontTouch(diffNextPC)

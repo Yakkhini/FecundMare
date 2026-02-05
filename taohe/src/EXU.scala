@@ -43,6 +43,8 @@ class EXU extends Module {
 
   io.fromCSR.ready := true.B
 
+  io.toIFU.bits.commit := io.fromIDU.fire
+
   io.toRegisterFile.bits.writeAddr := iduSkidBuffer.registerWriteAddr
 
   io.toCSR.bits.address := iduSkidBuffer.csrAddress
