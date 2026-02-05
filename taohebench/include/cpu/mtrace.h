@@ -17,6 +17,7 @@ typedef struct {
 } AXI4Interface;
 
 void axi4_interface_sync(core_symbol_t *cpu_symbol);
+bool mmio_difftest_check();
 void mtrace();
 void mtrace_init();
 void mtrace_finish();

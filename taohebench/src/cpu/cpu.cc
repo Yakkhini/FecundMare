@@ -313,6 +313,10 @@ void cpu_check() {
         cpu_symbol->registerFile->io_fromEXU_bits_writeData;
   }
 
+  if (mmio_difftest_check()) {
+    difftest_skip_ref();
+  }
+
 #endif
 
 #if CONFIG_WATCHPOINT

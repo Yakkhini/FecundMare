@@ -97,6 +97,11 @@ bool in_mmio(uint32_t addr) {
   return false;
 }
 
+bool mmio_difftest_check() {
+  return (axi4_interface.awvalid && in_mmio(axi4_interface.awaddr)) ||
+         (axi4_interface.arvalid && in_mmio(axi4_interface.araddr));
+}
+
 void mtrace() {
   if (axi4_interface.awvalid) {
 #if CONFIG_MTRACE
