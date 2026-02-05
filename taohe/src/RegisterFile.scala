@@ -26,12 +26,12 @@ class RegisterFile(registerAddrWidth: Int) extends Module {
   dontTouch(writeValid)
 
   io.toIDU.bits.readData1 := Mux(
-    io.fromIDU.bits.readAddr1 === io.fromEXU.bits.writeAddr && io.fromEXU.bits.writeEnable && io.fromEXU.valid,
+    io.fromIDU.bits.readAddr1 === io.fromEXU.bits.writeAddr && writeValid,
     io.fromEXU.bits.writeData,
     registers(io.fromIDU.bits.readAddr1(registerAddrWidth - 1, 0))
   )
   io.toIDU.bits.readData2 := Mux(
-    io.fromIDU.bits.readAddr2 === io.fromEXU.bits.writeAddr && io.fromEXU.bits.writeEnable && io.fromEXU.valid,
+    io.fromIDU.bits.readAddr2 === io.fromEXU.bits.writeAddr && writeValid,
     io.fromEXU.bits.writeData,
     registers(io.fromIDU.bits.readAddr2(registerAddrWidth - 1, 0))
   )
