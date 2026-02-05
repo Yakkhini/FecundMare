@@ -13,13 +13,17 @@ class RegisterFile(registerAddrWidth: Int) extends Module {
     VecInit(Seq.fill(math.pow(2, registerAddrWidth).toInt)(0.U(32.W)))
   )
 
-  when(
+  val writeValid =
     io.fromEXU.bits.writeEnable && io.fromEXU.bits.writeAddr =/= 0.U && io.fromEXU.valid
-  ) {
-    registers(
-      io.fromEXU.bits.writeAddr(registerAddrWidth - 1, 0)
-    ) := io.fromEXU.bits.writeData
-  }
+  registers(
+    io.fromEXU.bits.writeAddr(registerAddrWidth - 1, 0)
+  ) := Mux(
+    writeValid,
+    io.fromEXU.bits.writeData,
+    registers(io.fromEXU.bits.writeAddr(registerAddrWidth - 1, 0))
+  )
+
+  dontTouch(writeValid)
 
   io.toIDU.bits.readData1 := Mux(
     io.fromIDU.bits.readAddr1 === io.fromEXU.bits.writeAddr && io.fromEXU.bits.writeEnable && io.fromEXU.valid,
