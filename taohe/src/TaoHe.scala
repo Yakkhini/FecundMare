@@ -33,7 +33,7 @@ class TaoHe(physicalVersion: Boolean, registerAddrWidth: Int) extends Module {
   val iCache = Module(new ICache(4, 4))
 
   val lsu = Module(new LSU())
-  val ifu = Module(new IFU(physicalVersion))
+  val ifu = Module(new IFU())
   val idu = Module(new IDU())
   val exu = Module(new EXU())
 
@@ -49,7 +49,6 @@ class TaoHe(physicalVersion: Boolean, registerAddrWidth: Int) extends Module {
 
   ifu.io.toIDU <> idu.io.fromIFU
 
-  idu.io.toIFU <> ifu.io.fromIDU
   idu.io.toEXU <> exu.io.fromIDU
 
   idu.io.fromRegisterFile <> registerFile.io.toIDU

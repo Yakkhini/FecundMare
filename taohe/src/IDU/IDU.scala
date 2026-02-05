@@ -10,35 +10,42 @@ import taohe.util.IDUBundle
 import taohe.util.PerformanceCounter
 
 object IDUState extends ChiselEnum {
-  val sIdle, sSend = Value
+  val sWork, sSend, sWait = Value
 }
 
 class IDU extends Module {
   val io = IO(new IDUBundle)
 
-  val state = RegInit(IDUState.sIdle)
+  val state = RegInit(IDUState.sWait)
 
   val pc = RegInit(0.U(32.W))
   val inst = RegInit(0.U(32.W))
 
-  io.fromIFU.ready := state === IDUState.sIdle || io.toEXU.fire
+  val stall = !io.fromIFU.valid
 
   pc := Mux(io.fromIFU.fire, io.fromIFU.bits.currentPC, pc)
   inst := Mux(io.fromIFU.fire, io.fromIFU.bits.inst, inst)
 
-  io.toEXU.valid := state === IDUState.sSend
+  io.fromIFU.ready := (!stall && io.toEXU.fire) || state === IDUState.sWait
+  io.toEXU.valid := (!stall && state === IDUState.sWork) || state === IDUState.sSend
+
   io.toRegisterFile.valid := true.B
   io.fromRegisterFile.ready := true.B
 
   switch(state) {
-    is(IDUState.sIdle) {
-      when(io.fromIFU.fire) {
+    is(IDUState.sWork) {
+      when(stall) {
         state := IDUState.sSend
       }
     }
     is(IDUState.sSend) {
       when(io.toEXU.fire) {
-        state := Mux(io.fromIFU.fire, IDUState.sSend, IDUState.sIdle)
+        state := IDUState.sWait
+      }
+    }
+    is(IDUState.sWait) {
+      when(io.fromIFU.fire) {
+        state := IDUState.sWork
       }
     }
   }
@@ -46,9 +53,6 @@ class IDU extends Module {
   import IDUTable.decodeTable
 
   val decodeResult = decodeTable.decode(inst)
-
-  io.toIFU.normalNextPC := decodeResult(NextPCDataTypeField) ===
-    NextPCDataType.NORMAL.asUInt
 
   io.toEXU.bits.currentPC := pc
 
@@ -119,7 +123,7 @@ class IDU extends Module {
   val decodeSupport = Wire(Bool())
   decodeSupport := decodeResult(
     DecodeSupportField
-  ) || (state === IDUState.sIdle)
+  ) || !io.toEXU.fire
   dontTouch(decodeSupport)
 
   // Performance Counter
