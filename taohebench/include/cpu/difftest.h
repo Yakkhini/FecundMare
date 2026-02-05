@@ -3,6 +3,14 @@
 
 #include <common.h>
 
+typedef struct RegisterWriteEventBuffer {
+  bool valid;
+  unsigned char write_addr;
+  unsigned int write_data;
+} RegisterWriteEventBuffer;
+
+extern RegisterWriteEventBuffer register_write_event_buffer;
+
 void difftest_init(char *ref_so_file, long img_size, int port);
 void difftest_step(vaddr_t pc, vaddr_t npc);
 void difftest_skip_ref();

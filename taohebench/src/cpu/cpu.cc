@@ -247,6 +247,7 @@ void cpu_exec(int n) {
 
 void cpu_sync() {
   memcpy(cpu.regs, cpu_symbol->registerFile->registers, sizeof(cpu.regs));
+
   cpu.inst = cpu_symbol->ifu->io_toIDU_bits_inst;
   cpu.check_cycle = cpu_symbol->ifu->iCount > cpu.iCount ||
                     npc_state == TCHE_HALT || npc_state == TCHE_ABORT;
@@ -303,6 +304,15 @@ void cpu_check() {
   } else {
     difftest_step(cpu.pc_prev, cpu.pc);
   }
+
+  register_write_event_buffer.valid = cpu_symbol->registerFile->writeValid;
+  if (cpu_symbol->registerFile->writeValid) {
+    register_write_event_buffer.write_addr =
+        cpu_symbol->registerFile->io_fromEXU_bits_writeAddr;
+    register_write_event_buffer.write_data =
+        cpu_symbol->registerFile->io_fromEXU_bits_writeData;
+  }
+
 #endif
 
 #if CONFIG_WATCHPOINT
