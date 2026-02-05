@@ -1,0 +1,70 @@
+[TaoHe]
+CPI = 5.1590986752936798
+IPC = 0.19383230733478371
+'Total Cycle' = 1044749690
+'Total Instructions' = 202506243
+'area(um^2)' = 100596.16
+commit = 'b069e674'
+'freq(MHz)' = 450.43700000000001
+message = '[arbiter] do not break lsu transfer when ifu requesting'
+time = '2026-02-03 18:32:20'
+
+    [TaoHe.'AXI Arbiter']
+    ifuAXIWaitingCycleCounter = 214630208
+    ifuArbiterWaitingCycleCounter = 0
+    lsuAXILoadWaitingCycleCounter = 234285095
+    lsuAXIStoreWaitingCycleCounter = 234326802
+    lsuArbiterLoadWaitingCycleCounter = 318867
+    lsuArbiterStoreWaitingCycleCounter = 0
+
+    [TaoHe.EXU]
+    arithmeticDoneCounter = 118437276
+
+    [TaoHe.IDU.'Arithmetic Inst']
+    'Average Cycle per Inst' = 4.0708431110052539
+    'Cycle Count' = 472187640
+    'Cycle Percentage' = 45.196246002236187
+    'Inst Count' = 115992591
+    'Inst Percentage' = 57.278525976110274
+
+    [TaoHe.IDU.'Branch Inst']
+    'Average Cycle per Inst' = 4.534023043037978
+    'Cycle Count' = 239530923
+    'Cycle Percentage' = 22.92711118200954
+    'Inst Count' = 52829666
+    'Inst Percentage' = 26.087919669716058
+
+    [TaoHe.IDU.'Jump Inst']
+    'Average Cycle per Inst' = 23.107035224332282
+    'Cycle Count' = 93701870
+    'Cycle Percentage' = 8.9688344391851409
+    'Inst Count' = 4055123
+    'Inst Percentage' = 2.0024681411920717
+
+    [TaoHe.IDU.'Load Inst']
+    'Average Cycle per Inst' = 6.9989563744903469
+    'Cycle Count' = 126194081
+    'Cycle Percentage' = 12.078881880309531
+    'Inst Count' = 18030414
+    'Inst Percentage' = 8.9036336524202859
+
+    [TaoHe.IDU.'Store Inst']
+    'Average Cycle per Inst' = 9.7922349756886895
+    'Cycle Count' = 89635808
+    'Cycle Percentage' = 8.5796443739552579
+    'Inst Count' = 9153764
+    'Inst Percentage' = 4.5202379266894992
+
+    [TaoHe.IFU]
+    'Cache AMAT' = 1.3898182616038248
+    'Cache AMP' = 41.965807291231769
+    'Cache Hit' = 195799668
+    'Cache Miss' = 6706576
+    'Cache TMT' = 281446876
+    fetchInstNumCounter = 202506244
+    fetchWaitingCycleCounter = 281446876
+
+    [TaoHe.LSU]
+    loadDataValidCounter = 18030368
+    loadWaitingCycleCounter = 234603962
+    storeWaitingCycleCounter = 234326802
