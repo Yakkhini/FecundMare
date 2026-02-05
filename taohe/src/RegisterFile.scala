@@ -21,11 +21,15 @@ class RegisterFile(registerAddrWidth: Int) extends Module {
     ) := io.fromEXU.bits.writeData
   }
 
-  io.toIDU.bits.readData1 := registers(
-    io.fromIDU.bits.readAddr1(registerAddrWidth - 1, 0)
+  io.toIDU.bits.readData1 := Mux(
+    io.fromIDU.bits.readAddr1 === io.fromEXU.bits.writeAddr && io.fromEXU.bits.writeEnable && io.fromEXU.valid,
+    io.fromEXU.bits.writeData,
+    registers(io.fromIDU.bits.readAddr1(registerAddrWidth - 1, 0))
   )
-  io.toIDU.bits.readData2 := registers(
-    io.fromIDU.bits.readAddr2(registerAddrWidth - 1, 0)
+  io.toIDU.bits.readData2 := Mux(
+    io.fromIDU.bits.readAddr2 === io.fromEXU.bits.writeAddr && io.fromEXU.bits.writeEnable && io.fromEXU.valid,
+    io.fromEXU.bits.writeData,
+    registers(io.fromIDU.bits.readAddr2(registerAddrWidth - 1, 0))
   )
 
   io.toIDU.valid := true.B
