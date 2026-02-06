@@ -109,16 +109,10 @@ void perf_counter_stat(core_symbol_t *cpu_symbol) {
   double ifu_icache_amp =
       (double)ifu_icache_tmt_counter / (double)ifu_icache_miss_counter;
 
-  uint32_t idu_branch_inst_cycle_count =
-      cpu_symbol->idu->branchInstCycleCounter;
   uint32_t idu_branch_inst_count = cpu_symbol->idu->branchInstCounter;
-  uint32_t idu_jump_inst_cycle_count = cpu_symbol->idu->jumpInstCycleCounter;
   uint32_t idu_jump_inst_count = cpu_symbol->idu->jumpInstCounter;
-  uint32_t idu_load_inst_cycle_count = cpu_symbol->idu->loadInstCycleCounter;
   uint32_t idu_load_inst_count = cpu_symbol->idu->loadInstCounter;
-  uint32_t idu_store_inst_cycle_count = cpu_symbol->idu->storeInstCycleCounter;
   uint32_t idu_store_inst_count = cpu_symbol->idu->storeInstCounter;
-  uint32_t idu_arith_inst_cycle_count = cpu_symbol->idu->arithInstCycleCounter;
   uint32_t idu_arith_inst_count = cpu_symbol->idu->arithInstCounter;
 
   uint32_t exu_arith_done_count = cpu_symbol->exu->arithmeticDoneCounter;
@@ -149,19 +143,27 @@ void perf_counter_stat(core_symbol_t *cpu_symbol) {
                   {"Cache AMAT", ifu_icache_amat},
                   {"Cache AMP", ifu_icache_amp}};
 
-  auto idu_table = toml::table{
-      {"Jump Inst",
-       perf_branch_table(idu_jump_inst_count, idu_jump_inst_cycle_count)},
-      {"Branch Inst",
-       perf_branch_table(idu_branch_inst_count, idu_branch_inst_cycle_count)},
-      {"Load Inst",
-       perf_branch_table(idu_load_inst_count, idu_load_inst_cycle_count)},
-      {"Store Inst",
-       perf_branch_table(idu_store_inst_count, idu_store_inst_cycle_count)},
-      {"Arithmetic Inst",
-       perf_branch_table(idu_arith_inst_count, idu_arith_inst_cycle_count)}};
+  auto idu_table =
+      toml::table{{"Jump Inst Count", idu_jump_inst_count},
+                  {"Jump Inst Percentage",
+                   (double)idu_jump_inst_count / (double)cpu.iCount * 100.0},
+                  {"Branch Inst Count", idu_branch_inst_count},
+                  {"Branch Inst Percentage",
+                   (double)idu_branch_inst_count / (double)cpu.iCount * 100.0},
+                  {"Load Inst Count", idu_load_inst_count},
+                  {"Load Inst Percentage",
+                   (double)idu_load_inst_count / (double)cpu.iCount * 100.0},
+                  {"Store Inst Count", idu_store_inst_count},
+                  {"Store Inst Percentage",
+                   (double)idu_store_inst_count / (double)cpu.iCount * 100.0},
+                  {"Arithmetic Inst Count", idu_arith_inst_count},
+                  {"Arithmetic Inst Percentage",
+                   (double)idu_arith_inst_count / (double)cpu.iCount * 100.0}};
 
-  auto exu_table = toml::table{{"arithmeticDoneCounter", exu_arith_done_count}};
+  auto exu_table = toml::table{
+      {"arithmeticDoneCounter", exu_arith_done_count},
+      {"Memory Stall",
+       perf_stall_table(exu_memory_done_count, exu_memory_stall_cycle_count)}};
 
   auto lsu_table =
       toml::table{{"loadDataValidCounter", lsu_load_valid_count},

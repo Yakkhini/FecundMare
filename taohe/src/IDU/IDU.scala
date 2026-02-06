@@ -138,27 +138,22 @@ class IDU extends Module {
       (decodeResult(InstTypeField) === InstType.I.asUInt ||
         decodeResult(InstTypeField) === InstType.R.asUInt)
 
-  val jumpInstCycleCounter = PerformanceCounter(isJumpInst, 32)
   val jumpInstCounter = PerformanceCounter(
     io.toEXU.fire && isJumpInst,
     32
   )
-  val branchInstCycleCounter = PerformanceCounter(isBranchInst, 32)
   val branchInstCounter = PerformanceCounter(
     io.toEXU.fire && isBranchInst,
     32
   )
-  val loadInstCycleCounter = PerformanceCounter(isLoadInst, 32)
   val loadInstCounter = PerformanceCounter(
     io.toEXU.fire && isLoadInst,
     32
   )
-  val storeInstCycleCounter = PerformanceCounter(isStoreInst, 32)
   val storeInstCounter = PerformanceCounter(
     io.toEXU.fire && isStoreInst,
     32
   )
-  val arithInstCycleCounter = PerformanceCounter(isArithInst, 32)
   val arithInstCounter = PerformanceCounter(
     io.toEXU.fire && isArithInst,
     32
