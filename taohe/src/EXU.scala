@@ -166,6 +166,14 @@ class EXU extends Module {
       iduSkidBuffer.registerWriteType === RegWriteDataType.RESULT.asUInt,
     32
   )
+  val memoryDoneCounter = PerformanceCounter(
+    exuState === EXUState.sLS && lsDone,
+    32
+  )
+  val memoryStallCycleCounter = PerformanceCounter(
+    exuState === EXUState.sLS,
+    32
+  )
 
   switch(exuState) {
     is(EXUState.sInit) {

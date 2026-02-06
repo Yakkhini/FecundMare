@@ -83,6 +83,15 @@ class IFU extends Module {
   val fetchWaitingCycleCounter =
     PerformanceCounter(!io.fromICache.valid, 32)
 
+  val controlFlowInstCounter = PerformanceCounter(
+    stall && !normalNextPC && io.fromICache.valid && io.toIDU.fire,
+    32
+  )
+  val controlFlowStallCycleCounter = PerformanceCounter(
+    state =/= IFUState.sWork,
+    32
+  )
+
   switch(state) {
     is(IFUState.sWork) {
       when(stall && !normalNextPC && io.fromICache.valid && io.toIDU.fire) {

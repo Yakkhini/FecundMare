@@ -81,19 +81,17 @@ void perf_end_timer() {
   running_time.usec += usec_diff;
 }
 
-toml::table perf_branch_table(uint32_t inst_count, uint32_t inst_cycle_count) {
+toml::table perf_stall_table(uint32_t event_count, uint32_t cycle_count) {
   toml::table table;
 
-  double average_cycle = (double)inst_cycle_count / (double)inst_count;
-  double inst_persentage = (double)inst_count / (double)cpu.iCount * 100.0;
-  double cycle_persentage =
-      (double)inst_cycle_count / (double)cpu.total_cycle * 100.0;
+  double average_penalty = (double)cycle_count / (double)event_count;
+  double cycle_percentage =
+      (double)cycle_count / (double)cpu.total_cycle * 100.0;
 
-  table.insert_or_assign("Average Cycle per Inst", average_cycle);
-  table.insert_or_assign("Inst Count", inst_count);
-  table.insert_or_assign("Inst Percentage", inst_persentage);
-  table.insert_or_assign("Cycle Count", inst_cycle_count);
-  table.insert_or_assign("Cycle Percentage", cycle_persentage);
+  table.insert_or_assign("Event Count", event_count);
+  table.insert_or_assign("Cycle Count", cycle_count);
+  table.insert_or_assign("Cycle Percentage", cycle_percentage);
+  table.insert_or_assign("Average Penalty", average_penalty);
 
   return table;
 }
@@ -101,6 +99,10 @@ toml::table perf_branch_table(uint32_t inst_count, uint32_t inst_cycle_count) {
 void perf_counter_stat(core_symbol_t *cpu_symbol) {
   uint32_t ifu_fetch_inst_count = cpu_symbol->ifu->fetchInstNumCounter;
   uint32_t ifu_fetch_waiting_cycle = cpu_symbol->ifu->fetchWaitingCycleCounter;
+  uint32_t ifu_control_flow_inst_count =
+      cpu_symbol->ifu->controlFlowInstCounter;
+  uint32_t ifu_control_flow_stall_cycle_count =
+      cpu_symbol->ifu->controlFlowStallCycleCounter;
   uint32_t ifu_icache_hit_counter = cpu_symbol->iCache->iCacheHitCounter;
   uint32_t ifu_icache_miss_counter = cpu_symbol->iCache->iCacheMissCounter;
   uint32_t ifu_icache_tmt_counter = cpu_symbol->iCache->iCacheTMTCounter;
@@ -116,6 +118,9 @@ void perf_counter_stat(core_symbol_t *cpu_symbol) {
   uint32_t idu_arith_inst_count = cpu_symbol->idu->arithInstCounter;
 
   uint32_t exu_arith_done_count = cpu_symbol->exu->arithmeticDoneCounter;
+  uint32_t exu_memory_done_count = cpu_symbol->exu->memoryDoneCounter;
+  uint32_t exu_memory_stall_cycle_count =
+      cpu_symbol->exu->memoryStallCycleCounter;
 
   uint32_t lsu_load_valid_count = cpu_symbol->lsu->loadDataValidCounter;
   uint32_t lsu_load_waiting_cycle = cpu_symbol->lsu->loadWaitingCycleCounter;
@@ -137,6 +142,9 @@ void perf_counter_stat(core_symbol_t *cpu_symbol) {
   auto ifu_table =
       toml::table{{"fetchInstNumCounter", ifu_fetch_inst_count},
                   {"fetchWaitingCycleCounter", ifu_fetch_waiting_cycle},
+                  {"Control Hazard Stall",
+                   perf_stall_table(ifu_control_flow_inst_count,
+                                    ifu_control_flow_stall_cycle_count)},
                   {"Cache Hit", ifu_icache_hit_counter},
                   {"Cache Miss", ifu_icache_miss_counter},
                   {"Cache TMT", ifu_icache_tmt_counter},
