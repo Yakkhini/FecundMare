@@ -4,7 +4,7 @@ import chisel3._
 import chisel3.util.{switch, is}
 
 import taohe.util.AXI4Bundle
-import taohe.util.PerformanceCounter
+import taohe.util.PreSiliconPerformanceCounter
 
 object AXIArbiterState extends ChiselEnum {
   val sIdle, sIFU, sLSU = Value
@@ -77,8 +77,12 @@ class AXIArbiter extends Module {
     state === AXIArbiterState.sIFU && io.instructionFetch.r.ready && !io.instructionFetch.r.fire
   val ifuArbiterWaiting =
     state =/= AXIArbiterState.sIFU && io.instructionFetch.r.ready
-  val ifuAXIWaitingCycleCounter = PerformanceCounter(ifuAXIWaiting, 32)
-  val ifuArbiterWaitingCycleCounter = PerformanceCounter(ifuArbiterWaiting, 32)
+  PreSiliconPerformanceCounter("ifuAXIWaitingCycleCounter", ifuAXIWaiting, 32)
+  PreSiliconPerformanceCounter(
+    "ifuArbiterWaitingCycleCounter",
+    ifuArbiterWaiting,
+    32
+  )
 
   val lsuAXILoadWaiting =
     !ifuDrive && io.loadStore.r.ready && !io.loadStore.r.fire
@@ -86,13 +90,26 @@ class AXIArbiter extends Module {
     !ifuDrive && io.loadStore.b.ready && !io.loadStore.b.fire
   val lsuArbiterLoadWaiting = ifuDrive && io.loadStore.r.ready
   val lsuArbiterStoreWaiting = ifuDrive && io.loadStore.b.ready
-  val lsuAXILoadWaitingCycleCounter = PerformanceCounter(lsuAXILoadWaiting, 32)
-  val lsuAXIStoreWaitingCycleCounter =
-    PerformanceCounter(lsuAXIStoreWaiting, 32)
-  val lsuArbiterLoadWaitingCycleCounter =
-    PerformanceCounter(lsuArbiterLoadWaiting, 32)
-  val lsuArbiterStoreWaitingCycleCounter =
-    PerformanceCounter(lsuArbiterStoreWaiting, 32)
+  PreSiliconPerformanceCounter(
+    "lsuAXILoadWaitingCycleCounter",
+    lsuAXILoadWaiting,
+    32
+  )
+  PreSiliconPerformanceCounter(
+    "lsuAXIStoreWaitingCycleCounter",
+    lsuAXIStoreWaiting,
+    32
+  )
+  PreSiliconPerformanceCounter(
+    "lsuArbiterLoadWaitingCycleCounter",
+    lsuArbiterLoadWaiting,
+    32
+  )
+  PreSiliconPerformanceCounter(
+    "lsuArbiterStoreWaitingCycleCounter",
+    lsuArbiterStoreWaiting,
+    32
+  )
 
   switch(state) {
     is(AXIArbiterState.sIdle) {

@@ -6,7 +6,7 @@ import chisel3.util.{switch, is}
 
 import taohe.util.EXUBundle
 import taohe.util.enum._
-import taohe.util.PerformanceCounter
+import taohe.util.PreSiliconPerformanceCounter
 
 import chisel3.util.Fill
 
@@ -160,17 +160,20 @@ class EXU extends Module {
   )
 
   // Performance Counter
-  val arithmeticDoneCounter = PerformanceCounter(
+  PreSiliconPerformanceCounter(
+    "arithmeticDoneCounter",
     io.toRegisterFile.valid &&
       io.toRegisterFile.bits.writeEnable &&
       iduSkidBuffer.registerWriteType === RegWriteDataType.RESULT.asUInt,
     32
   )
-  val memoryDoneCounter = PerformanceCounter(
+  PreSiliconPerformanceCounter(
+    "memoryDoneCounter",
     exuState === EXUState.sLS && lsDone,
     32
   )
-  val memoryStallCycleCounter = PerformanceCounter(
+  PreSiliconPerformanceCounter(
+    "memoryStallCycleCounter",
     exuState === EXUState.sLS,
     32
   )

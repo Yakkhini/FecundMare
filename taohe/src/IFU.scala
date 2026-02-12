@@ -4,7 +4,7 @@ import chisel3._
 import chisel3.util.{switch, is}
 
 import taohe.util.IFUBundle
-import taohe.util.PerformanceCounter
+import taohe.util.PreSiliconPerformanceCounter
 
 object IFUState extends ChiselEnum {
   /*
@@ -79,15 +79,20 @@ class IFU extends Module {
   stall := state =/= IFUState.sWork || !io.fromICache.valid || (!normalNextPC && !useEXUNextPC)
 
   // Performance Counter
-  val fetchInstNumCounter = PerformanceCounter(io.fromICache.fire, 32)
-  val fetchWaitingCycleCounter =
-    PerformanceCounter(!io.fromICache.valid, 32)
+  PreSiliconPerformanceCounter("fetchInstNumCounter", io.fromICache.fire, 32)
+  PreSiliconPerformanceCounter(
+    "fetchWaitingCycleCounter",
+    !io.fromICache.valid,
+    32
+  )
 
-  val controlFlowInstCounter = PerformanceCounter(
+  PreSiliconPerformanceCounter(
+    "controlFlowInstCounter",
     stall && !normalNextPC && io.fromICache.valid && io.toIDU.fire,
     32
   )
-  val controlFlowStallCycleCounter = PerformanceCounter(
+  PreSiliconPerformanceCounter(
+    "controlFlowStallCycleCounter",
     state =/= IFUState.sWork,
     32
   )

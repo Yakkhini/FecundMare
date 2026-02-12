@@ -7,7 +7,7 @@ import chisel3.util.{switch, is}
 
 import taohe.util.enum._
 import taohe.util.IDUBundle
-import taohe.util.PerformanceCounter
+import taohe.util.PreSiliconPerformanceCounter
 
 object IDUState extends ChiselEnum {
   val sWork, sSend, sWait = Value
@@ -138,23 +138,28 @@ class IDU extends Module {
       (decodeResult(InstTypeField) === InstType.I.asUInt ||
         decodeResult(InstTypeField) === InstType.R.asUInt)
 
-  val jumpInstCounter = PerformanceCounter(
+  PreSiliconPerformanceCounter(
+    "jumpInstCounter",
     io.toEXU.fire && isJumpInst,
     32
   )
-  val branchInstCounter = PerformanceCounter(
+  PreSiliconPerformanceCounter(
+    "branchInstCounter",
     io.toEXU.fire && isBranchInst,
     32
   )
-  val loadInstCounter = PerformanceCounter(
+  PreSiliconPerformanceCounter(
+    "loadInstCounter",
     io.toEXU.fire && isLoadInst,
     32
   )
-  val storeInstCounter = PerformanceCounter(
+  PreSiliconPerformanceCounter(
+    "storeInstCounter",
     io.toEXU.fire && isStoreInst,
     32
   )
-  val arithInstCounter = PerformanceCounter(
+  PreSiliconPerformanceCounter(
+    "arithInstCounter",
     io.toEXU.fire && isArithInst,
     32
   )

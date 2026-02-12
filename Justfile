@@ -33,6 +33,7 @@ _compile target:
     -O3 --x-assign fast --x-initial fast --noassert \
     --autoflush \
     -Wno-UNUSEDSIGNAL -Wno-DECLFILENAME -Wno-UNOPTFLAT \
+    -Dlayer\$PerformanceCounterLayer \
     `echo $VLTRC` `echo $CSRC` `echo $VSRC` `echo $PERIP_SRC` $YSYX_SOC_HOME/build/ysyxSoCFull {{NVBOARD_ARCHIVE}} \
     -I{{PERIP_DIR}}/uart16550/rtl -I{{PERIP_DIR}}/spi/rtl \
     -I{{BUILD_DIR}}/verilog/verification \

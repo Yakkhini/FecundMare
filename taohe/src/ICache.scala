@@ -10,7 +10,7 @@ import chisel3.layer.elideBlocks
 
 import taohe.util.ICacheBundle
 import taohe.util.enum.MemSize
-import taohe.util.PerformanceCounter
+import taohe.util.PreSiliconPerformanceCounter
 
 object ICacheState extends ChiselEnum {
   /*
@@ -147,17 +147,20 @@ class ICache(indexWidth: Int, offsetWidth: Int) extends Module {
   io.axi4.b.ready := false.B
 
   // Performance Counter
-  val iCacheHitCounter = PerformanceCounter(
+  PreSiliconPerformanceCounter(
+    "iCacheHitCounter",
     io.fromIFU.fire && readValid && (readTag === io.fromIFU.bits
       .pc(31, 32 - tagWidth)),
     32
   )
-  val iCacheMissCounter = PerformanceCounter(
+  PreSiliconPerformanceCounter(
+    "iCacheMissCounter",
     io.fromIFU.fire && !(readValid && (readTag === io.fromIFU.bits
       .pc(31, 32 - tagWidth))),
     32
   )
-  val iCacheTMTCounter = PerformanceCounter(
+  PreSiliconPerformanceCounter(
+    "iCacheTMTCounter",
     state === ICacheState.sRequest || state === ICacheState.sFetch,
     32
   )

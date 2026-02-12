@@ -90,7 +90,7 @@ object Main extends App {
     args = Array("--target-dir", "out/sta"),
     firtoolOpts = Array(
       "--lowering-options=disallowLocalVariables,disallowExpressionInliningInPorts",
-      "-disable-layers=Verification"
+      "-disable-layers=Verification,PerformanceCounterLayer"
     )
   )
 
