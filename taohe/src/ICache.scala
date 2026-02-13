@@ -21,17 +21,16 @@ object ICacheState extends ChiselEnum {
    * 2. Request State: When hit miss, send request
    * to memory via AXI4 interface in burst read.
    * 3. Fetch State: After AR channel fire, waiting
-   * respond from bus.
-   * 4. Write Back State: Write back fetched cache line.
+   * respond from bus and write back to cache line.
    *
    * Cache Hit FSM:
    * Work State -> Work State
    *
    * Cache Miss FSM:
-   * Work State -> Request State -> Fetch State -> Write Back State -> Work State
+   * Work State -> Request State -> Fetch State -> Work State
    *
    * */
-  val sWork, sRequest, sFetch, sWB = Value
+  val sWork, sRequest, sFetch = Value
 }
 
 /*
@@ -95,14 +94,17 @@ class ICache(indexWidth: Int, offsetWidth: Int) extends Module {
     0.U
   )
 
-  val memoryReadData = RegInit(
-    VecInit(Seq.fill(math.pow(2, offsetWidth - 2).toInt)(0.U(32.W)))
+  val memoryReadData = Wire(
+    Vec(math.pow(2, offsetWidth - 2).toInt, UInt(32.W))
   )
-  memoryReadData(readCount) := Mux(
-    io.axi4.r.fire,
-    io.axi4.r.bits.data,
-    memoryReadData(readCount)
-  )
+
+  for (i <- 0 until math.pow(2, offsetWidth - 2).toInt) {
+    memoryReadData(i) := Mux(
+      i.U === readCount,
+      io.axi4.r.bits.data,
+      cacheReadData(i)
+    )
+  }
 
   // Send
   val offset = {
@@ -127,8 +129,12 @@ class ICache(indexWidth: Int, offsetWidth: Int) extends Module {
       Mux(receiveFENCEIInstruction, 0.U(cachelineWidth.W), cache(i))
 
     cache(i) := Mux(
-      !cacheHit && state === ICacheState.sWB && i.U === index && !receiveFENCEIInstruction,
-      Cat(1.U(1.W), pcBuffer(31, 32 - tagWidth), memoryReadData.asUInt),
+      !cacheHit && state === ICacheState.sFetch && io.axi4.r.fire && i.U === index && !receiveFENCEIInstruction,
+      Cat(
+        io.axi4.r.bits.last.asBool,
+        pcBuffer(31, 32 - tagWidth),
+        memoryReadData.asUInt
+      ),
       cacheLineFreshData
     )
   }
@@ -183,11 +189,8 @@ class ICache(indexWidth: Int, offsetWidth: Int) extends Module {
           .toInt
           .U - 1.U)
       ) {
-        state := ICacheState.sWB
+        state := ICacheState.sWork
       }
-    }
-    is(ICacheState.sWB) {
-      state := ICacheState.sWork
     }
   }
 
