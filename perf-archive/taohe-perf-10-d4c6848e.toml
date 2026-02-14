@@ -1,0 +1,69 @@
+[TaoHe]
+CPI = 7.691737669500557
+IPC = 0.1300096340993559
+'Total Cycle' = 1557411798
+'Total Instructions' = 202478538
+'area(um^2)' = 24900.400000000001
+commit = 'd4c6848e'
+'freq(MHz)' = 584.13
+message = '''[icache] config 2 bit index 4 bit offset to optimize area
+
+Micro-Sim Cache Miss Rate Data:
+
+4 bit index 4 bit offset: 1.86%
+3 bit index 3 bit offset: 16.86%
+2 bit index 4 bit offset: 9.88%
+4 bit index 2 bit offset: 30.07%
+3 bit index 2 bit offset: 39.94%
+2 bit index 3 bit offset: 22.65%
+2 bit index 2 bit offset: 83.59%'''
+time = '2026-02-14 11:20:39'
+
+    [TaoHe.'AXI Arbiter']
+    ifuAXIWaitingCycleCounter = 644132640
+    ifuArbiterWaitingCycleCounter = 0
+    lsuAXILoadWaitingCycleCounter = 232817934
+    lsuAXIStoreWaitingCycleCounter = 234250426
+    lsuArbiterLoadWaitingCycleCounter = 1719217
+    lsuArbiterStoreWaitingCycleCounter = 0
+
+    [TaoHe.EXU]
+    arithmeticDoneCounter = 552593983
+
+        [TaoHe.EXU.'Memory Stall']
+        'Average Penalty' = 17.246155605147568
+        'Cycle Count' = 468657863
+        'Cycle Percentage' = 30.092096618366572
+        'Event Count' = 27174628
+
+    [TaoHe.IDU]
+    'Arithmetic Inst Count' = 115983670
+    'Arithmetic Inst Percentage' = 57.281957458622109
+    'Branch Inst Count' = 52820421
+    'Branch Inst Percentage' = 26.086923345920248
+    'Jump Inst Count' = 4055126
+    'Jump Inst Percentage' = 2.0027436191780481
+    'Load Inst Count' = 18020859
+    'Load Inst Percentage' = 8.9001329118644676
+    'Store Inst Count' = 9153769
+    'Store Inst Percentage' = 4.5208588971538308
+
+    [TaoHe.IFU]
+    'Cache AMAT' = 4.2044200457433174
+    'Cache AMP' = 52.910824257911209
+    'Cache Hit' = 186769536
+    'Cache Miss' = 15709003
+    'Cache TMT' = 831176297
+    fetchInstNumCounter = 202478538
+    fetchWaitingCycleCounter = 851304824
+
+        [TaoHe.IFU.'Control Hazard Stall']
+        'Average Penalty' = 4.9283967690298125
+        'Cycle Count' = 280305267
+        'Cycle Percentage' = 17.998147141299619
+        'Event Count' = 56875548
+
+    [TaoHe.LSU]
+    loadDataValidCounter = 18020813
+    loadWaitingCycleCounter = 234537151
+    storeWaitingCycleCounter = 234250426
