@@ -139,17 +139,19 @@ void perf_counter_stat(core_symbol_t *cpu_symbol) {
   uint32_t arbiter_lsu_arbiter_store_waiting_cycle =
       cpu_symbol->axiArbiter->lsuArbiterStoreWaitingCycleCounter;
 
-  auto ifu_table =
-      toml::table{{"fetchInstNumCounter", ifu_fetch_inst_count},
-                  {"fetchWaitingCycleCounter", ifu_fetch_waiting_cycle},
-                  {"Control Hazard Stall",
-                   perf_stall_table(ifu_control_flow_inst_count,
-                                    ifu_control_flow_stall_cycle_count)},
-                  {"Cache Hit", ifu_icache_hit_counter},
-                  {"Cache Miss", ifu_icache_miss_counter},
-                  {"Cache TMT", ifu_icache_tmt_counter},
-                  {"Cache AMAT", ifu_icache_amat},
-                  {"Cache AMP", ifu_icache_amp}};
+  auto ifu_table = toml::table{
+      {"fetchInstNumCounter", ifu_fetch_inst_count},
+      {"fetchWaitingCycleCounter", ifu_fetch_waiting_cycle},
+      {"Control Hazard Stall",
+       perf_stall_table(ifu_control_flow_inst_count,
+                        ifu_control_flow_stall_cycle_count)},
+      {"Cache Hit", ifu_icache_hit_counter},
+      {"Cache Miss", ifu_icache_miss_counter},
+      {"Cache TMT", ifu_icache_tmt_counter},
+      {"Cache AMAT", ifu_icache_amat},
+      {"Cache AMP", ifu_icache_amp},
+      {"Cache Wait Cycle Percentage",
+       (double)ifu_fetch_waiting_cycle / (double)cpu.total_cycle * 100.0}};
 
   auto idu_table =
       toml::table{{"Jump Inst Count", idu_jump_inst_count},
