@@ -21,21 +21,19 @@ class IDU extends Module {
   val pc = RegInit(0.U(32.W))
   val inst = RegInit(0.U(32.W))
 
-  val stall = !io.fromIFU.valid
-
   pc := Mux(io.fromIFU.fire, io.fromIFU.bits.currentPC, pc)
   inst := Mux(io.fromIFU.fire, io.fromIFU.bits.inst, inst)
 
-  io.fromIFU.ready := (!stall && io.toEXU.fire) || state === IDUState.sWait
-  io.toEXU.valid := (!stall && state === IDUState.sWork) || state === IDUState.sSend
+  io.fromIFU.ready := (state === IDUState.sWork && io.toEXU.fire) || state === IDUState.sWait
+  io.toEXU.valid := state === IDUState.sWork || state === IDUState.sSend
 
   io.toRegisterFile.valid := true.B
   io.fromRegisterFile.ready := true.B
 
   switch(state) {
     is(IDUState.sWork) {
-      when(stall) {
-        state := IDUState.sSend
+      when(!io.fromIFU.fire) {
+        state := Mux(io.toEXU.fire, IDUState.sWait, IDUState.sSend)
       }
     }
     is(IDUState.sSend) {
