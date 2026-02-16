@@ -1,0 +1,60 @@
+[TaoHe]
+CPI = 7.4764802441037856
+IPC = 0.13375277769089741
+'Total Cycle' = 1513831148
+'Total Instructions' = 202479121
+'area(um^2)' = 24797.639999999999
+commit = '92b41ba1'
+'freq(MHz)' = 629.28399999999999
+message = '[idu, exu] mux operands in IDU to optimize data type registers area in EXU'
+time = '2026-02-16 16:43:34'
+
+    [TaoHe.'AXI Arbiter']
+    ifuAXIWaitingCycleCounter = 644136096
+    ifuArbiterWaitingCycleCounter = 0
+    lsuAXILoadWaitingCycleCounter = 232818697
+    lsuAXIStoreWaitingCycleCounter = 234251242
+    lsuArbiterLoadWaitingCycleCounter = 1719219
+    lsuArbiterStoreWaitingCycleCounter = 0
+
+    [TaoHe.EXU]
+    arithmeticDoneCounter = 514390186
+
+        [TaoHe.EXU.'Memory Stall']
+        'Average Penalty' = 17.31466871199305
+        'Cycle Count' = 470522642
+        'Cycle Percentage' = 31.081580176338136
+        'Event Count' = 27174799
+
+    [TaoHe.IDU]
+    'Arithmetic Inst Count' = 115983852
+    'Arithmetic Inst Percentage' = 57.281882411964837
+    'Branch Inst Count' = 52820620
+    'Branch Inst Percentage' = 26.086946515339722
+    'Jump Inst Count' = 4055156
+    'Jump Inst Percentage' = 2.0027526690023509
+    'Load Inst Count' = 18020990
+    'Load Inst Percentage' = 8.9001719836585025
+    'Store Inst Count' = 9153809
+    'Store Inst Percentage' = 4.5208656353264196
+
+    [TaoHe.IFU]
+    'Cache AMAT' = 4.1908949417061132
+    'Cache AMP' = 52.736441950738879
+    'Cache Hit' = 186770059
+    'Cache Miss' = 15709063
+    'Cache TMT' = 828440089
+    'Cache Wait Cycle Percentage' = 56.05438394639242
+    fetchInstNumCounter = 202479121
+    fetchWaitingCycleCounter = 848568724
+
+        [TaoHe.IFU.'Control Hazard Stall']
+        'Average Penalty' = 3.9803534112597707
+        'Cycle Count' = 226385693
+        'Cycle Percentage' = 14.954487711465692
+        'Event Count' = 56875777
+
+    [TaoHe.LSU]
+    loadDataValidCounter = 18020944
+    loadWaitingCycleCounter = 234537916
+    storeWaitingCycleCounter = 234251242
