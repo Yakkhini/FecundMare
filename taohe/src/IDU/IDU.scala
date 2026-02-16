@@ -54,12 +54,12 @@ class IDU extends Module {
 
   io.toEXU.bits.currentPC := pc
 
-  val imm_i = inst(31) ## Fill(20, inst(31)) ## inst(30, 20)
-  val imm_s = inst(31) ## Fill(20, inst(31)) ## inst(30, 25) ## inst(11, 7)
-  val imm_b = inst(31) ## Fill(19, inst(31)) ## inst(7) ##
+  val immI = inst(31) ## Fill(20, inst(31)) ## inst(30, 20)
+  val immS = inst(31) ## Fill(20, inst(31)) ## inst(30, 25) ## inst(11, 7)
+  val immB = inst(31) ## Fill(19, inst(31)) ## inst(7) ##
     inst(30, 25) ## inst(11, 8) ## 0.U(1.W)
-  val imm_u = inst(31, 12) ## 0.U(12.W)
-  val imm_j = inst(31) ## Fill(11, inst(31)) ## inst(19, 12) ## inst(
+  val immU = inst(31, 12) ## 0.U(12.W)
+  val immJ = inst(31) ## Fill(11, inst(31)) ## inst(19, 12) ## inst(
     20
   ) ## inst(30, 21) ## 0.U(1.W)
 
@@ -67,11 +67,11 @@ class IDU extends Module {
 
   io.toEXU.bits.imm := MuxLookup(immType, 0.U)(
     Seq(
-      ImmType.I.asUInt -> imm_i,
-      ImmType.S.asUInt -> imm_s,
-      ImmType.B.asUInt -> imm_b,
-      ImmType.U.asUInt -> imm_u,
-      ImmType.J.asUInt -> imm_j
+      ImmType.I.asUInt -> immI,
+      ImmType.S.asUInt -> immS,
+      ImmType.B.asUInt -> immB,
+      ImmType.U.asUInt -> immU,
+      ImmType.J.asUInt -> immJ
     )
   )
 
