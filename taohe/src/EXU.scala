@@ -24,7 +24,7 @@ class EXU extends Module {
   iduSkidBuffer := Mux(io.fromIDU.fire, io.fromIDU.bits, iduSkidBuffer)
 
   val clint = Module(new CLINT())
-  clint.io.mmioAddress := iduSkidBuffer.registerReadData1 + iduSkidBuffer.imm
+  clint.io.mmioAddress := iduSkidBuffer.data1 + iduSkidBuffer.imm
   clint.io.readEnable := iduSkidBuffer.lsuReadEnable
 
   val difftestSkip = iduSkidBuffer.lsuReadEnable && clint.io.clintChosen
@@ -54,27 +54,13 @@ class EXU extends Module {
   io.toCSR.bits.address := iduSkidBuffer.csrAddress
   io.toCSR.bits.currentPC := iduSkidBuffer.currentPC
   io.toCSR.bits.operation := iduSkidBuffer.csrOperation
-  io.toCSR.bits.rs1data := iduSkidBuffer.registerReadData1
+  io.toCSR.bits.rs1data := iduSkidBuffer.data1
 
-  io.toLSU.bits.address := iduSkidBuffer.registerReadData1 + iduSkidBuffer.imm
+  io.toLSU.bits.address := iduSkidBuffer.data1 + iduSkidBuffer.imm
   io.toLSU.bits.length := iduSkidBuffer.lsuLength
-  io.toLSU.bits.writeData := iduSkidBuffer.registerReadData2
+  io.toLSU.bits.writeData := iduSkidBuffer.data2
   io.toLSU.bits.writeEnable := iduSkidBuffer.lsuWriteEnable
   io.toLSU.bits.readEnable := iduSkidBuffer.lsuReadEnable && !clint.io.clintChosen
-
-  val data1 = MuxLookup(iduSkidBuffer.data1Type, 0.U(32.W))(
-    Seq(
-      Data1Type.RS1.asUInt -> iduSkidBuffer.registerReadData1,
-      Data1Type.PC.asUInt -> iduSkidBuffer.currentPC
-    )
-  )
-
-  val data2 = MuxLookup(iduSkidBuffer.data2Type, 0.U(32.W))(
-    Seq(
-      Data2Type.RS2.asUInt -> iduSkidBuffer.registerReadData2,
-      Data2Type.IMM.asUInt -> iduSkidBuffer.imm
-    )
-  )
 
   val lsuReadData = MuxLookup(iduSkidBuffer.lsuLength, 0.U(32.W))(
     Seq(
@@ -92,27 +78,30 @@ class EXU extends Module {
 
   val result = MuxLookup(iduSkidBuffer.aluOp, 0.U(32.W))(
     Seq(
-      ALUOpType.ADD.asUInt -> (data1 + data2),
-      ALUOpType.SUB.asUInt -> (data1 - data2),
-      ALUOpType.AND.asUInt -> (data1 & data2),
-      ALUOpType.OR.asUInt -> (data1 | data2),
-      ALUOpType.XOR.asUInt -> (data1 ^ data2),
-      ALUOpType.SLL.asUInt -> (data1 << data2(4, 0)),
-      ALUOpType.SRL.asUInt -> (data1 >> data2(4, 0)),
-      ALUOpType.SRA.asUInt -> (data1.asSInt >> data2(4, 0)).asUInt,
-      ALUOpType.SLT.asUInt -> (data1.asSInt < data2.asSInt).asUInt,
-      ALUOpType.SLTU.asUInt -> (data1 < data2).asUInt
+      ALUOpType.ADD.asUInt -> (iduSkidBuffer.data1 + iduSkidBuffer.data2),
+      ALUOpType.SUB.asUInt -> (iduSkidBuffer.data1 - iduSkidBuffer.data2),
+      ALUOpType.AND.asUInt -> (iduSkidBuffer.data1 & iduSkidBuffer.data2),
+      ALUOpType.OR.asUInt -> (iduSkidBuffer.data1 | iduSkidBuffer.data2),
+      ALUOpType.XOR.asUInt -> (iduSkidBuffer.data1 ^ iduSkidBuffer.data2),
+      ALUOpType.SLL.asUInt -> (iduSkidBuffer.data1 << iduSkidBuffer
+        .data2(4, 0)),
+      ALUOpType.SRL.asUInt -> (iduSkidBuffer.data1 >> iduSkidBuffer
+        .data2(4, 0)),
+      ALUOpType.SRA.asUInt -> (iduSkidBuffer.data1.asSInt >> iduSkidBuffer
+        .data2(4, 0)).asUInt,
+      ALUOpType.SLT.asUInt -> (iduSkidBuffer.data1.asSInt < iduSkidBuffer.data2.asSInt).asUInt,
+      ALUOpType.SLTU.asUInt -> (iduSkidBuffer.data1 < iduSkidBuffer.data2).asUInt
     )
   )
 
   val compareCheck = MuxLookup(iduSkidBuffer.compareOp, false.B)(
     Seq(
-      CompareOpType.EQ.asUInt -> (data1 === data2),
-      CompareOpType.NE.asUInt -> (data1 =/= data2),
-      CompareOpType.LT.asUInt -> (data1.asSInt < data2.asSInt),
-      CompareOpType.GE.asUInt -> (data1.asSInt >= data2.asSInt),
-      CompareOpType.LTU.asUInt -> (data1 < data2),
-      CompareOpType.GEU.asUInt -> (data1 >= data2)
+      CompareOpType.EQ.asUInt -> (iduSkidBuffer.data1 === iduSkidBuffer.data2),
+      CompareOpType.NE.asUInt -> (iduSkidBuffer.data1 =/= iduSkidBuffer.data2),
+      CompareOpType.LT.asUInt -> (iduSkidBuffer.data1.asSInt < iduSkidBuffer.data2.asSInt),
+      CompareOpType.GE.asUInt -> (iduSkidBuffer.data1.asSInt >= iduSkidBuffer.data2.asSInt),
+      CompareOpType.LTU.asUInt -> (iduSkidBuffer.data1 < iduSkidBuffer.data2),
+      CompareOpType.GEU.asUInt -> (iduSkidBuffer.data1 >= iduSkidBuffer.data2)
     )
   )
 
@@ -199,5 +188,5 @@ class EXU extends Module {
   val haltUnit = Module(new HaltUnit())
   haltUnit.io.reset := reset
   haltUnit.io.breakSignal := iduSkidBuffer.break
-  haltUnit.io.code := data1
+  haltUnit.io.code := iduSkidBuffer.data1
 }

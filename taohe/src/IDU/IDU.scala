@@ -95,13 +95,29 @@ class IDU extends Module {
   )
   io.toRegisterFile.bits.readAddr2 := inst(24, 20)
 
-  io.toEXU.bits.registerReadData1 := io.fromRegisterFile.bits.readData1
-  io.toEXU.bits.registerReadData2 := io.fromRegisterFile.bits.readData2
+  io.toEXU.bits.data1 := MuxLookup(
+    decodeResult(Data1Field),
+    0.U
+  )(
+    Seq(
+      Data1Type.PC.asUInt -> pc,
+      Data1Type.RS1.asUInt -> io.fromRegisterFile.bits.readData1
+    )
+  )
+
+  io.toEXU.bits.data2 := MuxLookup(
+    decodeResult(Data2Field),
+    0.U
+  )(
+    Seq(
+      Data2Type.IMM.asUInt -> io.toEXU.bits.imm,
+      Data2Type.RS2.asUInt -> io.fromRegisterFile.bits.readData2
+    )
+  )
+
   io.toEXU.bits.registerWriteAddr := inst(11, 7)
 
   io.toEXU.bits.instructionType := decodeResult(InstTypeField)
-  io.toEXU.bits.data1Type := decodeResult(Data1Field)
-  io.toEXU.bits.data2Type := decodeResult(Data2Field)
   io.toEXU.bits.registerWriteType := decodeResult(
     RegWriteDataTypeField
   )

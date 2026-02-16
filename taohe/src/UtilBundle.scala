@@ -22,15 +22,13 @@ class ICacheToIFUBundle extends Bundle {
 
 class IDUToEXUBundle extends Bundle {
   val currentPC = UInt(32.W)
-  val registerReadData1 = UInt(32.W)
-  val registerReadData2 = UInt(32.W)
+  val data1 = UInt(32.W)
+  val data2 = UInt(32.W)
   val registerWriteAddr = UInt(5.W)
   val registerWriteType = UInt(RegWriteDataType.getWidth.W)
   val csrAddress = UInt(12.W)
   val csrOperation = UInt(CSROPType.getWidth.W)
   val instructionType = UInt(InstType.getWidth.W)
-  val data1Type = UInt(Data1Type.getWidth.W)
-  val data2Type = UInt(Data2Type.getWidth.W)
   val nextPCType = UInt(NextPCDataType.getWidth.W)
   val lsuLength = UInt(MemSize.getWidth.W)
   val aluOp = UInt(ALUOpType.getWidth.W)

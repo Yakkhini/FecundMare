@@ -160,7 +160,7 @@ object Data2Field extends DecodeField[InstructionPattern, UInt] {
     op.instType match {
       case InstType.R => BitPat(Data2Type.RS2.litValue.U(Data2Type.getWidth.W))
       case InstType.I => BitPat(Data2Type.IMM.litValue.U(Data2Type.getWidth.W))
-      case InstType.S => BitPat(Data2Type.IMM.litValue.U(Data2Type.getWidth.W))
+      case InstType.S => BitPat(Data2Type.RS2.litValue.U(Data2Type.getWidth.W))
       case InstType.B => BitPat(Data2Type.RS2.litValue.U(Data2Type.getWidth.W))
       case InstType.U => BitPat(Data2Type.IMM.litValue.U(Data2Type.getWidth.W))
       case InstType.J => BitPat(Data2Type.IMM.litValue.U(Data2Type.getWidth.W))
