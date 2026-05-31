@@ -30,7 +30,7 @@ class TaoHe(physicalVersion: Boolean, registerAddrWidth: Int) extends Module {
   val registerFile = Module(new RegisterFile(registerAddrWidth))
   val csr = Module(new CSR())
 
-  val iCache = Module(new ICache(2, 4))
+  val iCache = Module(new ICache(4, 4))
 
   val lsu = Module(new LSU())
   val ifu = Module(new IFU())
