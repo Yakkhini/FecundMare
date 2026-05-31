@@ -2,7 +2,7 @@
 name = "micro-sim"
 version = "0.1.0"
 edition = "2024"
-description = "A lightweight microarchitecture simulation framework for TaoHe."
+description = "A lightweight microarchitecture simulation framework for FecundMare."
 repository = "https://github.com/Yakkhini/YSYXWorkbench"
 license = "MulanPSL-2.0"
 

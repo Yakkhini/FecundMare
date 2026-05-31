@@ -1,16 +1,16 @@
 set dotenv-load
 
 BUILD_DIR := "$NPC_CHISEL/out"
-INC_DIR := "$NPC_CHISEL/taohebench/include"
-CONFIG_DIR := "$NPC_CHISEL/taohebench/config"
+INC_DIR := "$NPC_CHISEL/rtl-sim/include"
+CONFIG_DIR := "$NPC_CHISEL/rtl-sim/config"
 NVBOARD_ARCHIVE := "$NVBOARD_HOME/build/nvboard.a"
 PERIP_DIR := "$YSYX_SOC_HOME/perip"
 YSYX_HOME := "$NEMU_HOME/.."
-NPC_NAME := "TaoHe"
+NPC_NAME := "FecundMare"
 
 sv:
     #!/usr/bin/env zsh
-    mill -i taohe.run
+    mill -i fecundmare.run
     echo "SystemVerilog files are generated."
 
 soc-sv:
@@ -42,13 +42,13 @@ _compile target:
     -CFLAGS -DCONFIG_TARGET_{{target}} \
     -LDFLAGS -lreadline -LDFLAGS -lcapstone -LDFLAGS -lSDL2 -LDFLAGS -lSDL2_image -LDFLAGS -lSDL2_ttf \
     -LDFLAGS -lsqlite3 \
-    --trace-fst --exe -o {{BUILD_DIR}}/bin/taohe
+    --trace-fst --exe -o {{BUILD_DIR}}/bin/fecundmare
     make -C {{BUILD_DIR}}/verilator/{{target}} -f V{{target}}.mk -j $NIX_BUILD_CORES AR=gcc-ar
 
 
-soc-sim: (trace "Build TaoHe Simulator Program Binary in Full SoC Mode.") sv sta _rmdb (_compile "ysyxSoCFull")
+soc-sim: (trace "Build FecundMare Simulator Program Binary in Full SoC Mode.") sv sta _rmdb (_compile "ysyxSoCFull")
 
-core-sim: (trace "Build TaoHe Simulator Program Binary in Single Core Mode.") sv sta _rmdb (_compile "TaoHe")
+core-sim: (trace "Build FecundMare Simulator Program Binary in Single Core Mode.") sv sta _rmdb (_compile "FecundMare")
 
 micro-sim:
   cd $NPC_CHISEL/micro-sim && cargo build --release && cargo build
@@ -57,7 +57,7 @@ sta:
     #!/usr/bin/env nu
     mut update = true
     if (($env.NPC_CHISEL + /out/perf.toml) | path exists) {
-      if ((cat ($env.NPC_CHISEL + /out/perf.toml) | from toml | get TaoHe | get commit) == (git rev-parse --short HEAD)) {
+      if ((cat ($env.NPC_CHISEL + /out/perf.toml) | from toml | get FecundMare | get commit) == (git rev-parse --short HEAD)) {
         $update = false
       }
     }
@@ -66,12 +66,12 @@ sta:
     }
     if $update {
       make --silent -C $env.YOSYS_STA_HOME sta out+err> ($env.NPC_CHISEL + /out/sta/sta.log)
-      let freq = (head -n 6 ($env.YOSYS_STA_HOME + /result/taohe__TaoHe-500MHz/taohe__TaoHe.rpt) | tail -n 1 | awk '{print $(NF-1)}' | into float)
-      let area = (tail -n 3 ($env.YOSYS_STA_HOME + /result/taohe__TaoHe-500MHz/synth_stat.txt) | head -n 1 | awk '{print $NF}' | into float)
+      let freq = (head -n 6 ($env.YOSYS_STA_HOME + /result/fecundmare__FecundMare-500MHz/fecundmare__FecundMare.rpt) | tail -n 1 | awk '{print $(NF-1)}' | into float)
+      let area = (tail -n 3 ($env.YOSYS_STA_HOME + /result/fecundmare__FecundMare-500MHz/synth_stat.txt) | head -n 1 | awk '{print $NF}' | into float)
       let time = (date now | format date "%Y-%m-%d %H:%M:%S")
       let commit = (git rev-parse --short HEAD)
       let message = (git log -1 --pretty=%B | str trim)
-      {"TaoHe": {"freq(MHz)": $freq, "area(um^2)": $area, "commit": $commit, "message": $message "time": $time}} | to toml | save -f ($env.NPC_CHISEL + /out/perf.toml)
+      {"FecundMare": {"freq(MHz)": $freq, "area(um^2)": $area, "commit": $commit, "message": $message "time": $time}} | to toml | save -f ($env.NPC_CHISEL + /out/perf.toml)
     }
 
 formal: sv
@@ -89,7 +89,7 @@ archive-perf: clean sta
     cd $env.NPC_CHISEL
     let index = (ls ($env.NPC_CHISEL + /perf-archive) | length)
     let commit = (git rev-parse --short HEAD)
-    cp ($env.NPC_CHISEL + /out/perf.toml) ($env.NPC_CHISEL + /perf-archive/taohe-perf-($index)-($commit).toml)
+    cp ($env.NPC_CHISEL + /out/perf.toml) ($env.NPC_CHISEL + /perf-archive/fecundmare-perf-($index)-($commit).toml)
 
 trace msg:
     #!/usr/bin/env zsh

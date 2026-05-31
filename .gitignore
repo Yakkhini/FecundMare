@@ -23,4 +23,4 @@
 out
 build
 compile_commands.json
-taohebench/config/config.h
+rtl-sim/config/config.h
