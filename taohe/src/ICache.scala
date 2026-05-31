@@ -67,14 +67,14 @@ class ICache(indexWidth: Int, offsetWidth: Int) extends Module {
   val readValid = readCacheLine(cachelineWidth - 1)
   val readTag = readCacheLine(cachelineWidth - 2, cachelineWidth - 1 - tagWidth)
 
-  cacheHit := readValid && (readTag === pcBuffer(31, 32 - tagWidth))
-
   for (i <- 0 until math.pow(2, offsetWidth - 2).toInt) {
     cacheReadData(i) :=
       readCacheLine((i + 1) * 32 - 1, 0 + i * 32)
   }
 
   // Request State
+  val refillDone = RegInit(false.B)
+
   val readCount = RegInit(0.U((offsetWidth - 2).W))
   io.axi4.ar.bits.burst := 1.U // INCR Address Type
   io.axi4.ar.bits.len := (math.pow(2, offsetWidth - 2).toInt - 1).U // 4 beats
@@ -106,6 +106,16 @@ class ICache(indexWidth: Int, offsetWidth: Int) extends Module {
     )
   }
 
+  refillDone := Mux(
+    io.fromIFU.fire,
+    false.B,
+    (io.axi4.r.fire && io.axi4.r.bits.last) || refillDone
+  )
+  cacheHit := readValid && (readTag === pcBuffer(
+    31,
+    32 - tagWidth
+  )) && !refillDone
+
   // Send
   val offset = {
     if (offsetWidth == 2) 0.U
@@ -113,8 +123,8 @@ class ICache(indexWidth: Int, offsetWidth: Int) extends Module {
   }
 
   val nopInstruction = "h00000013".U
-  val readInst = Mux(cacheHit, cacheReadData(offset), memoryReadData(offset))
-  io.toIFU.valid := state === ICacheState.sWork && cacheHit
+  val readInst = cacheReadData(offset)
+  io.toIFU.valid := state === ICacheState.sWork && (cacheHit || refillDone)
   io.toIFU.bits.readInst := Mux(
     readInst === "h0000100f".U,
     nopInstruction,
@@ -155,14 +165,12 @@ class ICache(indexWidth: Int, offsetWidth: Int) extends Module {
   // Performance Counter
   PreSiliconPerformanceCounter(
     "iCacheHitCounter",
-    io.fromIFU.fire && readValid && (readTag === io.fromIFU.bits
-      .pc(31, 32 - tagWidth)),
+    io.toIFU.fire && cacheHit,
     32
   )
   PreSiliconPerformanceCounter(
     "iCacheMissCounter",
-    io.fromIFU.fire && !(readValid && (readTag === io.fromIFU.bits
-      .pc(31, 32 - tagWidth))),
+    io.toIFU.fire && refillDone,
     32
   )
   PreSiliconPerformanceCounter(
@@ -173,8 +181,12 @@ class ICache(indexWidth: Int, offsetWidth: Int) extends Module {
 
   switch(state) {
     is(ICacheState.sWork) {
-      when(io.fromIFU.fire || !cacheHit) {
-        state := Mux(cacheHit, ICacheState.sWork, ICacheState.sRequest)
+      when(io.fromIFU.fire || !(cacheHit || refillDone)) {
+        state := Mux(
+          (cacheHit || refillDone),
+          ICacheState.sWork,
+          ICacheState.sRequest
+        )
       }
     }
     is(ICacheState.sRequest) {
