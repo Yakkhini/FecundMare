@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
 
   device_init();
 
-#ifdef CONFIG_TARGET_ysyxSoCFull
+#if CONFIG_NVBOARD
   nvboard_bind_all_pins();
   nvboard_init();
 #endif

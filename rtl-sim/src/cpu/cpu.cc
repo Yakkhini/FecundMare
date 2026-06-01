@@ -6,9 +6,12 @@
 #include <cpu/mtrace.h>
 #include <cpu/perf.h>
 #include <memory/vaddr.h>
-#include <nvboard.h>
 #include <sdb.h>
 #include <signal.h>
+
+#if NVBOARD
+#include <nvboard.h>
+#endif
 
 #ifdef CONFIG_TARGET_ysyxSoCFull
 #include <VysyxSoCFull.h>
@@ -62,7 +65,7 @@ void cpu_sync();
 void cpu_check();
 void single_clock() {
 
-#ifdef CONFIG_TARGET_ysyxSoCFull
+#if CONFIG_NVBOARD
   nvboard_update();
 #endif
 
@@ -100,7 +103,7 @@ void reset() {
 
   for (int i = 0; i < 15; i++) {
 
-#ifdef CONFIG_TARGET_ysyxSoCFull
+#if CONFIG_NVBOARD
     nvboard_update();
 #endif
 

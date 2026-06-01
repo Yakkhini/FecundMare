@@ -22,6 +22,7 @@
 
 // enable device
 #define CONFIG_DEVICE 1
+#define CONFIG_NVBOARD 0 && CONFIG_TARGET_ysyxSoCFull
 
 // define the address of the memory-mapped I/O devices
 #define CONFIG_SERIAL_MMIO 0x10000000
