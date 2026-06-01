@@ -15,6 +15,7 @@
 !.scalafmt.conf
 !Justfile
 !Makefile
+!.github/**
 !perf-archive/*
 !MemoryAnalyzer/*
 !micro-sim/*

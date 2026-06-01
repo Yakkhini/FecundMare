@@ -93,6 +93,10 @@ archive-perf: clean sta
 
 trace msg:
     #!/usr/bin/env zsh
+    if [[ "$GITHUB_ACTIONS" == "true" ]]; then
+      echo "Skip git commit trace in GitHub Actions."
+      exit 0
+    fi
     flock {{YSYX_HOME}}/.git/ make -C {{YSYX_HOME}} .git_commit MSG='{{msg}}'
     sync
 

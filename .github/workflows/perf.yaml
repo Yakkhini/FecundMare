@@ -1,0 +1,167 @@
+name: Performance Evaluation
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: perf-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  perf:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout workbench
+        uses: actions/checkout@v6
+        with:
+          repository: Yakkhini/YSYXWorkBench
+          token: ${{ secrets.PRIVATE_REPO_PAT }}
+          path: env
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Checkout FecundMare as npc-chisel
+        uses: actions/checkout@v6
+        with:
+          repository: Yakkhini/FecundMare
+          ref: ${{ github.sha }}
+          path: env/npc-chisel
+          fetch-depth: 0
+
+      - name: Checkout yosys-sta
+        uses: actions/checkout@v6
+        with:
+          repository: Yakkhini/yosys-sta
+          path: env/yosys-sta
+          fetch-depth: 1
+
+      - name: Checkout ICsprout55 Open Source PDK
+        uses: actions/checkout@v6
+        with:
+          repository: openecos-projects/icsprout55-pdk
+          ref: ysyx
+          path: env/yosys-sta/pdk/icsprout55
+          fetch-depth: 1
+
+      - name: Checkout am-kernels
+        uses: actions/checkout@v6
+        with:
+          repository: NJU-ProjectN/am-kernels
+          path: env/am-kernels
+          fetch-depth: 1
+
+      - name: Checkout ysyxSoC
+        uses: actions/checkout@v6
+        with:
+          repository: Yakkhini/ysyxSoC
+          token: ${{ secrets.PRIVATE_REPO_PAT }}
+          path: env/ysyxSoC
+          submodules: recursive
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Checkout NVBoard
+        uses: actions/checkout@v6
+        with:
+          repository: Yakkhini/nvboard
+          path: env/nvboard
+          fetch-depth: 1
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Cachix read-only cache
+        uses: cachix/cachix-action@v17
+        with:
+          name: yakkhini
+
+      - name: Check cached RISC-V toolchain
+        shell: bash
+        run: |
+          cd env
+          nix build .#riscv-gcc --max-jobs 0 --option fallback false --no-link
+          nix build .#espresso --max-jobs 0 --option fallback false --no-link
+
+      - name: Run archive perf
+        shell: bash
+        run: |
+          cd env
+
+          nix develop --impure -c bash -s <<'BASH'
+          set -euo pipefail
+
+          cd "$NVBOARD_HOME"
+          make nvboard-archive
+
+          cd "$YSYX_SOC_HOME"
+          cd rocket-chip && git apply ../patch/rocket-chip.patch && cd ..
+          make
+
+          cd "$NPC_CHISEL"
+          cp ./rtl-sim/config/config_example.h ./rtl-sim/config/config.h
+
+          REAL_YOSYS="$(readlink -f "$(command -v yosys)")"
+          REAL_ABC="$(dirname "$REAL_YOSYS")/yosys-abc"
+
+          mkdir -p "$GITHUB_WORKSPACE/bin"
+
+          ABC_WRAPPER="$GITHUB_WORKSPACE/bin/yosys-abc-wrapper"
+          ABC_WRAPPER_LOG="$GITHUB_WORKSPACE/abc-wrapper.log"
+
+          cat > "$ABC_WRAPPER" <<EOF
+          #!/usr/bin/env bash
+          exec "$REAL_ABC" "\$@"
+          EOF
+
+          chmod +x "$ABC_WRAPPER"
+          export YOSYS_ABC_EXE="$ABC_WRAPPER"
+
+          just archive-perf
+
+          mkdir -p "$GITHUB_WORKSPACE/ci-results"
+          cp out/perf.toml "$GITHUB_WORKSPACE/ci-results/${GITHUB_SHA}.toml"
+          BASH
+
+      - name: Checkout perf-results branch
+        uses: actions/checkout@v6
+        with:
+          repository: Yakkhini/FecundMare
+          ref: perf-results
+          path: perf-results
+          fetch-depth: 0
+
+      - name: Push performance result
+        shell: bash
+        run: |
+          cd env
+
+          nix develop --impure -c nu -c '
+            cd ($env.GITHUB_WORKSPACE | path join "perf-results")
+
+            git pull --ff-only origin perf-results
+            mkdir results
+
+            let index = (ls results | length | into string | fill --alignment right --character "0" --width 4)
+            let commit = (git -C ($env.GITHUB_WORKSPACE | path join "env/npc-chisel") rev-parse --short HEAD)
+
+            let result = $"results/($index)-($commit).toml"
+            let source = ($env.GITHUB_WORKSPACE | path join "ci-results" $"($env.GITHUB_SHA).toml")
+
+            cp $source $result
+            cp $source latest.toml
+
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+            git add $result latest.toml
+            git commit -m $"[perf] record ($index) ($commit)"
+            git push origin HEAD:perf-results
+          '
