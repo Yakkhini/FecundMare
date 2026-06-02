@@ -152,12 +152,28 @@ jobs:
 
             let index = (ls results | length | into string | fill --alignment right --character "0" --width 4)
             let commit = (git -C ($env.GITHUB_WORKSPACE | path join "env/npc-chisel") rev-parse --short HEAD)
+            let message = (git -C ($env.GITHUB_WORKSPACE | path join "env/npc-chisel") log -1 --pretty=format:"%s")
 
             let result = $"results/($index)-($commit).toml"
             let source = ($env.GITHUB_WORKSPACE | path join "ci-results" $"($env.GITHUB_SHA).toml")
 
             cp $source $result
             cp $source latest.toml
+
+            let perf_table = (open $source | table --expand --width 240 | ansi strip)
+            print $perf_table
+
+            [
+              "# Performance Evaluation"
+              ""
+              $"Commit: `($commit)` ($message)"
+              $"Result: `($result)` on branch `perf-results`"
+              ""
+              "```text"
+              $perf_table
+              "```"
+              ""
+            ] | str join (char nl) | save --append --raw $env.GITHUB_STEP_SUMMARY
 
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
