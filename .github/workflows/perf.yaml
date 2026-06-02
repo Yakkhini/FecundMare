@@ -91,7 +91,7 @@ jobs:
           nix build .#riscv-gcc --max-jobs 0 --option fallback false --no-link
           nix build .#espresso --max-jobs 0 --option fallback false --no-link
 
-      - name: Run archive perf
+      - name: Run MicroBench train scale on full SoC with STA information
         shell: bash
         run: |
           cd env
@@ -125,7 +125,7 @@ jobs:
           chmod +x "$ABC_WRAPPER"
           export YOSYS_ABC_EXE="$ABC_WRAPPER"
 
-          just archive-perf
+          just perf
 
           mkdir -p "$GITHUB_WORKSPACE/ci-results"
           cp out/perf.toml "$GITHUB_WORKSPACE/ci-results/${GITHUB_SHA}.toml"

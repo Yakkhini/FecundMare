@@ -77,19 +77,15 @@ sta:
 formal: sv
     sby -f -d ./out/formal/result ./formal/ICache.sby
 
-perf:
-    #!/usr/bin/env nu
-    print "Performance data:"
-    cat ($env.NPC_CHISEL + /out/perf.toml) | from toml
-
-archive-perf: clean sta
+perf: clean sta
     #!/usr/bin/env nu
     cd ($env.NPC_CHISEL + /../am-kernels/benchmarks/microbench)
     make ARCH=riscv32e-ysyxsoc run mainargs=train
-    cd $env.NPC_CHISEL
-    let index = (ls ($env.NPC_CHISEL + /perf-archive) | length)
-    let commit = (git rev-parse --short HEAD)
-    cp ($env.NPC_CHISEL + /out/perf.toml) ($env.NPC_CHISEL + /perf-archive/fecundmare-perf-($index)-($commit).toml)
+
+show-perf-result:
+    #!/usr/bin/env nu
+    print "Performance data:"
+    cat ($env.NPC_CHISEL + /out/perf.toml) | from toml
 
 trace msg:
     #!/usr/bin/env zsh
