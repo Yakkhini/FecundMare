@@ -4,12 +4,15 @@
 #include <device/device.h>
 #include <memory/vaddr.h>
 
+#if CONFIG_MTRACE_DB
 #include <sqlite3.h>
 
-AXI4Interface axi4_interface;
 sqlite3 *mtrace_database;
 sqlite3_stmt *mtrace_stmt;
 uint32_t database_insert_count = 0;
+#endif
+
+AXI4Interface axi4_interface;
 
 bool bursting;
 uint32_t burst_count;
@@ -44,6 +47,7 @@ void mtrace_init() {
 
 void mtrace_db_insert_trace(MTRACEType type, uint32_t addr, uint32_t size,
                             uint32_t data) {
+#if CONFIG_MTRACE_DB
   sqlite3_reset(mtrace_stmt);
   sqlite3_bind_int64(mtrace_stmt, 1, cpu.iCount);
   sqlite3_bind_text(mtrace_stmt, 2, (type == MTRACE_READ ? "READ" : "WRITE"),
@@ -54,6 +58,7 @@ void mtrace_db_insert_trace(MTRACEType type, uint32_t addr, uint32_t size,
   sqlite3_step(mtrace_stmt);
 
   return;
+#endif
 }
 
 void axi4_interface_sync(core_symbol_t *cpu_symbol) {
