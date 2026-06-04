@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2026 Yakkhini <Yaksiscc@gmail.com>
+ *
+ * SPDX-License-Identifier: MulanPSL-2.0
+ */
+
 package fecundmare
 
 import chisel3._
@@ -8,8 +14,7 @@ import circt.stage.ChiselStage
 import fecundmare.idu.IDU
 import fecundmare.util.{YSYXSoCAXI4Bundle, AXI4Bundle}
 
-class FecundMare(physicalVersion: Boolean, registerAddrWidth: Int)
-    extends Module {
+class FecundMare(physicalVersion: Boolean) extends Module {
 
   override def localModulePrefix =
     if (physicalVersion) Some("fecundmare_") else None
@@ -29,7 +34,7 @@ class FecundMare(physicalVersion: Boolean, registerAddrWidth: Int)
     val slave = io.slave.viewAs[AXI4Bundle]
   }
 
-  val registerFile = Module(new RegisterFile(registerAddrWidth))
+  val registerFile = Module(new RegisterFile)
   val csr = Module(new CSR())
 
   val iCache = Module(new ICache(4, 4))
@@ -82,13 +87,13 @@ class FecundMare(physicalVersion: Boolean, registerAddrWidth: Int)
 object Main extends App {
   println("Hello World, I will generate the Verilog file now!")
   ChiselStage.emitSystemVerilogFile(
-    gen = new FecundMare(false, 4),
+    gen = new FecundMare(false),
     args = Array("--target-dir", "out/verilog"),
     firtoolOpts = Array("-preserve-aggregate=1d-vec")
   )
 
   ChiselStage.emitSystemVerilogFile(
-    gen = new FecundMare(true, 4),
+    gen = new FecundMare(true),
     args = Array("--target-dir", "out/sta"),
     firtoolOpts = Array(
       "--lowering-options=disallowLocalVariables,disallowExpressionInliningInPorts",
