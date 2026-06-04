@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2026 Yakkhini <Yaksiscc@gmail.com>
+ *
+ * SPDX-License-Identifier: MulanPSL-2.0
+ */
+
 #include <common.h>
 #include <cpu/cpu.h>
 #include <cpu/difftest.h>
@@ -281,8 +287,8 @@ void cpu_check() {
     npc_state = CORE_ABORT;
   }
 
-  if (cpu_symbol->exu->haltUnit->halt) {
-    halt(cpu_symbol->exu->haltUnit->code);
+  if (cpu_symbol->instructionProcessing->haltUnit->halt) {
+    halt(cpu_symbol->instructionProcessing->haltUnit->code);
   }
 
 #if CONFIG_MTRACE || CONFIG_DIFFTEST || CONFIG_MTRACE_DB ||                    \
@@ -303,7 +309,7 @@ void cpu_check() {
 #endif
 
 #if CONFIG_DIFFTEST
-  if (cpu_symbol->exu->difftestSkip) {
+  if (cpu_symbol->instructionProcessing->difftestSkip) {
     difftest_skip_ref();
   } else {
     difftest_step(cpu.pc_prev, cpu.pc);

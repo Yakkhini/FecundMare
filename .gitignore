@@ -1,7 +1,12 @@
+# SPDX-FileCopyrightText: 2026 Yakkhini <Yaksiscc@gmail.com>
+#
+# SPDX-License-Identifier: MulanPSL-2.0
+
 out
 build
 
 .bsp
+.cache
 .metals
 compile_commands.json
 

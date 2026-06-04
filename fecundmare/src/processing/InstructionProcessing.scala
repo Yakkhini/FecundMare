@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2026 Yakkhini <Yaksiscc@gmail.com>
+ *
+ * SPDX-License-Identifier: MulanPSL-2.0
+ */
+
 package fecundmare
 
 import chisel3._
@@ -10,16 +16,16 @@ import fecundmare.util.PreSiliconPerformanceCounter
 
 import chisel3.util.Fill
 
-object EXUState extends ChiselEnum {
+object InstructionProcessingState extends ChiselEnum {
   val sInit, sWork, sLS = Value
 }
 
-class EXU extends Module {
+class InstructionProcessing(implicit config: FMConfig) extends FMModule {
   val io = IO(new EXUBundle)
-  val exuState = RegInit(EXUState.sInit)
+  val exuState = RegInit(InstructionProcessingState.sInit)
 
   // State 1
-  io.fromIDU.ready := exuState === EXUState.sInit || (exuState === EXUState.sWork && io.toIFU.ready)
+  io.fromIDU.ready := exuState === InstructionProcessingState.sInit || (exuState === InstructionProcessingState.sWork && io.toIFU.ready)
   val iduSkidBuffer = RegInit(0.U.asTypeOf(io.fromIDU.bits))
   iduSkidBuffer := Mux(io.fromIDU.fire, io.fromIDU.bits, iduSkidBuffer)
 
@@ -31,22 +37,22 @@ class EXU extends Module {
   dontTouch(difftestSkip)
 
   val switchToLSU =
-    exuState === EXUState.sWork && (io.fromIDU.bits.lsuReadEnable || io.fromIDU.bits.lsuWriteEnable)
+    exuState === InstructionProcessingState.sWork && (io.fromIDU.bits.lsuReadEnable || io.fromIDU.bits.lsuWriteEnable)
   val lsDone = Wire(Bool())
 
-  io.toIFU.valid := exuState === EXUState.sWork || lsDone
-  io.toRegisterFile.valid := (exuState === EXUState.sWork && io.toIFU.fire) || lsDone
-  io.toCSR.valid := (exuState === EXUState.sWork && io.toIFU.fire) || lsDone
+  io.toIFU.valid := exuState === InstructionProcessingState.sWork || lsDone
+  io.toRegisterFile.valid := (exuState === InstructionProcessingState.sWork && io.toIFU.fire) || lsDone
+  io.toCSR.valid := (exuState === InstructionProcessingState.sWork && io.toIFU.fire) || lsDone
 
   io.fromCSR.ready := true.B
 
   io.toIFU.bits.commit := io.fromIDU.fire
 
   // State 2
-  io.toLSU.valid := exuState === EXUState.sLS && !clint.io.clintChosen
-  io.fromLSU.ready := exuState === EXUState.sLS && !clint.io.clintChosen
+  io.toLSU.valid := exuState === InstructionProcessingState.sLS && !clint.io.clintChosen
+  io.fromLSU.ready := exuState === InstructionProcessingState.sLS && !clint.io.clintChosen
 
-  lsDone := exuState === EXUState.sLS && (io.fromLSU.fire || clint.io.clintChosen)
+  lsDone := exuState === InstructionProcessingState.sLS && (io.fromLSU.fire || clint.io.clintChosen)
 
   // Inner Logic
   io.toRegisterFile.bits.writeAddr := iduSkidBuffer.registerWriteAddr
@@ -76,23 +82,13 @@ class EXU extends Module {
     )
   )
 
-  val result = MuxLookup(iduSkidBuffer.aluOp, 0.U(32.W))(
-    Seq(
-      ALUOpType.ADD.asUInt -> (iduSkidBuffer.data1 + iduSkidBuffer.data2),
-      ALUOpType.SUB.asUInt -> (iduSkidBuffer.data1 - iduSkidBuffer.data2),
-      ALUOpType.AND.asUInt -> (iduSkidBuffer.data1 & iduSkidBuffer.data2),
-      ALUOpType.OR.asUInt -> (iduSkidBuffer.data1 | iduSkidBuffer.data2),
-      ALUOpType.XOR.asUInt -> (iduSkidBuffer.data1 ^ iduSkidBuffer.data2),
-      ALUOpType.SLL.asUInt -> (iduSkidBuffer.data1 << iduSkidBuffer
-        .data2(4, 0)),
-      ALUOpType.SRL.asUInt -> (iduSkidBuffer.data1 >> iduSkidBuffer
-        .data2(4, 0)),
-      ALUOpType.SRA.asUInt -> (iduSkidBuffer.data1.asSInt >> iduSkidBuffer
-        .data2(4, 0)).asUInt,
-      ALUOpType.SLT.asUInt -> (iduSkidBuffer.data1.asSInt < iduSkidBuffer.data2.asSInt).asUInt,
-      ALUOpType.SLTU.asUInt -> (iduSkidBuffer.data1 < iduSkidBuffer.data2).asUInt
-    )
-  )
+  val alu = Module(new ArithmeticLogicUnit())
+
+  alu.io.operand1 := iduSkidBuffer.data1
+  alu.io.operand2 := iduSkidBuffer.data2
+  alu.io.operation := iduSkidBuffer.aluOp
+
+  val result = alu.io.result
 
   val compareCheck = MuxLookup(iduSkidBuffer.compareOp, false.B)(
     Seq(
@@ -158,29 +154,29 @@ class EXU extends Module {
   )
   PreSiliconPerformanceCounter(
     "memoryDoneCounter",
-    exuState === EXUState.sLS && lsDone,
+    exuState === InstructionProcessingState.sLS && lsDone,
     32
   )
   PreSiliconPerformanceCounter(
     "memoryStallCycleCounter",
-    exuState === EXUState.sLS,
+    exuState === InstructionProcessingState.sLS,
     32
   )
 
   switch(exuState) {
-    is(EXUState.sInit) {
+    is(InstructionProcessingState.sInit) {
       when(io.fromIDU.fire) {
-        exuState := EXUState.sWork
+        exuState := InstructionProcessingState.sWork
       }
     }
-    is(EXUState.sWork) {
+    is(InstructionProcessingState.sWork) {
       when(io.fromIDU.fire && switchToLSU) {
-        exuState := EXUState.sLS
+        exuState := InstructionProcessingState.sLS
       }
     }
-    is(EXUState.sLS) {
+    is(InstructionProcessingState.sLS) {
       when(lsDone) {
-        exuState := EXUState.sWork
+        exuState := InstructionProcessingState.sWork
       }
     }
   }

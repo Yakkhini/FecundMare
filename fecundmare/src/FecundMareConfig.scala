@@ -6,7 +6,7 @@
 
 package fecundmare
 
-case class FecundMareConfig(
+case class FMConfig(
     xlen: Int = 32,
     physicalVersion: Boolean = false
 )

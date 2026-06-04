@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2026 Yakkhini <Yaksiscc@gmail.com>
+ *
+ * SPDX-License-Identifier: MulanPSL-2.0
+ */
+
 #include <common.h>
 #include <cpu/cpu.h>
 #include <cpu/perf.h>
@@ -117,10 +123,12 @@ void perf_counter_stat(core_symbol_t *cpu_symbol) {
   uint32_t idu_store_inst_count = cpu_symbol->idu->storeInstCounter;
   uint32_t idu_arith_inst_count = cpu_symbol->idu->arithInstCounter;
 
-  uint32_t exu_arith_done_count = cpu_symbol->exu->arithmeticDoneCounter;
-  uint32_t exu_memory_done_count = cpu_symbol->exu->memoryDoneCounter;
+  uint32_t exu_arith_done_count =
+      cpu_symbol->instructionProcessing->arithmeticDoneCounter;
+  uint32_t exu_memory_done_count =
+      cpu_symbol->instructionProcessing->memoryDoneCounter;
   uint32_t exu_memory_stall_cycle_count =
-      cpu_symbol->exu->memoryStallCycleCounter;
+      cpu_symbol->instructionProcessing->memoryStallCycleCounter;
 
   uint32_t lsu_load_valid_count = cpu_symbol->lsu->loadDataValidCounter;
   uint32_t lsu_load_waiting_cycle = cpu_symbol->lsu->loadWaitingCycleCounter;
