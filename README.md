@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 Yakkhini <Yaksiscc@gmail.com>
+
+SPDX-License-Identifier: CC-BY-SA-4.0
+ -->
+
 # FecundMare
 
 The successor of TaoHe 3-stage pipelined RISC-V 32E processor core. Going to support RISC-V 32IM with superscalar Out-of-Order microarchitecture in future. Currently still in heavy development.
@@ -17,14 +23,13 @@ Check out the `perf-results` branch to find archived CI output.
 This repository is licensed on Mulan Permissive Software License, Version 2.
 
 ```
-Copyright (c) 2026 Yakkhini Yaksiscc@gmail.com
+Copyright (c) 2026 Yakkhini <Yaksiscc@gmail.com>
 FecundMare is licensed under Mulan PSL v2.
-You can use this software according to the terms and conditions of the Mulan
-PSL v2.
+You can use this software according to the terms and conditions of the Mulan PSL v2.
 You may obtain a copy of Mulan PSL v2 at:
          http://license.coscl.org.cn/MulanPSL2
-THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY
-KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
-NON-INFRINGEMENT, MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 See the Mulan PSL v2 for more details.
 ```
