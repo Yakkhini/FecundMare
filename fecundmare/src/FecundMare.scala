@@ -13,11 +13,18 @@ import circt.stage.ChiselStage
 
 import fecundmare.idu.IDU
 import fecundmare.util.{YSYXSoCAXI4Bundle, AXI4Bundle}
+import fecundmare.FecundMareConfig
 
-class FecundMare(physicalVersion: Boolean) extends Module {
+abstract class FMModule(implicit val config: FecundMareConfig) extends Module {
+  final def XLEN = config.xlen
+}
+
+class FecundMare(config: FecundMareConfig) extends Module {
+
+  implicit val implicitConfig: FecundMareConfig = config
 
   override def localModulePrefix =
-    if (physicalVersion) Some("fecundmare_") else None
+    if (config.physicalVersion) Some("fecundmare_") else None
 
   val io = IO(new Bundle {
     val interrupt = Input(Bool())
@@ -87,13 +94,13 @@ class FecundMare(physicalVersion: Boolean) extends Module {
 object Main extends App {
   println("Hello World, I will generate the Verilog file now!")
   ChiselStage.emitSystemVerilogFile(
-    gen = new FecundMare(false),
+    gen = new FecundMare(FecundMareConfig(xlen = 32, physicalVersion = false)),
     args = Array("--target-dir", "out/verilog"),
     firtoolOpts = Array("-preserve-aggregate=1d-vec")
   )
 
   ChiselStage.emitSystemVerilogFile(
-    gen = new FecundMare(true),
+    gen = new FecundMare(FecundMareConfig(xlen = 32, physicalVersion = true)),
     args = Array("--target-dir", "out/sta"),
     firtoolOpts = Array(
       "--lowering-options=disallowLocalVariables,disallowExpressionInliningInPorts",
