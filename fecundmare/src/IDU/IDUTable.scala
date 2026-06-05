@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2026 Yakkhini <Yaksiscc@gmail.com>
+ *
+ * SPDX-License-Identifier: MulanPSL-2.0
+ */
+
 package fecundmare.idu
 
 import chisel3._
@@ -108,26 +114,30 @@ object ALUOpField extends DecodeField[InstructionPattern, UInt] {
   }
 }
 
-object CompareOpField extends DecodeField[InstructionPattern, UInt] {
-  def name: String = "compareOpType"
-  def chiselType = UInt(CompareOpType.getWidth.W)
+object BJUOpField extends DecodeField[InstructionPattern, UInt] {
+  def name: String = "bjuOpType"
+  def chiselType = UInt(BJUOpType.getWidth.W)
 
   def genTable(op: InstructionPattern): BitPat = {
-    op.func3.rawString match {
-      case "000" =>
-        BitPat(CompareOpType.EQ.litValue.U(CompareOpType.getWidth.W))
-      case "001" =>
-        BitPat(CompareOpType.NE.litValue.U(CompareOpType.getWidth.W))
-      case "100" =>
-        BitPat(CompareOpType.LT.litValue.U(CompareOpType.getWidth.W))
-      case "101" =>
-        BitPat(CompareOpType.GE.litValue.U(CompareOpType.getWidth.W))
-      case "110" =>
-        BitPat(CompareOpType.LTU.litValue.U(CompareOpType.getWidth.W))
-      case "111" =>
-        BitPat(CompareOpType.GEU.litValue.U(CompareOpType.getWidth.W))
-      case _: String =>
-        BitPat(CompareOpType.EQ.litValue.U(CompareOpType.getWidth.W))
+    if (op.instType == InstType.J || op.opcode == BitPat("b1100111")) {
+      BitPat(BJUOpType.JUMP.litValue.U(BJUOpType.getWidth.W))
+    } else {
+      op.func3.rawString match {
+        case "000" =>
+          BitPat(BJUOpType.EQ.litValue.U(BJUOpType.getWidth.W))
+        case "001" =>
+          BitPat(BJUOpType.NE.litValue.U(BJUOpType.getWidth.W))
+        case "100" =>
+          BitPat(BJUOpType.LT.litValue.U(BJUOpType.getWidth.W))
+        case "101" =>
+          BitPat(BJUOpType.GE.litValue.U(BJUOpType.getWidth.W))
+        case "110" =>
+          BitPat(BJUOpType.LTU.litValue.U(BJUOpType.getWidth.W))
+        case "111" =>
+          BitPat(BJUOpType.GEU.litValue.U(BJUOpType.getWidth.W))
+        case _: String =>
+          BitPat(BJUOpType.EQ.litValue.U(BJUOpType.getWidth.W))
+      }
     }
   }
 }
@@ -223,11 +233,13 @@ object NextPCDataTypeField extends DecodeField[InstructionPattern, UInt] {
   def genTable(op: InstructionPattern): BitPat = {
     op.instType match {
       case InstType.J =>
-        BitPat(NextPCDataType.RESULT.litValue.U(NextPCDataType.getWidth.W))
+        BitPat(NextPCDataType.BRANCHJUMP.litValue.U(NextPCDataType.getWidth.W))
       case InstType.I => {
         op.opcode.rawString match {
           case "1100111" =>
-            BitPat(NextPCDataType.RESULT.litValue.U(NextPCDataType.getWidth.W))
+            BitPat(
+              NextPCDataType.BRANCHJUMP.litValue.U(NextPCDataType.getWidth.W)
+            )
           case "1110011" =>
             op.func3.rawString match {
               case "000" => {
@@ -251,7 +263,7 @@ object NextPCDataTypeField extends DecodeField[InstructionPattern, UInt] {
       }
 
       case InstType.B =>
-        BitPat(NextPCDataType.BRANCH.litValue.U(NextPCDataType.getWidth.W))
+        BitPat(NextPCDataType.BRANCHJUMP.litValue.U(NextPCDataType.getWidth.W))
 
       case _ =>
         BitPat(NextPCDataType.NORMAL.litValue.U(NextPCDataType.getWidth.W))
@@ -608,7 +620,7 @@ object IDUTable {
     InstTypeField,
     ImmField,
     ALUOpField,
-    CompareOpField,
+    BJUOpField,
     Data1Field,
     Data2Field,
     RegWriteDataTypeField,

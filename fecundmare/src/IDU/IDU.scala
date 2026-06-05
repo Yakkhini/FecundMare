@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2026 Yakkhini <Yaksiscc@gmail.com>
+ *
+ * SPDX-License-Identifier: MulanPSL-2.0
+ */
+
 package fecundmare.idu
 
 import chisel3._
@@ -124,7 +130,7 @@ class IDU extends Module {
   io.toEXU.bits.nextPCType := decodeResult(NextPCDataTypeField)
   io.toEXU.bits.lsuLength := decodeResult(MemLenField)
   io.toEXU.bits.aluOp := decodeResult(ALUOpField)
-  io.toEXU.bits.compareOp := decodeResult(CompareOpField)
+  io.toEXU.bits.bjuOp := decodeResult(BJUOpField)
   io.toEXU.bits.unsigned := decodeResult(UnsignField)
   io.toEXU.bits.break := decodeResult(BreakField)
 
@@ -142,9 +148,11 @@ class IDU extends Module {
 
   // Performance Counter
   val isJumpInst =
-    decodeResult(NextPCDataTypeField) === NextPCDataType.RESULT.asUInt
+    decodeResult(BJUOpField) === BJUOpType.JUMP.asUInt
   val isBranchInst =
-    decodeResult(NextPCDataTypeField) === NextPCDataType.BRANCH.asUInt
+    decodeResult(
+      NextPCDataTypeField
+    ) === NextPCDataType.BRANCHJUMP.asUInt && !isJumpInst
   val isLoadInst = io.toEXU.bits.lsuReadEnable
   val isStoreInst = io.toEXU.bits.lsuWriteEnable
   val isArithInst =

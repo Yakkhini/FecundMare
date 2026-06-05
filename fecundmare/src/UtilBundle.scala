@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2026 Yakkhini <Yaksiscc@gmail.com>
+ *
+ * SPDX-License-Identifier: MulanPSL-2.0
+ */
+
 package fecundmare.util
 
 import chisel3._
@@ -32,7 +38,7 @@ class IDUToEXUBundle extends Bundle {
   val nextPCType = UInt(NextPCDataType.getWidth.W)
   val lsuLength = UInt(MemSize.getWidth.W)
   val aluOp = UInt(ALUOpType.getWidth.W)
-  val compareOp = UInt(CompareOpType.getWidth.W)
+  val bjuOp = UInt(BJUOpType.getWidth.W)
   val lsuReadEnable = Bool()
   val lsuWriteEnable = Bool()
   val unsigned = Bool()

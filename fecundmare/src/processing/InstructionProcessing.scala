@@ -94,12 +94,12 @@ class InstructionProcessing(implicit config: FMConfig) extends FMModule {
 
   bju.io.operand1 := iduSkidBuffer.data1
   bju.io.operand2 := iduSkidBuffer.data2
-  bju.io.operation := iduSkidBuffer.compareOp
+  bju.io.operation := iduSkidBuffer.bjuOp
 
   bju.io.currentPC := iduSkidBuffer.currentPC
   bju.io.immNumber := iduSkidBuffer.imm
 
-  val branchTarget = bju.io.target
+  val branchJumpTarget = bju.io.target
 
   io.toIFU.bits.prevPC := iduSkidBuffer.currentPC
   io.toIFU.bits.nextPC := MuxLookup(
@@ -107,8 +107,7 @@ class InstructionProcessing(implicit config: FMConfig) extends FMModule {
     0.U(32.W)
   )(
     Seq(
-      NextPCDataType.RESULT.asUInt -> (result & (~1.U(32.W))),
-      NextPCDataType.BRANCH.asUInt -> branchTarget,
+      NextPCDataType.BRANCHJUMP.asUInt -> branchJumpTarget,
       NextPCDataType.CSRDATA.asUInt -> io.fromCSR.bits.readData,
       NextPCDataType.NORMAL.asUInt -> (iduSkidBuffer.currentPC + 4.U)
     )

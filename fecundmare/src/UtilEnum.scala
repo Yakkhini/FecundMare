@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2026 Yakkhini <Yaksiscc@gmail.com>
+ *
+ * SPDX-License-Identifier: MulanPSL-2.0
+ */
+
 package fecundmare.util.enum
 
 import chisel3._
@@ -24,8 +30,8 @@ object ALUOpType extends ChiselEnum {
   val ADD, SUB, AND, OR, XOR, SLL, SRL, SRA, SLT, SLTU = Value
 }
 
-object CompareOpType extends ChiselEnum {
-  val EQ, NE, LT, GE, LTU, GEU = Value
+object BJUOpType extends ChiselEnum {
+  val EQ, NE, LT, GE, LTU, GEU, JUMP = Value
 }
 
 object Data1Type extends ChiselEnum {
@@ -41,7 +47,7 @@ object RegWriteDataType extends ChiselEnum {
 }
 
 object NextPCDataType extends ChiselEnum {
-  val RESULT, BRANCH, CSRDATA, NORMAL = Value
+  val BRANCHJUMP, CSRDATA, NORMAL = Value
 }
 
 object MemStrobe extends ChiselEnum {
