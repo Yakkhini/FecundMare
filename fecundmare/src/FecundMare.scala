@@ -11,7 +11,6 @@ import chisel3.experimental.dataview._
 
 import circt.stage.ChiselStage
 
-import fecundmare.idu.IDU
 import fecundmare.util.{YSYXSoCAXI4Bundle, AXI4Bundle}
 import fecundmare.FMConfig
 
@@ -45,54 +44,30 @@ class FecundMare(config: FMConfig) extends Module {
     val slave = io.slave.viewAs[AXI4Bundle]
   }
 
-  val registerFile = Module(new RegisterFile)
-  val csr = Module(new CSR())
-
-  val iCache = Module(new ICache(4, 4))
-
+  val instructionDelivery = Module(new InstructionDelivery())
   val lsu = Module(new LSU())
-  val ifu = Module(new IFU())
-  val idu = Module(new IDU())
-
   val instructionProcessing = Module(new InstructionProcessing())
 
   val axiArbiter = Module(new AXIArbiter())
 
-  axiArbiter.io.instructionFetch <> iCache.io.axi4
+  axiArbiter.io.instructionFetch <> instructionDelivery.io.axi4
   axiArbiter.io.loadStore <> lsu.io.axi4
 
   axiArbiter.io.out <> ioView.master
 
-  iCache.io.fromIFU <> ifu.io.toICache
-  iCache.io.toIFU <> ifu.io.fromICache
-
-  ifu.io.toIDU <> idu.io.fromIFU
-
-  idu.io.toEXU <> instructionProcessing.io.fromIDU
-
-  idu.io.fromRegisterFile <> registerFile.io.toIDU
-  idu.io.toRegisterFile <> registerFile.io.fromIDU
-
-  instructionProcessing.io.fromCSR <> csr.io.toEXU
   instructionProcessing.io.fromLSU <> lsu.io.toEXU
-
-  instructionProcessing.io.toRegisterFile <> registerFile.io.fromEXU
-  instructionProcessing.io.toCSR <> csr.io.fromEXU
   instructionProcessing.io.toLSU <> lsu.io.fromEXU
 
-  instructionProcessing.io.toIFU <> ifu.io.fromEXU
+  instructionDelivery.io.toProcessing <> instructionProcessing.io.fromDelivery
+  instructionProcessing.io.toDelivery <> instructionDelivery.io.fromProcessing
 
-  dontTouch(instructionProcessing.io.toRegisterFile.bits.writeAddr)
-  dontTouch(instructionProcessing.io.toRegisterFile.bits.writeData)
-  dontTouch(instructionProcessing.io.toRegisterFile.bits.writeEnable)
+  instructionDelivery.io.toRegisterFile <> instructionProcessing.io.fromDeliveryRegisterFile
+  instructionProcessing.io.toDeliveryRegisterFile <> instructionDelivery.io.fromRegisterFile
+
   dontTouch(instructionProcessing.io.toLSU.bits.length)
   dontTouch(instructionProcessing.io.toLSU.bits.address)
   dontTouch(instructionProcessing.io.toLSU.bits.writeData)
   dontTouch(instructionProcessing.io.toLSU.bits.writeEnable)
-
-  dontTouch(iCache.io.axi4.aw.ready)
-  dontTouch(iCache.io.axi4.w.ready)
-  dontTouch(iCache.io.axi4.b.valid)
 
 }
 

@@ -7,27 +7,52 @@
 package fecundmare
 
 import chisel3._
+import chisel3.util.Fill
 import chisel3.util.MuxLookup
+import chisel3.util.Decoupled
 import chisel3.util.{switch, is}
 
-import fecundmare.util.EXUBundle
+import fecundmare.util._
 import fecundmare.util.enum._
 import fecundmare.util.PreSiliconPerformanceCounter
 
-import chisel3.util.Fill
+class InstructionProcessingBundle(implicit config: FMConfig) extends FMBundle {
+  val fromDelivery = Flipped(Decoupled(new IDUToEXUBundle))
+  val toDelivery = Decoupled(new EXUToIFUBundle)
+
+  val fromDeliveryRegisterFile = Flipped(Decoupled(new IDUToRegisterFileBundle))
+  val toDeliveryRegisterFile = Decoupled(new RegisterFileToIDUBundle)
+
+  val fromLSU = Flipped(Decoupled(new LSUToEXUBundle))
+  val toLSU = Decoupled(new EXUToLSUBundle)
+}
 
 object InstructionProcessingState extends ChiselEnum {
   val sInit, sWork, sLS = Value
 }
 
 class InstructionProcessing(implicit config: FMConfig) extends FMModule {
-  val io = IO(new EXUBundle)
+  val io = IO(new InstructionProcessingBundle)
   val exuState = RegInit(InstructionProcessingState.sInit)
 
+  val registerFile = Module(new RegisterFile)
+  val csr = Module(new CSR())
+
+  registerFile.io.fromIDU <> io.fromDeliveryRegisterFile
+  io.toDeliveryRegisterFile <> registerFile.io.toIDU
+
+  dontTouch(registerFile.io.fromEXU.bits.writeAddr)
+  dontTouch(registerFile.io.fromEXU.bits.writeData)
+  dontTouch(registerFile.io.fromEXU.bits.writeEnable)
+
   // State 1
-  io.fromIDU.ready := exuState === InstructionProcessingState.sInit || (exuState === InstructionProcessingState.sWork && io.toIFU.ready)
-  val iduSkidBuffer = RegInit(0.U.asTypeOf(io.fromIDU.bits))
-  iduSkidBuffer := Mux(io.fromIDU.fire, io.fromIDU.bits, iduSkidBuffer)
+  io.fromDelivery.ready := exuState === InstructionProcessingState.sInit || (exuState === InstructionProcessingState.sWork && io.toDelivery.ready)
+  val iduSkidBuffer = RegInit(0.U.asTypeOf(io.fromDelivery.bits))
+  iduSkidBuffer := Mux(
+    io.fromDelivery.fire,
+    io.fromDelivery.bits,
+    iduSkidBuffer
+  )
 
   val clint = Module(new CLINT())
   clint.io.mmioAddress := iduSkidBuffer.data1 + iduSkidBuffer.imm
@@ -37,16 +62,16 @@ class InstructionProcessing(implicit config: FMConfig) extends FMModule {
   dontTouch(difftestSkip)
 
   val switchToLSU =
-    exuState === InstructionProcessingState.sWork && (io.fromIDU.bits.lsuReadEnable || io.fromIDU.bits.lsuWriteEnable)
+    exuState === InstructionProcessingState.sWork && (io.fromDelivery.bits.lsuReadEnable || io.fromDelivery.bits.lsuWriteEnable)
   val lsDone = Wire(Bool())
 
-  io.toIFU.valid := exuState === InstructionProcessingState.sWork || lsDone
-  io.toRegisterFile.valid := (exuState === InstructionProcessingState.sWork && io.toIFU.fire) || lsDone
-  io.toCSR.valid := (exuState === InstructionProcessingState.sWork && io.toIFU.fire) || lsDone
+  io.toDelivery.valid := exuState === InstructionProcessingState.sWork || lsDone
+  registerFile.io.fromEXU.valid := (exuState === InstructionProcessingState.sWork && io.toDelivery.fire) || lsDone
+  csr.io.fromEXU.valid := (exuState === InstructionProcessingState.sWork && io.toDelivery.fire) || lsDone
 
-  io.fromCSR.ready := true.B
+  csr.io.toEXU.ready := true.B
 
-  io.toIFU.bits.commit := io.fromIDU.fire
+  io.toDelivery.bits.commit := io.fromDelivery.fire
 
   // State 2
   io.toLSU.valid := exuState === InstructionProcessingState.sLS && !clint.io.clintChosen
@@ -55,12 +80,12 @@ class InstructionProcessing(implicit config: FMConfig) extends FMModule {
   lsDone := exuState === InstructionProcessingState.sLS && (io.fromLSU.fire || clint.io.clintChosen)
 
   // Inner Logic
-  io.toRegisterFile.bits.writeAddr := iduSkidBuffer.registerWriteAddr
+  registerFile.io.fromEXU.bits.writeAddr := iduSkidBuffer.registerWriteAddr
 
-  io.toCSR.bits.address := iduSkidBuffer.csrAddress
-  io.toCSR.bits.currentPC := iduSkidBuffer.currentPC
-  io.toCSR.bits.operation := iduSkidBuffer.csrOperation
-  io.toCSR.bits.rs1data := iduSkidBuffer.data1
+  csr.io.fromEXU.bits.address := iduSkidBuffer.csrAddress
+  csr.io.fromEXU.bits.currentPC := iduSkidBuffer.currentPC
+  csr.io.fromEXU.bits.operation := iduSkidBuffer.csrOperation
+  csr.io.fromEXU.bits.rs1data := iduSkidBuffer.data1
 
   io.toLSU.bits.address := iduSkidBuffer.data1 + iduSkidBuffer.imm
   io.toLSU.bits.length := iduSkidBuffer.lsuLength
@@ -101,19 +126,19 @@ class InstructionProcessing(implicit config: FMConfig) extends FMModule {
 
   val branchJumpTarget = bju.io.target
 
-  io.toIFU.bits.prevPC := iduSkidBuffer.currentPC
-  io.toIFU.bits.nextPC := MuxLookup(
+  io.toDelivery.bits.prevPC := iduSkidBuffer.currentPC
+  io.toDelivery.bits.nextPC := MuxLookup(
     iduSkidBuffer.nextPCType,
     0.U(32.W)
   )(
     Seq(
       NextPCDataType.BRANCHJUMP.asUInt -> branchJumpTarget,
-      NextPCDataType.CSRDATA.asUInt -> io.fromCSR.bits.readData,
+      NextPCDataType.CSRDATA.asUInt -> csr.io.toEXU.bits.readData,
       NextPCDataType.NORMAL.asUInt -> (iduSkidBuffer.currentPC + 4.U)
     )
   )
 
-  io.toRegisterFile.bits.writeData := MuxLookup(
+  registerFile.io.fromEXU.bits.writeData := MuxLookup(
     iduSkidBuffer.registerWriteType,
     0.U(32.W)
   )(
@@ -125,11 +150,11 @@ class InstructionProcessing(implicit config: FMConfig) extends FMModule {
         clint.io.outputMTime,
         lsuReadData
       ),
-      RegWriteDataType.CSRDATA.asUInt -> io.fromCSR.bits.readData
+      RegWriteDataType.CSRDATA.asUInt -> csr.io.toEXU.bits.readData
     )
   )
 
-  io.toRegisterFile.bits.writeEnable := Mux(
+  registerFile.io.fromEXU.bits.writeEnable := Mux(
     (iduSkidBuffer.instructionType === InstType.S.asUInt) || (iduSkidBuffer.instructionType === InstType.B.asUInt),
     false.B,
     true.B
@@ -138,8 +163,8 @@ class InstructionProcessing(implicit config: FMConfig) extends FMModule {
   // Performance Counter
   PreSiliconPerformanceCounter(
     "arithmeticDoneCounter",
-    io.toRegisterFile.valid &&
-      io.toRegisterFile.bits.writeEnable &&
+    registerFile.io.fromEXU.valid &&
+      registerFile.io.fromEXU.bits.writeEnable &&
       iduSkidBuffer.registerWriteType === RegWriteDataType.RESULT.asUInt,
     32
   )
@@ -156,12 +181,12 @@ class InstructionProcessing(implicit config: FMConfig) extends FMModule {
 
   switch(exuState) {
     is(InstructionProcessingState.sInit) {
-      when(io.fromIDU.fire) {
+      when(io.fromDelivery.fire) {
         exuState := InstructionProcessingState.sWork
       }
     }
     is(InstructionProcessingState.sWork) {
-      when(io.fromIDU.fire && switchToLSU) {
+      when(io.fromDelivery.fire && switchToLSU) {
         exuState := InstructionProcessingState.sLS
       }
     }

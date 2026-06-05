@@ -103,25 +103,35 @@ toml::table perf_stall_table(uint32_t event_count, uint32_t cycle_count) {
 }
 
 void perf_counter_stat(core_symbol_t *cpu_symbol) {
-  uint32_t ifu_fetch_inst_count = cpu_symbol->ifu->fetchInstNumCounter;
-  uint32_t ifu_fetch_waiting_cycle = cpu_symbol->ifu->fetchWaitingCycleCounter;
+  uint32_t ifu_fetch_inst_count =
+      cpu_symbol->instructionDelivery->ifu->fetchInstNumCounter;
+  uint32_t ifu_fetch_waiting_cycle =
+      cpu_symbol->instructionDelivery->ifu->fetchWaitingCycleCounter;
   uint32_t ifu_control_flow_inst_count =
-      cpu_symbol->ifu->controlFlowInstCounter;
+      cpu_symbol->instructionDelivery->ifu->controlFlowInstCounter;
   uint32_t ifu_control_flow_stall_cycle_count =
-      cpu_symbol->ifu->controlFlowStallCycleCounter;
-  uint32_t ifu_icache_hit_counter = cpu_symbol->iCache->iCacheHitCounter;
-  uint32_t ifu_icache_miss_counter = cpu_symbol->iCache->iCacheMissCounter;
-  uint32_t ifu_icache_tmt_counter = cpu_symbol->iCache->iCacheTMTCounter;
+      cpu_symbol->instructionDelivery->ifu->controlFlowStallCycleCounter;
+  uint32_t ifu_icache_hit_counter =
+      cpu_symbol->instructionDelivery->iCache->iCacheHitCounter;
+  uint32_t ifu_icache_miss_counter =
+      cpu_symbol->instructionDelivery->iCache->iCacheMissCounter;
+  uint32_t ifu_icache_tmt_counter =
+      cpu_symbol->instructionDelivery->iCache->iCacheTMTCounter;
   double ifu_icache_amat =
       (double)ifu_fetch_waiting_cycle / (double)ifu_fetch_inst_count;
   double ifu_icache_amp =
       (double)ifu_icache_tmt_counter / (double)ifu_icache_miss_counter;
 
-  uint32_t idu_branch_inst_count = cpu_symbol->idu->branchInstCounter;
-  uint32_t idu_jump_inst_count = cpu_symbol->idu->jumpInstCounter;
-  uint32_t idu_load_inst_count = cpu_symbol->idu->loadInstCounter;
-  uint32_t idu_store_inst_count = cpu_symbol->idu->storeInstCounter;
-  uint32_t idu_arith_inst_count = cpu_symbol->idu->arithInstCounter;
+  uint32_t idu_branch_inst_count =
+      cpu_symbol->instructionDelivery->idu->branchInstCounter;
+  uint32_t idu_jump_inst_count =
+      cpu_symbol->instructionDelivery->idu->jumpInstCounter;
+  uint32_t idu_load_inst_count =
+      cpu_symbol->instructionDelivery->idu->loadInstCounter;
+  uint32_t idu_store_inst_count =
+      cpu_symbol->instructionDelivery->idu->storeInstCounter;
+  uint32_t idu_arith_inst_count =
+      cpu_symbol->instructionDelivery->idu->arithInstCounter;
 
   uint32_t exu_arith_done_count =
       cpu_symbol->instructionProcessing->arithmeticDoneCounter;
