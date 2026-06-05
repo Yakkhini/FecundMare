@@ -22,7 +22,7 @@ title: FecundMare 定期进度新闻
 2. 优化了设计生成器中参数化的框架，从原来需要手动一层层传变成了通过 `FMConfig` `FMModule` `FMBundle` 与隐式传参功能来参数化；
 3. 使用 **木兰宽松许可证，第二版** 作为项目主要设计的开源许可，**Creative Commons CC-BY-SA 4.0** 作为文档规范，并通过社区的 pre-commit 和 reuse 等工具来协助仓库适配 SPDX REUSE 等开源规范，增强了开源合规水平。
 
-### 性能汇报
+### 性能评估 - Performance Evaluation
 
 FecundMare 的 CI 性能评估数据可以在 [仓库的 `perf-results` 分支](https://github.com/Yakkhini/FecundMare/tree/perf-results) 中找到。
 
