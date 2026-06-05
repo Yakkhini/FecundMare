@@ -7,7 +7,7 @@ configuration:
   analytics:
     provider: plausible
   locale: en-US
-  baseUrl: yakkhini.github.io/fecundmare
+  baseUrl: yakkhini.github.io/FecundMare
   ignorePatterns:
     - private
     - templates
