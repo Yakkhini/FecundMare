@@ -90,24 +90,16 @@ class InstructionProcessing(implicit config: FMConfig) extends FMModule {
 
   val result = alu.io.result
 
-  val compareCheck = MuxLookup(iduSkidBuffer.compareOp, false.B)(
-    Seq(
-      CompareOpType.EQ.asUInt -> (iduSkidBuffer.data1 === iduSkidBuffer.data2),
-      CompareOpType.NE.asUInt -> (iduSkidBuffer.data1 =/= iduSkidBuffer.data2),
-      CompareOpType.LT.asUInt -> (iduSkidBuffer.data1.asSInt < iduSkidBuffer.data2.asSInt),
-      CompareOpType.GE.asUInt -> (iduSkidBuffer.data1.asSInt >= iduSkidBuffer.data2.asSInt),
-      CompareOpType.LTU.asUInt -> (iduSkidBuffer.data1 < iduSkidBuffer.data2),
-      CompareOpType.GEU.asUInt -> (iduSkidBuffer.data1 >= iduSkidBuffer.data2)
-    )
-  )
+  val bju = Module(new BranchJumpUnit())
 
-  val branchTarget = Wire(UInt(32.W))
+  bju.io.operand1 := iduSkidBuffer.data1
+  bju.io.operand2 := iduSkidBuffer.data2
+  bju.io.operation := iduSkidBuffer.compareOp
 
-  branchTarget := Mux(
-    compareCheck,
-    iduSkidBuffer.currentPC + iduSkidBuffer.imm,
-    iduSkidBuffer.currentPC + 4.U
-  )
+  bju.io.currentPC := iduSkidBuffer.currentPC
+  bju.io.immNumber := iduSkidBuffer.imm
+
+  val branchTarget = bju.io.target
 
   io.toIFU.bits.prevPC := iduSkidBuffer.currentPC
   io.toIFU.bits.nextPC := MuxLookup(
