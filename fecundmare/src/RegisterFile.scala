@@ -20,11 +20,13 @@ class RegisterFile extends Module {
   val writeValid =
     io.fromEXU.bits.writeEnable && io.fromEXU.bits.writeAddr =/= 0.U && io.fromEXU.valid
 
-  registers(io.fromEXU.bits.writeAddr) := Mux(
-    writeValid,
-    io.fromEXU.bits.writeData,
-    registers(io.fromEXU.bits.writeAddr)
-  )
+  for (i <- 0 until 32) {
+    registers(i) := Mux(
+      writeValid && io.fromEXU.bits.writeAddr === i.U,
+      io.fromEXU.bits.writeData,
+      registers(i)
+    )
+  }
 
   dontTouch(writeValid)
 
