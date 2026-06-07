@@ -9,9 +9,8 @@ package fecundmare
 import chisel3._
 import chisel3.util.Decoupled
 
-import fecundmare.idu.IDU
-
 import fecundmare.util._
+import fecundmare.decode.InstDecodeUnit
 
 class InstructionDeliveryBundle(implicit config: FMConfig) extends FMBundle {
   val fromProcessing = Flipped(Decoupled(new EXUToIFUBundle))
@@ -28,7 +27,7 @@ class InstructionDelivery(implicit config: FMConfig) extends FMModule {
 
   val iCache = Module(new ICache(4, 4))
   val ifu = Module(new IFU())
-  val idu = Module(new IDU())
+  val idu = Module(new InstDecodeUnit())
 
   iCache.io.fromIFU <> ifu.io.toICache
   iCache.io.toIFU <> ifu.io.fromICache

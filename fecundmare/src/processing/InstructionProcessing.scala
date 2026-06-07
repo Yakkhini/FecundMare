@@ -154,11 +154,7 @@ class InstructionProcessing(implicit config: FMConfig) extends FMModule {
     )
   )
 
-  registerFile.io.fromEXU.bits.writeEnable := Mux(
-    (iduSkidBuffer.instructionType === InstType.S.asUInt) || (iduSkidBuffer.instructionType === InstType.B.asUInt),
-    false.B,
-    true.B
-  )
+  registerFile.io.fromEXU.bits.writeEnable := iduSkidBuffer.registerWriteEnable
 
   // Performance Counter
   PreSiliconPerformanceCounter(

@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2026 Yakkhini <Yaksiscc@gmail.com>
+ *
+ * SPDX-License-Identifier: MulanPSL-2.0
+ */
+
 package build
 
 // import Mill dependency
@@ -10,8 +16,25 @@ import mill.scalalib._
 // support BSP
 import mill.bsp._
 
+object rvdecoderdb extends ScalaModule {
+  override def scalaVersion = "2.13.16"
+
+  override def millSourcePath: os.Path = super.millSourcePath / "rvdecoderdb"
+
+  override def sources: T[Seq[PathRef]] = T.sources {
+    super.sources() ++ Seq(PathRef(millSourcePath / "jvm" / "src"))
+  }
+
+  override def ivyDeps = Agg(
+    ivy"com.lihaoyi::os-lib:0.9.1",
+    ivy"com.lihaoyi::upickle:3.3.1"
+  )
+}
+
 object fecundmare extends ScalaModule with ScalafmtModule { m =>
   override def scalaVersion = "2.13.16"
+
+  override def moduleDeps = super.moduleDeps ++ Seq(rvdecoderdb)
 
   override def scalacOptions = Seq(
     "-language:reflectiveCalls",
@@ -21,7 +44,10 @@ object fecundmare extends ScalaModule with ScalafmtModule { m =>
     "-Ymacro-annotations"
   )
 
-  override def ivyDeps = Agg(ivy"org.chipsalliance::chisel:7.6.0")
+  override def ivyDeps = Agg(
+    ivy"org.chipsalliance::chisel:7.6.0",
+    ivy"com.lihaoyi::os-lib:0.9.1"
+  )
   override def scalacPluginIvyDeps = Agg(
     ivy"org.chipsalliance:::chisel-plugin:7.6.0"
   )

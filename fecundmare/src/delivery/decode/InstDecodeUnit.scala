@@ -4,12 +4,13 @@
  * SPDX-License-Identifier: MulanPSL-2.0
  */
 
-package fecundmare.idu
+package fecundmare.decode
 
 import chisel3._
 import chisel3.util.Fill
 import chisel3.util.MuxLookup
 import chisel3.util.{switch, is}
+import chisel3.experimental.noPrefix
 
 import fecundmare.util.enum._
 import fecundmare.util.IDUBundle
@@ -19,7 +20,7 @@ object IDUState extends ChiselEnum {
   val sWork, sSend, sWait = Value
 }
 
-class IDU extends Module {
+class InstDecodeUnit extends Module {
   val io = IO(new IDUBundle)
 
   val state = RegInit(IDUState.sWait)
@@ -56,6 +57,9 @@ class IDU extends Module {
 
   import IDUTable.decodeTable
 
+  val decodeSupport = noPrefix {
+    Wire(Bool()).suggestName("decodeSupport")
+  }
   val decodeResult = decodeTable.decode(inst)
 
   io.toEXU.bits.currentPC := pc
@@ -123,10 +127,10 @@ class IDU extends Module {
 
   io.toEXU.bits.registerWriteAddr := inst(11, 7)
 
-  io.toEXU.bits.instructionType := decodeResult(InstTypeField)
   io.toEXU.bits.registerWriteType := decodeResult(
     RegWriteDataTypeField
   )
+  io.toEXU.bits.registerWriteEnable := decodeResult(RegWriteEnableField)
   io.toEXU.bits.nextPCType := decodeResult(NextPCDataTypeField)
   io.toEXU.bits.lsuLength := decodeResult(MemLenField)
   io.toEXU.bits.aluOp := decodeResult(ALUOpField)
@@ -140,25 +144,20 @@ class IDU extends Module {
   io.toEXU.bits.csrAddress := inst(31, 20)
   io.toEXU.bits.csrOperation := decodeResult(CSROPTypeField)
 
-  val decodeSupport = Wire(Bool())
   decodeSupport := decodeResult(
     DecodeSupportField
   ) || !io.toEXU.fire
   dontTouch(decodeSupport)
 
   // Performance Counter
+  val isBranchJumpInst = decodeResult(
+    NextPCDataTypeField
+  ) === NextPCDataType.BRANCHJUMP.asUInt
   val isJumpInst =
-    decodeResult(BJUOpField) === BJUOpType.JUMP.asUInt
-  val isBranchInst =
-    decodeResult(
-      NextPCDataTypeField
-    ) === NextPCDataType.BRANCHJUMP.asUInt && !isJumpInst
+    isBranchJumpInst && decodeResult(BJUOpField) === BJUOpType.JUMP.asUInt
+  val isBranchInst = isBranchJumpInst && !isJumpInst
   val isLoadInst = io.toEXU.bits.lsuReadEnable
   val isStoreInst = io.toEXU.bits.lsuWriteEnable
-  val isArithInst =
-    decodeResult(RegWriteDataTypeField) === RegWriteDataType.RESULT.asUInt &&
-      (decodeResult(InstTypeField) === InstType.I.asUInt ||
-        decodeResult(InstTypeField) === InstType.R.asUInt)
 
   PreSiliconPerformanceCounter(
     "jumpInstCounter",
@@ -182,7 +181,7 @@ class IDU extends Module {
   )
   PreSiliconPerformanceCounter(
     "arithInstCounter",
-    io.toEXU.fire && isArithInst,
+    io.toEXU.fire && false.B,
     32
   )
 }

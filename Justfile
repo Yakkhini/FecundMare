@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Yakkhini <Yaksiscc@gmail.com>
+#
+# SPDX-License-Identifier: MulanPSL-2.0
+
 set dotenv-load
 
 BUILD_DIR := "$NPC_CHISEL/out"
@@ -107,7 +111,7 @@ mtrace-view:
     }
 
 fmt:
-    scalafmt
+    mill -i fecundmare.reformat
     fd -e h -e cc -e c -a | xargs clang-format -i
     cd micro-sim && cargo fmt -v && taplo fmt Cargo.toml
 

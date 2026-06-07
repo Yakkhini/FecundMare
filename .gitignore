@@ -10,4 +10,6 @@ build
 .metals
 compile_commands.json
 
+rvdecoderdb
+
 rtl-sim/config/config.h

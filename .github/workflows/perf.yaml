@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Yakkhini <Yaksiscc@gmail.com>
+#
+# SPDX-License-Identifier: MulanPSL-2.0
+
 name: Performance Evaluation
 
 on:
@@ -34,6 +38,20 @@ jobs:
           ref: ${{ github.sha }}
           path: env/npc-chisel
           fetch-depth: 0
+
+      - name: Checkout rvdecoderdb
+        uses: actions/checkout@v6
+        with:
+          repository: chipsalliance/rvdecoderdb
+          path: env/npc-chisel/rvdecoderdb
+          fetch-depth: 1
+
+      - name: Checkout riscv-opcodes
+        uses: actions/checkout@v6
+        with:
+          repository: riscv/riscv-opcodes
+          path: env/npc-chisel/rvdecoderdb/riscv-opcodes
+          fetch-depth: 1
 
       - name: Checkout yosys-sta
         uses: actions/checkout@v6
