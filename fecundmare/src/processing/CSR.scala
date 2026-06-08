@@ -66,8 +66,7 @@ class CSR extends Module {
       CSROPType.RW.asUInt -> csrs(index),
       CSROPType.RS.asUInt -> csrs(index),
       CSROPType.CALL.asUInt -> csrs(1.U),
-      CSROPType.RET.asUInt -> csrs(2.U),
-      CSROPType.NONE.asUInt -> 0.U
+      CSROPType.RET.asUInt -> csrs(2.U)
     )
   )
 

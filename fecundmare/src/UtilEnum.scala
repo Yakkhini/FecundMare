@@ -76,5 +76,5 @@ object CSREnum extends ChiselEnum {
 }
 
 object CSROPType extends ChiselEnum {
-  val RW, RS, RC, RET, CALL, NONE = Value
+  val RW, RS, RC, RET, CALL = Value
 }

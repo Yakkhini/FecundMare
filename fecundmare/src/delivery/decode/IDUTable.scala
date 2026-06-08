@@ -250,7 +250,7 @@ object CSROPTypeField extends DecodeField[InstructionPattern, UInt] {
       case "mret"  => CSROPType.RET
       case "csrrw" => CSROPType.RW
       case "csrrs" => CSROPType.RS
-      case _       => CSROPType.NONE
+      case _       => return BitPat.dontCare(CSROPType.getWidth)
     }
 
     BitPat(csrOp.litValue.U(CSROPType.getWidth.W))

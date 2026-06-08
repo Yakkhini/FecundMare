@@ -67,7 +67,7 @@ class InstructionProcessing(implicit config: FMConfig) extends FMModule {
 
   io.toDelivery.valid := exuState === InstructionProcessingState.sWork || lsDone
   registerFile.io.fromProcessing.valid := (exuState === InstructionProcessingState.sWork && io.toDelivery.fire) || lsDone
-  csr.io.fromProcessing.valid := (exuState === InstructionProcessingState.sWork && io.toDelivery.fire) || lsDone
+  csr.io.fromProcessing.valid := ((exuState === InstructionProcessingState.sWork && io.toDelivery.fire) || lsDone) && iduSkidBuffer.funcType === FuncType.CSR.asUInt
 
   csr.io.toProcessing.ready := true.B
 
