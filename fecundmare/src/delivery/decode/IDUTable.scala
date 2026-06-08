@@ -43,6 +43,56 @@ object ImmField extends DecodeField[InstructionPattern, UInt] {
 
 }
 
+object FuncTypeField extends DecodeField[InstructionPattern, UInt] {
+  def name = "funcType"
+  def chiselType = UInt(FuncType.getWidth.W)
+  def genTable(op: InstructionPattern): BitPat = {
+    val t = op.name match {
+      case "lui" | "auipc" | "add" | "addi" | "sub" | "sll" | "slli" | "slt" |
+          "slti" | "sltu" | "sltiu" | "xor" | "xori" | "srl" | "srli" | "sra" |
+          "srai" | "or" | "ori" | "and" | "andi" =>
+        FuncType.ALU
+      case "jal" | "jalr" | "beq" | "bne" | "blt" | "bge" | "bltu" | "bgeu" =>
+        FuncType.BJU
+      case "lb" | "lh" | "lw" | "lbu" | "lhu" | "sb" | "sh" | "sw" =>
+        FuncType.MEM
+      case "csrrw" | "csrrs" | "ecall" | "mret" =>
+        FuncType.CSR
+      case _ =>
+        FuncType.NONE
+    }
+    BitPat(t.litValue.U(FuncType.getWidth.W))
+  }
+}
+
+object FuncOpTypeField extends DecodeField[InstructionPattern, UInt] {
+  def name = "funcOpType"
+  def chiselType = UInt(FuncOpType.width.W)
+  def genTable(op: InstructionPattern): BitPat = {
+    val opType = op.name match {
+      case "lui" | "auipc" | "add" | "addi" => ALUOpType.ADD.litValue
+      case "sub"                            => ALUOpType.SUB.litValue
+      case "sll" | "slli"                   => ALUOpType.SLL.litValue
+      case "slt" | "slti"                   => ALUOpType.SLT.litValue
+      case "sltu" | "sltiu"                 => ALUOpType.SLTU.litValue
+      case "xor" | "xori"                   => ALUOpType.XOR.litValue
+      case "srl" | "srli"                   => ALUOpType.SRL.litValue
+      case "sra" | "srai"                   => ALUOpType.SRA.litValue
+      case "or" | "ori"                     => ALUOpType.OR.litValue
+      case "and" | "andi"                   => ALUOpType.AND.litValue
+      case "jal" | "jalr"                   => BJUOpType.JUMP.litValue
+      case "beq"                            => BJUOpType.EQ.litValue
+      case "bne"                            => BJUOpType.NE.litValue
+      case "blt"                            => BJUOpType.LT.litValue
+      case "bge"                            => BJUOpType.GE.litValue
+      case "bltu"                           => BJUOpType.LTU.litValue
+      case "bgeu"                           => BJUOpType.GEU.litValue
+      case _ => return BitPat.dontCare(FuncOpType.width)
+    }
+    BitPat(opType.U(FuncOpType.width.W))
+  }
+}
+
 object ALUOpField extends DecodeField[InstructionPattern, UInt] {
   def name: String = "aluOpType"
   def chiselType = UInt(ALUOpType.getWidth.W)
@@ -255,9 +305,9 @@ object IDUTable {
 
   val allFields = Seq(
     DecodeSupportField,
+    FuncTypeField,
+    FuncOpTypeField,
     ImmField,
-    ALUOpField,
-    BJUOpField,
     Data1Field,
     Data2Field,
     RegWriteDataTypeField,

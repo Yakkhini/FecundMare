@@ -18,16 +18,16 @@ import fecundmare.util.CSRBundle
 class CSR extends Module {
   val io = IO(new CSRBundle)
 
-  io.toEXU.valid := true.B
-  io.fromEXU.ready := true.B
+  io.toProcessing.valid := true.B
+  io.fromProcessing.ready := true.B
 
   // The initial value of the MSTATUS register is 0x00001800 to pass DiffTest
   val csrs = RegInit(
     VecInit(Seq("h00001800".U(32.W), 0.U(32.W), 0.U(32.W), 0.U(32.W)))
   )
 
-  val (opType, valid) = CSROPType.safe(io.fromEXU.bits.operation)
-  val index = MuxLookup(io.fromEXU.bits.address, 0.U)(
+  val (opType, valid) = CSROPType.safe(io.fromProcessing.bits.operation)
+  val index = MuxLookup(io.fromProcessing.bits.address, 0.U)(
     Seq(
       CSREnum.MSTATUS.asUInt -> 0.U,
       CSREnum.MTVEC.asUInt -> 1.U,
@@ -38,22 +38,30 @@ class CSR extends Module {
 
   switch(opType) {
     is(CSROPType.RW) {
-      csrs(index) := Mux(io.fromEXU.fire, io.fromEXU.bits.rs1data, csrs(index))
+      csrs(index) := Mux(
+        io.fromProcessing.fire,
+        io.fromProcessing.bits.rs1data,
+        csrs(index)
+      )
     }
     is(CSROPType.RS) {
       csrs(index) := Mux(
-        io.fromEXU.fire,
-        csrs(index) | io.fromEXU.bits.rs1data,
+        io.fromProcessing.fire,
+        csrs(index) | io.fromProcessing.bits.rs1data,
         csrs(index)
       )
     }
     is(CSROPType.CALL) {
-      csrs(2.U) := Mux(io.fromEXU.fire, io.fromEXU.bits.currentPC, csrs(2.U))
+      csrs(2.U) := Mux(
+        io.fromProcessing.fire,
+        io.fromProcessing.bits.currentPC,
+        csrs(2.U)
+      )
       csrs(3.U) := 11.U(32.W) // MCAUSE
     }
   }
 
-  io.toEXU.bits.readData := MuxLookup(opType.asUInt, 0.U)(
+  io.toProcessing.bits.readData := MuxLookup(opType.asUInt, 0.U)(
     Seq(
       CSROPType.RW.asUInt -> csrs(index),
       CSROPType.RS.asUInt -> csrs(index),

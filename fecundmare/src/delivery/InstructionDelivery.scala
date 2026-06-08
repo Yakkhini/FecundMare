@@ -13,8 +13,8 @@ import fecundmare.util._
 import fecundmare.decode.InstDecodeUnit
 
 class InstructionDeliveryBundle(implicit config: FMConfig) extends FMBundle {
-  val fromProcessing = Flipped(Decoupled(new EXUToIFUBundle))
-  val toProcessing = Decoupled(new IDUToEXUBundle)
+  val fromProcessing = Flipped(Decoupled(new ProcessingToIFUBundle))
+  val toProcessing = Decoupled(new IDUToProcessingBundle)
 
   val fromRegisterFile = Flipped(Decoupled(new RegisterFileToIDUBundle))
   val toRegisterFile = Decoupled(new IDUToRegisterFileBundle)
@@ -33,9 +33,9 @@ class InstructionDelivery(implicit config: FMConfig) extends FMModule {
   iCache.io.toIFU <> ifu.io.fromICache
 
   ifu.io.toIDU <> idu.io.fromIFU
-  ifu.io.fromEXU <> io.fromProcessing
+  ifu.io.fromProcessing <> io.fromProcessing
 
-  idu.io.toEXU <> io.toProcessing
+  idu.io.toProcessing <> io.toProcessing
   idu.io.fromRegisterFile <> io.fromRegisterFile
   idu.io.toRegisterFile <> io.toRegisterFile
 

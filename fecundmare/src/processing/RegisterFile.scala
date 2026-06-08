@@ -18,12 +18,12 @@ class RegisterFile extends Module {
   )
 
   val writeValid =
-    io.fromEXU.bits.writeEnable && io.fromEXU.bits.writeAddr =/= 0.U && io.fromEXU.valid
+    io.fromProcessing.bits.writeEnable && io.fromProcessing.bits.writeAddr =/= 0.U && io.fromProcessing.valid
 
   for (i <- 0 until 32) {
     registers(i) := Mux(
-      writeValid && io.fromEXU.bits.writeAddr === i.U,
-      io.fromEXU.bits.writeData,
+      writeValid && io.fromProcessing.bits.writeAddr === i.U,
+      io.fromProcessing.bits.writeData,
       registers(i)
     )
   }
@@ -31,18 +31,18 @@ class RegisterFile extends Module {
   dontTouch(writeValid)
 
   io.toIDU.bits.readData1 := Mux(
-    io.fromIDU.bits.readAddr1 === io.fromEXU.bits.writeAddr && writeValid,
-    io.fromEXU.bits.writeData,
+    io.fromIDU.bits.readAddr1 === io.fromProcessing.bits.writeAddr && writeValid,
+    io.fromProcessing.bits.writeData,
     registers(io.fromIDU.bits.readAddr1)
   )
   io.toIDU.bits.readData2 := Mux(
-    io.fromIDU.bits.readAddr2 === io.fromEXU.bits.writeAddr && writeValid,
-    io.fromEXU.bits.writeData,
+    io.fromIDU.bits.readAddr2 === io.fromProcessing.bits.writeAddr && writeValid,
+    io.fromProcessing.bits.writeData,
     registers(io.fromIDU.bits.readAddr2)
   )
 
   io.toIDU.valid := true.B
   io.fromIDU.ready := true.B
-  io.fromEXU.ready := true.B
-  io.fromEXU.ready := true.B
+  io.fromProcessing.ready := true.B
+  io.fromProcessing.ready := true.B
 }

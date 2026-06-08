@@ -17,14 +17,14 @@ import fecundmare.util.enum._
 import fecundmare.util.PreSiliconPerformanceCounter
 
 class InstructionProcessingBundle(implicit config: FMConfig) extends FMBundle {
-  val fromDelivery = Flipped(Decoupled(new IDUToEXUBundle))
-  val toDelivery = Decoupled(new EXUToIFUBundle)
+  val fromDelivery = Flipped(Decoupled(new IDUToProcessingBundle))
+  val toDelivery = Decoupled(new ProcessingToIFUBundle)
 
   val fromDeliveryRegisterFile = Flipped(Decoupled(new IDUToRegisterFileBundle))
   val toDeliveryRegisterFile = Decoupled(new RegisterFileToIDUBundle)
 
-  val fromLSU = Flipped(Decoupled(new LSUToEXUBundle))
-  val toLSU = Decoupled(new EXUToLSUBundle)
+  val fromLSU = Flipped(Decoupled(new LSUToProcessingBundle))
+  val toLSU = Decoupled(new ProcessingToLSUBundle)
 }
 
 object InstructionProcessingState extends ChiselEnum {
@@ -41,9 +41,9 @@ class InstructionProcessing(implicit config: FMConfig) extends FMModule {
   registerFile.io.fromIDU <> io.fromDeliveryRegisterFile
   io.toDeliveryRegisterFile <> registerFile.io.toIDU
 
-  dontTouch(registerFile.io.fromEXU.bits.writeAddr)
-  dontTouch(registerFile.io.fromEXU.bits.writeData)
-  dontTouch(registerFile.io.fromEXU.bits.writeEnable)
+  dontTouch(registerFile.io.fromProcessing.bits.writeAddr)
+  dontTouch(registerFile.io.fromProcessing.bits.writeData)
+  dontTouch(registerFile.io.fromProcessing.bits.writeEnable)
 
   // State 1
   io.fromDelivery.ready := exuState === InstructionProcessingState.sInit || (exuState === InstructionProcessingState.sWork && io.toDelivery.ready)
@@ -66,10 +66,10 @@ class InstructionProcessing(implicit config: FMConfig) extends FMModule {
   val lsDone = Wire(Bool())
 
   io.toDelivery.valid := exuState === InstructionProcessingState.sWork || lsDone
-  registerFile.io.fromEXU.valid := (exuState === InstructionProcessingState.sWork && io.toDelivery.fire) || lsDone
-  csr.io.fromEXU.valid := (exuState === InstructionProcessingState.sWork && io.toDelivery.fire) || lsDone
+  registerFile.io.fromProcessing.valid := (exuState === InstructionProcessingState.sWork && io.toDelivery.fire) || lsDone
+  csr.io.fromProcessing.valid := (exuState === InstructionProcessingState.sWork && io.toDelivery.fire) || lsDone
 
-  csr.io.toEXU.ready := true.B
+  csr.io.toProcessing.ready := true.B
 
   io.toDelivery.bits.commit := io.fromDelivery.fire
 
@@ -80,12 +80,12 @@ class InstructionProcessing(implicit config: FMConfig) extends FMModule {
   lsDone := exuState === InstructionProcessingState.sLS && (io.fromLSU.fire || clint.io.clintChosen)
 
   // Inner Logic
-  registerFile.io.fromEXU.bits.writeAddr := iduSkidBuffer.registerWriteAddr
+  registerFile.io.fromProcessing.bits.writeAddr := iduSkidBuffer.registerWriteAddr
 
-  csr.io.fromEXU.bits.address := iduSkidBuffer.csrAddress
-  csr.io.fromEXU.bits.currentPC := iduSkidBuffer.currentPC
-  csr.io.fromEXU.bits.operation := iduSkidBuffer.csrOperation
-  csr.io.fromEXU.bits.rs1data := iduSkidBuffer.data1
+  csr.io.fromProcessing.bits.address := iduSkidBuffer.csrAddress
+  csr.io.fromProcessing.bits.currentPC := iduSkidBuffer.currentPC
+  csr.io.fromProcessing.bits.operation := iduSkidBuffer.csrOperation
+  csr.io.fromProcessing.bits.rs1data := iduSkidBuffer.data1
 
   io.toLSU.bits.address := iduSkidBuffer.data1 + iduSkidBuffer.imm
   io.toLSU.bits.length := iduSkidBuffer.lsuLength
@@ -111,7 +111,7 @@ class InstructionProcessing(implicit config: FMConfig) extends FMModule {
 
   alu.io.operand1 := iduSkidBuffer.data1
   alu.io.operand2 := iduSkidBuffer.data2
-  alu.io.operation := iduSkidBuffer.aluOp
+  alu.io.operation := iduSkidBuffer.funcOpType(ALUOpType.getWidth - 1, 0)
 
   val result = alu.io.result
 
@@ -119,7 +119,7 @@ class InstructionProcessing(implicit config: FMConfig) extends FMModule {
 
   bju.io.operand1 := iduSkidBuffer.data1
   bju.io.operand2 := iduSkidBuffer.data2
-  bju.io.operation := iduSkidBuffer.bjuOp
+  bju.io.operation := iduSkidBuffer.funcOpType(BJUOpType.getWidth - 1, 0)
 
   bju.io.currentPC := iduSkidBuffer.currentPC
   bju.io.immNumber := iduSkidBuffer.imm
@@ -133,12 +133,12 @@ class InstructionProcessing(implicit config: FMConfig) extends FMModule {
   )(
     Seq(
       NextPCDataType.BRANCHJUMP.asUInt -> branchJumpTarget,
-      NextPCDataType.CSRDATA.asUInt -> csr.io.toEXU.bits.readData,
+      NextPCDataType.CSRDATA.asUInt -> csr.io.toProcessing.bits.readData,
       NextPCDataType.NORMAL.asUInt -> (iduSkidBuffer.currentPC + 4.U)
     )
   )
 
-  registerFile.io.fromEXU.bits.writeData := MuxLookup(
+  registerFile.io.fromProcessing.bits.writeData := MuxLookup(
     iduSkidBuffer.registerWriteType,
     0.U(32.W)
   )(
@@ -150,17 +150,17 @@ class InstructionProcessing(implicit config: FMConfig) extends FMModule {
         clint.io.outputMTime,
         lsuReadData
       ),
-      RegWriteDataType.CSRDATA.asUInt -> csr.io.toEXU.bits.readData
+      RegWriteDataType.CSRDATA.asUInt -> csr.io.toProcessing.bits.readData
     )
   )
 
-  registerFile.io.fromEXU.bits.writeEnable := iduSkidBuffer.registerWriteEnable
+  registerFile.io.fromProcessing.bits.writeEnable := iduSkidBuffer.registerWriteEnable
 
   // Performance Counter
   PreSiliconPerformanceCounter(
     "arithmeticDoneCounter",
-    registerFile.io.fromEXU.valid &&
-      registerFile.io.fromEXU.bits.writeEnable &&
+    registerFile.io.fromProcessing.valid &&
+      registerFile.io.fromProcessing.bits.writeEnable &&
       iduSkidBuffer.registerWriteType === RegWriteDataType.RESULT.asUInt,
     32
   )

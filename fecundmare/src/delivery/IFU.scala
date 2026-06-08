@@ -24,7 +24,7 @@ object IFUState extends ChiselEnum {
    *      - Next PC available;
    *      - Receive inst from ICache valid.
    *  2. Send State: Send inst to IDU only;
-   *  3. Wait State: Wait EXU to provide next PC;
+   *  3. Wait State: Wait Processing to provide next PC;
    *  4. Request State: Send ICache request only.
    *
    */
@@ -48,8 +48,16 @@ class IFU extends Module {
   val iCount = RegInit(0.U(32.W))
   val diffNextPC = RegInit(0.U(32.W))
 
-  iCount := Mux(io.fromEXU.fire && io.fromEXU.bits.commit, iCount + 1.U, iCount)
-  diffNextPC := Mux(io.fromEXU.fire, io.fromEXU.bits.nextPC, diffNextPC)
+  iCount := Mux(
+    io.fromProcessing.fire && io.fromProcessing.bits.commit,
+    iCount + 1.U,
+    iCount
+  )
+  diffNextPC := Mux(
+    io.fromProcessing.fire,
+    io.fromProcessing.bits.nextPC,
+    diffNextPC
+  )
   dontTouch(iCount)
   dontTouch(diffNextPC)
 
@@ -59,14 +67,15 @@ class IFU extends Module {
       6,
       0
     ) =/= "b1101111".U) && (inst(6, 0) =/= "b1110011".U)
-  val useEXUNextPC = io.fromEXU.valid && io.fromEXU.bits.prevPC === pc
+  val useProcessingNextPC =
+    io.fromProcessing.valid && io.fromProcessing.bits.prevPC === pc
 
   val updatePC =
-    (!stall && io.toIDU.fire) || (state === IFUState.sWait && useEXUNextPC)
-  val nextPC = Mux(normalNextPC, pc + 4.U, io.fromEXU.bits.nextPC)
+    (!stall && io.toIDU.fire) || (state === IFUState.sWait && useProcessingNextPC)
+  val nextPC = Mux(normalNextPC, pc + 4.U, io.fromProcessing.bits.nextPC)
   pc := Mux(updatePC, nextPC, pc)
 
-  io.fromEXU.ready := true.B
+  io.fromProcessing.ready := true.B
 
   // Send ICache request
   io.toICache.valid := ((!stall && io.toIDU.fire) || state === IFUState.sRequest) && !reset.asBool
@@ -82,7 +91,7 @@ class IFU extends Module {
   io.toIDU.bits.inst := inst
 
   // Stall Condition
-  stall := state =/= IFUState.sWork || !io.fromICache.valid || (!normalNextPC && !useEXUNextPC)
+  stall := state =/= IFUState.sWork || !io.fromICache.valid || (!normalNextPC && !useProcessingNextPC)
 
   // Performance Counter
   PreSiliconPerformanceCounter("fetchInstNumCounter", io.fromICache.fire, 32)
@@ -110,7 +119,7 @@ class IFU extends Module {
       }
     }
     is(IFUState.sWait) {
-      when(useEXUNextPC) {
+      when(useProcessingNextPC) {
         state := IFUState.sRequest
       }
     }

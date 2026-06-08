@@ -37,7 +37,7 @@ class LSU extends Module {
   // Buffer Register
   //
   // Notice: `writeData` and `readData` looks
-  // similar, but they are different. EXU takes
+  // similar, but they are different. Processing takes
   // master of `writeData`, and LSU takes master
   // of `readData`.
   val address = RegInit(0.U(32.W))
@@ -48,33 +48,49 @@ class LSU extends Module {
   val readEnable = RegInit(false.B)
 
   // State 1
-  io.fromEXU.ready := lsuState === LSUState.sIdle
-  address := Mux(io.fromEXU.fire, io.fromEXU.bits.address, address)
-  length := Mux(io.fromEXU.fire, io.fromEXU.bits.length, length)
-  writeData := Mux(io.fromEXU.fire, io.fromEXU.bits.writeData, writeData)
-  writeEnable := Mux(io.fromEXU.fire, io.fromEXU.bits.writeEnable, writeEnable)
-  readEnable := Mux(io.fromEXU.fire, io.fromEXU.bits.readEnable, readEnable)
+  io.fromProcessing.ready := lsuState === LSUState.sIdle
+  address := Mux(
+    io.fromProcessing.fire,
+    io.fromProcessing.bits.address,
+    address
+  )
+  length := Mux(io.fromProcessing.fire, io.fromProcessing.bits.length, length)
+  writeData := Mux(
+    io.fromProcessing.fire,
+    io.fromProcessing.bits.writeData,
+    writeData
+  )
+  writeEnable := Mux(
+    io.fromProcessing.fire,
+    io.fromProcessing.bits.writeEnable,
+    writeEnable
+  )
+  readEnable := Mux(
+    io.fromProcessing.fire,
+    io.fromProcessing.bits.readEnable,
+    readEnable
+  )
 
   // State 2
   val currentReadEnable =
-    Mux(io.fromEXU.fire, io.fromEXU.bits.readEnable, readEnable)
+    Mux(io.fromProcessing.fire, io.fromProcessing.bits.readEnable, readEnable)
   val currentWriteEnable =
-    Mux(io.fromEXU.fire, io.fromEXU.bits.writeEnable, writeEnable)
+    Mux(io.fromProcessing.fire, io.fromProcessing.bits.writeEnable, writeEnable)
   val currentAddress = Mux(
-    io.fromEXU.fire,
-    io.fromEXU.bits.address,
+    io.fromProcessing.fire,
+    io.fromProcessing.bits.address,
     address
   )
-  io.axi4.ar.valid := (lsuState === LSUState.sRequest || io.fromEXU.fire) && currentReadEnable
-  io.axi4.aw.valid := (lsuState === LSUState.sRequest || io.fromEXU.fire) && currentWriteEnable
-  io.axi4.w.valid := (lsuState === LSUState.sRequest || io.fromEXU.fire) && currentWriteEnable
+  io.axi4.ar.valid := (lsuState === LSUState.sRequest || io.fromProcessing.fire) && currentReadEnable
+  io.axi4.aw.valid := (lsuState === LSUState.sRequest || io.fromProcessing.fire) && currentWriteEnable
+  io.axi4.w.valid := (lsuState === LSUState.sRequest || io.fromProcessing.fire) && currentWriteEnable
   io.axi4.w.bits.last := io.axi4.w.valid
-  io.axi4.ar.bits.size := io.fromEXU.bits.length
+  io.axi4.ar.bits.size := io.fromProcessing.bits.length
   io.axi4.ar.bits.addr := currentAddress
-  io.axi4.aw.bits.size := io.fromEXU.bits.length
+  io.axi4.aw.bits.size := io.fromProcessing.bits.length
   io.axi4.aw.bits.addr := currentAddress
   // It should align with the bus width in AXI4 transaction
-  io.axi4.w.bits.strb := MuxLookup(io.fromEXU.bits.length, "b1111".U)(
+  io.axi4.w.bits.strb := MuxLookup(io.fromProcessing.bits.length, "b1111".U)(
     Seq(
       MemSize.B.asUInt -> "b0001".U,
       MemSize.H.asUInt -> "b0011".U,
@@ -82,8 +98,8 @@ class LSU extends Module {
     )
   ) << currentAddress(1, 0)
   io.axi4.w.bits.data := Mux(
-    io.fromEXU.fire,
-    io.fromEXU.bits.writeData,
+    io.fromProcessing.fire,
+    io.fromProcessing.bits.writeData,
     writeData
   ) << (currentAddress(1, 0) << 3)
 
@@ -103,8 +119,8 @@ class LSU extends Module {
   // State 4
   //
   // It should align with the bus width in AXI4 transaction
-  io.toEXU.valid := lsuState === LSUState.sSend || (lsuState === LSUState.sIdle && !currentWriteEnable && !currentReadEnable) || (lsuState === LSUState.sWait && io.axi4.r.fire)
-  io.toEXU.bits.readData := Mux(
+  io.toProcessing.valid := lsuState === LSUState.sSend || (lsuState === LSUState.sIdle && !currentWriteEnable && !currentReadEnable) || (lsuState === LSUState.sWait && io.axi4.r.fire)
+  io.toProcessing.bits.readData := Mux(
     io.axi4.r.fire,
     io.axi4.r.bits.data,
     readData
@@ -125,7 +141,7 @@ class LSU extends Module {
 
   switch(lsuState) {
     is(LSUState.sIdle) {
-      when(io.fromEXU.fire) {
+      when(io.fromProcessing.fire) {
         lsuState := Mux(
           io.axi4.aw.fire || io.axi4.ar.fire,
           LSUState.sWait,
@@ -140,11 +156,11 @@ class LSU extends Module {
     }
     is(LSUState.sWait) {
       when(io.axi4.r.fire || io.axi4.b.fire) {
-        lsuState := Mux(io.toEXU.fire, LSUState.sIdle, LSUState.sSend)
+        lsuState := Mux(io.toProcessing.fire, LSUState.sIdle, LSUState.sSend)
       }
     }
     is(LSUState.sSend) {
-      when(io.toEXU.fire) {
+      when(io.toProcessing.fire) {
         lsuState := LSUState.sIdle
       }
     }

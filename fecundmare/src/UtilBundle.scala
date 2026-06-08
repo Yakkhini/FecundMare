@@ -26,8 +26,10 @@ class ICacheToIFUBundle extends Bundle {
   val readInst = UInt(32.W)
 }
 
-class IDUToEXUBundle extends Bundle {
+class IDUToProcessingBundle extends Bundle {
   val currentPC = UInt(32.W)
+  val funcType = UInt(FuncType.getWidth.W)
+  val funcOpType = UInt(FuncOpType.width.W)
   val data1 = UInt(32.W)
   val data2 = UInt(32.W)
   val registerWriteAddr = UInt(5.W)
@@ -37,8 +39,6 @@ class IDUToEXUBundle extends Bundle {
   val csrOperation = UInt(CSROPType.getWidth.W)
   val nextPCType = UInt(NextPCDataType.getWidth.W)
   val lsuLength = UInt(MemSize.getWidth.W)
-  val aluOp = UInt(ALUOpType.getWidth.W)
-  val bjuOp = UInt(BJUOpType.getWidth.W)
   val lsuReadEnable = Bool()
   val lsuWriteEnable = Bool()
   val unsigned = Bool()
@@ -56,34 +56,34 @@ class IDUToRegisterFileBundle extends Bundle {
   val readAddr2 = UInt(5.W)
 }
 
-class EXUToRegisterFileBundle extends Bundle {
+class ProcessingToRegisterFileBundle extends Bundle {
   val writeAddr = UInt(5.W)
   val writeData = UInt(32.W)
   val writeEnable = Bool()
 }
 
-class CSRToEXUBundle extends Bundle {
+class CSRToProcessingBundle extends Bundle {
   val readData = UInt(32.W)
 }
 
-class EXUToCSRBundle extends Bundle {
+class ProcessingToCSRBundle extends Bundle {
   val operation = UInt(CSROPType.getWidth.W)
   val address = UInt(12.W)
   val currentPC = UInt(32.W)
   val rs1data = UInt(32.W)
 }
 
-class EXUToIFUBundle extends Bundle {
+class ProcessingToIFUBundle extends Bundle {
   val commit = Bool()
   val prevPC = UInt(32.W)
   val nextPC = UInt(32.W)
 }
 
-class LSUToEXUBundle extends Bundle {
+class LSUToProcessingBundle extends Bundle {
   val readData = UInt(32.W)
 }
 
-class EXUToLSUBundle extends Bundle {
+class ProcessingToLSUBundle extends Bundle {
   val readEnable = Bool()
   val writeEnable = Bool()
   val writeData = UInt(32.W)
@@ -136,20 +136,20 @@ class AXI4Bundle extends Bundle {
 }
 
 class LSUBundle extends Bundle {
-  val fromEXU = Flipped(Decoupled(new EXUToLSUBundle))
-  val toEXU = Decoupled(new LSUToEXUBundle)
+  val fromProcessing = Flipped(Decoupled(new ProcessingToLSUBundle))
+  val toProcessing = Decoupled(new LSUToProcessingBundle)
   val axi4 = new AXI4Bundle
 }
 
 class RegisterFileBundle extends Bundle {
-  val fromEXU = Flipped(Decoupled(new EXUToRegisterFileBundle))
+  val fromProcessing = Flipped(Decoupled(new ProcessingToRegisterFileBundle))
   val fromIDU = Flipped(Decoupled(new IDUToRegisterFileBundle))
   val toIDU = Decoupled(new RegisterFileToIDUBundle)
 }
 
 class CSRBundle extends Bundle {
-  val fromEXU = Flipped(Decoupled(new EXUToCSRBundle))
-  val toEXU = Decoupled(new CSRToEXUBundle)
+  val fromProcessing = Flipped(Decoupled(new ProcessingToCSRBundle))
+  val toProcessing = Decoupled(new CSRToProcessingBundle)
 }
 
 class ICacheBundle extends Bundle {
@@ -159,7 +159,7 @@ class ICacheBundle extends Bundle {
 }
 
 class IFUBundle extends Bundle {
-  val fromEXU = Flipped(Decoupled(new EXUToIFUBundle))
+  val fromProcessing = Flipped(Decoupled(new ProcessingToIFUBundle))
   val toIDU = Decoupled(new IFUToIDUBundle)
   val fromICache = Flipped(Decoupled(new ICacheToIFUBundle))
   val toICache = Decoupled(new IFUToICacheBundle)
@@ -167,19 +167,9 @@ class IFUBundle extends Bundle {
 
 class IDUBundle extends Bundle {
   val fromIFU = Flipped(Decoupled(new IFUToIDUBundle))
-  val toEXU = Decoupled(new IDUToEXUBundle)
+  val toProcessing = Decoupled(new IDUToProcessingBundle)
   val fromRegisterFile = Flipped(Decoupled(new RegisterFileToIDUBundle))
   val toRegisterFile = Decoupled(new IDUToRegisterFileBundle)
-}
-
-class EXUBundle extends Bundle {
-  val fromIDU = Flipped(Decoupled(new IDUToEXUBundle))
-  val toRegisterFile = Decoupled(new EXUToRegisterFileBundle)
-  val fromLSU = Flipped(Decoupled(new LSUToEXUBundle))
-  val toLSU = Decoupled(new EXUToLSUBundle)
-  val fromCSR = Flipped(Decoupled(new CSRToEXUBundle))
-  val toCSR = Decoupled(new EXUToCSRBundle)
-  val toIFU = Decoupled(new EXUToIFUBundle)
 }
 
 class YSYXSoCAXI4Bundle extends Bundle {

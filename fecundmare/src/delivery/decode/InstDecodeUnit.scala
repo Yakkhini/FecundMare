@@ -31,8 +31,8 @@ class InstDecodeUnit extends Module {
   pc := Mux(io.fromIFU.fire, io.fromIFU.bits.currentPC, pc)
   inst := Mux(io.fromIFU.fire, io.fromIFU.bits.inst, inst)
 
-  io.fromIFU.ready := (state === IDUState.sWork && io.toEXU.fire) || state === IDUState.sWait
-  io.toEXU.valid := state === IDUState.sWork || state === IDUState.sSend
+  io.fromIFU.ready := (state === IDUState.sWork && io.toProcessing.fire) || state === IDUState.sWait
+  io.toProcessing.valid := state === IDUState.sWork || state === IDUState.sSend
 
   io.toRegisterFile.valid := true.B
   io.fromRegisterFile.ready := true.B
@@ -40,11 +40,11 @@ class InstDecodeUnit extends Module {
   switch(state) {
     is(IDUState.sWork) {
       when(!io.fromIFU.fire) {
-        state := Mux(io.toEXU.fire, IDUState.sWait, IDUState.sSend)
+        state := Mux(io.toProcessing.fire, IDUState.sWait, IDUState.sSend)
       }
     }
     is(IDUState.sSend) {
-      when(io.toEXU.fire) {
+      when(io.toProcessing.fire) {
         state := IDUState.sWait
       }
     }
@@ -62,7 +62,10 @@ class InstDecodeUnit extends Module {
   }
   val decodeResult = decodeTable.decode(inst)
 
-  io.toEXU.bits.currentPC := pc
+  io.toProcessing.bits.currentPC := pc
+
+  io.toProcessing.bits.funcType := decodeResult(FuncTypeField)
+  io.toProcessing.bits.funcOpType := decodeResult(FuncOpTypeField)
 
   val immI = inst(31) ## Fill(20, inst(31)) ## inst(30, 20)
   val immS = inst(31) ## Fill(20, inst(31)) ## inst(30, 25) ## inst(11, 7)
@@ -75,7 +78,7 @@ class InstDecodeUnit extends Module {
 
   val immType = decodeResult(ImmField)
 
-  io.toEXU.bits.imm := MuxLookup(immType, 0.U)(
+  io.toProcessing.bits.imm := MuxLookup(immType, 0.U)(
     Seq(
       ImmType.I.asUInt -> immI,
       ImmType.S.asUInt -> immS,
@@ -105,7 +108,7 @@ class InstDecodeUnit extends Module {
   )
   io.toRegisterFile.bits.readAddr2 := inst(24, 20)
 
-  io.toEXU.bits.data1 := MuxLookup(
+  io.toProcessing.bits.data1 := MuxLookup(
     decodeResult(Data1Field),
     0.U
   )(
@@ -115,73 +118,72 @@ class InstDecodeUnit extends Module {
     )
   )
 
-  io.toEXU.bits.data2 := MuxLookup(
+  io.toProcessing.bits.data2 := MuxLookup(
     decodeResult(Data2Field),
     0.U
   )(
     Seq(
-      Data2Type.IMM.asUInt -> io.toEXU.bits.imm,
+      Data2Type.IMM.asUInt -> io.toProcessing.bits.imm,
       Data2Type.RS2.asUInt -> io.fromRegisterFile.bits.readData2
     )
   )
 
-  io.toEXU.bits.registerWriteAddr := inst(11, 7)
+  io.toProcessing.bits.registerWriteAddr := inst(11, 7)
 
-  io.toEXU.bits.registerWriteType := decodeResult(
+  io.toProcessing.bits.registerWriteType := decodeResult(
     RegWriteDataTypeField
   )
-  io.toEXU.bits.registerWriteEnable := decodeResult(RegWriteEnableField)
-  io.toEXU.bits.nextPCType := decodeResult(NextPCDataTypeField)
-  io.toEXU.bits.lsuLength := decodeResult(MemLenField)
-  io.toEXU.bits.aluOp := decodeResult(ALUOpField)
-  io.toEXU.bits.bjuOp := decodeResult(BJUOpField)
-  io.toEXU.bits.unsigned := decodeResult(UnsignField)
-  io.toEXU.bits.break := decodeResult(BreakField)
+  io.toProcessing.bits.registerWriteEnable := decodeResult(RegWriteEnableField)
+  io.toProcessing.bits.nextPCType := decodeResult(NextPCDataTypeField)
+  io.toProcessing.bits.lsuLength := decodeResult(MemLenField)
+  io.toProcessing.bits.unsigned := decodeResult(UnsignField)
+  io.toProcessing.bits.break := decodeResult(BreakField)
 
-  io.toEXU.bits.lsuReadEnable := inst(6, 0) === "b0000011".U
-  io.toEXU.bits.lsuWriteEnable := inst(6, 0) === "b0100011".U
+  io.toProcessing.bits.lsuReadEnable := inst(6, 0) === "b0000011".U
+  io.toProcessing.bits.lsuWriteEnable := inst(6, 0) === "b0100011".U
 
-  io.toEXU.bits.csrAddress := inst(31, 20)
-  io.toEXU.bits.csrOperation := decodeResult(CSROPTypeField)
+  io.toProcessing.bits.csrAddress := inst(31, 20)
+  io.toProcessing.bits.csrOperation := decodeResult(CSROPTypeField)
 
   decodeSupport := decodeResult(
     DecodeSupportField
-  ) || !io.toEXU.fire
+  ) || !io.toProcessing.fire
   dontTouch(decodeSupport)
 
   // Performance Counter
-  val isBranchJumpInst = decodeResult(
-    NextPCDataTypeField
-  ) === NextPCDataType.BRANCHJUMP.asUInt
-  val isJumpInst =
-    isBranchJumpInst && decodeResult(BJUOpField) === BJUOpType.JUMP.asUInt
-  val isBranchInst = isBranchJumpInst && !isJumpInst
-  val isLoadInst = io.toEXU.bits.lsuReadEnable
-  val isStoreInst = io.toEXU.bits.lsuWriteEnable
+  val isArithInst = decodeResult(FuncTypeField) === FuncType.ALU.asUInt
+
+  val isBranchJumpInst = decodeResult(FuncTypeField) === FuncType.BJU.asUInt
+  val isJumpOpType = decodeResult(FuncOpTypeField) === BJUOpType.JUMP.asUInt
+  val isJumpInst = isBranchJumpInst && isJumpOpType
+  val isBranchInst = isBranchJumpInst && !isJumpOpType
+
+  val isLoadInst = io.toProcessing.bits.lsuReadEnable
+  val isStoreInst = io.toProcessing.bits.lsuWriteEnable
 
   PreSiliconPerformanceCounter(
+    "arithInstCounter",
+    io.toProcessing.fire && isArithInst,
+    32
+  )
+  PreSiliconPerformanceCounter(
     "jumpInstCounter",
-    io.toEXU.fire && isJumpInst,
+    io.toProcessing.fire && isJumpInst,
     32
   )
   PreSiliconPerformanceCounter(
     "branchInstCounter",
-    io.toEXU.fire && isBranchInst,
+    io.toProcessing.fire && isBranchInst,
     32
   )
   PreSiliconPerformanceCounter(
     "loadInstCounter",
-    io.toEXU.fire && isLoadInst,
+    io.toProcessing.fire && isLoadInst,
     32
   )
   PreSiliconPerformanceCounter(
     "storeInstCounter",
-    io.toEXU.fire && isStoreInst,
-    32
-  )
-  PreSiliconPerformanceCounter(
-    "arithInstCounter",
-    io.toEXU.fire && false.B,
+    io.toProcessing.fire && isStoreInst,
     32
   )
 }

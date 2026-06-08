@@ -55,8 +55,8 @@ class FecundMare(config: FMConfig) extends Module {
 
   axiArbiter.io.out <> ioView.master
 
-  instructionProcessing.io.fromLSU <> lsu.io.toEXU
-  instructionProcessing.io.toLSU <> lsu.io.fromEXU
+  instructionProcessing.io.fromLSU <> lsu.io.toProcessing
+  instructionProcessing.io.toLSU <> lsu.io.fromProcessing
 
   instructionDelivery.io.toProcessing <> instructionProcessing.io.fromDelivery
   instructionProcessing.io.toDelivery <> instructionDelivery.io.fromProcessing

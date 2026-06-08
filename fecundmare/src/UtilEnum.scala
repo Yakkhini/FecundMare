@@ -8,15 +8,11 @@ package fecundmare.util.enum
 
 import chisel3._
 
-object ManagerState extends ChiselEnum {
-  val IDLE, WAIT = Value
-}
-
-object SubordinateState extends ChiselEnum {
-  val IDLE, WORK = Value
-}
-
 // Control signals
+
+object FuncType extends ChiselEnum {
+  val ALU, BJU, MUL, DIV, MEM, CSR, NONE = Value
+}
 
 object InstType extends ChiselEnum {
   val R, I, S, B, U, J = Value
@@ -32,6 +28,14 @@ object ALUOpType extends ChiselEnum {
 
 object BJUOpType extends ChiselEnum {
   val EQ, NE, LT, GE, LTU, GEU, JUMP = Value
+}
+
+object FuncOpType {
+  val width: Int = Seq(ALUOpType.getWidth, BJUOpType.getWidth).max
+  def apply(): UInt = UInt(width.W)
+
+  def fromALU(op: ALUOpType.Type): UInt = op.asUInt.pad(width)
+  def fromBJU(op: BJUOpType.Type): UInt = op.asUInt.pad(width)
 }
 
 object Data1Type extends ChiselEnum {
