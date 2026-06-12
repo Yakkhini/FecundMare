@@ -321,10 +321,10 @@ void cpu_check() {
   if (cpu_symbol->instructionProcessing->registerFile->writeValid) {
     register_write_event_buffer.write_addr =
         cpu_symbol->instructionProcessing->registerFile
-            ->io_fromEXU_bits_writeAddr;
+            ->io_fromProcessing_bits_writeAddr;
     register_write_event_buffer.write_data =
         cpu_symbol->instructionProcessing->registerFile
-            ->io_fromEXU_bits_writeData;
+            ->io_fromProcessing_bits_writeData;
   }
 
   if (mmio_difftest_check()) {
