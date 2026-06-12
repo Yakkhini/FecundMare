@@ -2,6 +2,38 @@
 title: FecundMare 定期进度新闻
 ---
 
+## FecundMare News #2 2026/06/12
+
+欢迎了解 **丰富海处理器（FecundMare）** 的开发进度。本周的工作主要面向  RISC-V M 扩展集下乘除法指令的支持，带来一系列的探索和变动。
+
+### 微架构变动 - Microarchitecture
+
+1. 基于 [chipsalliance/rvdecoderdb](https://github.com/chipsalliance/rvdecoderdb) 重构了 IDU 中译码信号的控制逻辑，现在译码模块的可拓展性和可维护性更强；
+2. 进一步解耦各功能单元的数据通路，并通过统一的控制信号来拆分，移除了译码结果中一些可以省去的信号；
+3. InstructionProcessing 顶层中，不再仅仅按照是否遇到 Load / Store 指令决定是否进入等待状态，而是重构成多个功能单元都可触发的 `sWaitUnit` 状态；
+4. 探索并基于 sequencer 维护的 [硬件计算库](https://github.com/sequencer/arithmetic) 的实现接入了 Radix-4 Booth's Recoding Wallace Tree 乘法器和 SRT4 除法器，撰写了包括原理阐述、工程思路、性能分析的 [[2026-06-08-muldivinst|博客文章]]。
+
+### 基础设施 - Infrastructure
+
+1. 在本地和 CI 中初始化构建所需的第三方依赖库；
+2. 修改负载的构建目标从 RV32E 到 RV32IM；
+3. 处理新增的性能计数器数据并打印到性能报告中。
+
+### 性能评估 - Performance
+
+本周结束时，性能结果如下：
+
+* IPC: 0.13
+* Frequency: 529.42MHz
+* Area: 60587.52 $um^2$
+
+由于实现了乘除法器，频率、面积均有衰退，同时大量计算指令的节省也让 IPC 更低的仿存指令占比更高，拉低了整体的 IPC 表现。但是在 M 扩展的支持下，总周期数和总指令数都有非常显著的下降：
+
+* Total Cycles: 915653072 -> 502654344, 45% decreasing;
+* Total Instructions: 201561722 -> 66669545, 67% decreasing.
+
+或许在后面的性能报告中可以考虑更准确的评估和汇报方式？目前有点想把标准性能测试从 MicroBench 迁移到 [ArchBench](https://github.com/OSCPU/archbench/tree/dev) 上。
+
 ## FecundMare News #1 2026/06/05
 
 欢迎了解丰富海处理器的开发进度。本周 **丰富海处理器（FecundMare）** 成功诞生，脱胎于旧的 **桃河处理器（TaoHe）**，并立即进行了紧锣密鼓的重构与开发。
