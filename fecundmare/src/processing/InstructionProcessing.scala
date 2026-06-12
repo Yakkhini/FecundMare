@@ -28,7 +28,7 @@ class InstructionProcessingBundle(implicit config: FMConfig) extends FMBundle {
 }
 
 object InstructionProcessingState extends ChiselEnum {
-  val sInit, sWork, sLS = Value
+  val sInit, sWork, sWaitUnit = Value
 }
 
 class InstructionProcessing(implicit config: FMConfig) extends FMModule {
@@ -61,31 +61,32 @@ class InstructionProcessing(implicit config: FMConfig) extends FMModule {
   val difftestSkip = iduSkidBuffer.lsuReadEnable && clint.io.clintChosen
   dontTouch(difftestSkip)
 
-  val switchToLSU =
-    exuState === InstructionProcessingState.sWork && (io.fromDelivery.bits.lsuReadEnable || io.fromDelivery.bits.lsuWriteEnable)
-  val lsDone = Wire(Bool())
+  val blockByUnit =
+    exuState === InstructionProcessingState.sWork && (
+      io.fromDelivery.bits.funcType === FuncType.MEM.asUInt ||
+        io.fromDelivery.bits.funcType === FuncType.MUL.asUInt ||
+        io.fromDelivery.bits.funcType === FuncType.DIV.asUInt
+    )
+  val unitDone = Wire(Bool())
 
-  io.toDelivery.valid := exuState === InstructionProcessingState.sWork || lsDone
-  registerFile.io.fromProcessing.valid := (exuState === InstructionProcessingState.sWork && io.toDelivery.fire) || lsDone
-  csr.io.fromProcessing.valid := ((exuState === InstructionProcessingState.sWork && io.toDelivery.fire) || lsDone) && iduSkidBuffer.funcType === FuncType.CSR.asUInt
+  io.toDelivery.valid := exuState === InstructionProcessingState.sWork || unitDone
+  registerFile.io.fromProcessing.valid := (exuState === InstructionProcessingState.sWork && io.toDelivery.fire) || unitDone
+  csr.io.fromProcessing.valid := ((exuState === InstructionProcessingState.sWork && io.toDelivery.fire) || unitDone) && iduSkidBuffer.funcType === FuncType.CSR.asUInt
 
   csr.io.toProcessing.ready := true.B
 
   io.toDelivery.bits.commit := io.fromDelivery.fire
 
   // State 2
-  io.toLSU.valid := exuState === InstructionProcessingState.sLS && !clint.io.clintChosen
-  io.fromLSU.ready := exuState === InstructionProcessingState.sLS && !clint.io.clintChosen
-
-  lsDone := exuState === InstructionProcessingState.sLS && (io.fromLSU.fire || clint.io.clintChosen)
-
-  // Inner Logic
   registerFile.io.fromProcessing.bits.writeAddr := iduSkidBuffer.registerWriteAddr
 
   csr.io.fromProcessing.bits.address := iduSkidBuffer.csrAddress
   csr.io.fromProcessing.bits.currentPC := iduSkidBuffer.currentPC
   csr.io.fromProcessing.bits.operation := iduSkidBuffer.csrOperation
   csr.io.fromProcessing.bits.rs1data := iduSkidBuffer.data1
+
+  io.toLSU.valid := exuState === InstructionProcessingState.sWaitUnit && !clint.io.clintChosen && iduSkidBuffer.funcType === FuncType.MEM.asUInt
+  io.fromLSU.ready := exuState === InstructionProcessingState.sWaitUnit && !clint.io.clintChosen && iduSkidBuffer.funcType === FuncType.MEM.asUInt
 
   io.toLSU.bits.address := iduSkidBuffer.data1 + iduSkidBuffer.imm
   io.toLSU.bits.length := iduSkidBuffer.lsuLength
@@ -113,7 +114,7 @@ class InstructionProcessing(implicit config: FMConfig) extends FMModule {
   alu.io.operand2 := iduSkidBuffer.data2
   alu.io.operation := iduSkidBuffer.funcOpType(ALUOpType.getWidth - 1, 0)
 
-  val result = alu.io.result
+  val aluResult = alu.io.result
 
   val bju = Module(new BranchJumpUnit())
 
@@ -125,6 +126,41 @@ class InstructionProcessing(implicit config: FMConfig) extends FMModule {
   bju.io.immNumber := iduSkidBuffer.imm
 
   val branchJumpTarget = bju.io.target
+
+  val mul = Module(new MulUnit())
+
+  mul.io.input.valid := exuState === InstructionProcessingState.sWaitUnit && iduSkidBuffer.funcType === FuncType.MUL.asUInt
+  mul.io.output.ready := exuState === InstructionProcessingState.sWaitUnit && iduSkidBuffer.funcType === FuncType.MUL.asUInt
+
+  mul.io.input.bits.operand1 := iduSkidBuffer.data1
+  mul.io.input.bits.operand2 := iduSkidBuffer.data2
+  mul.io.input.bits.operation := iduSkidBuffer.funcOpType(
+    MULOpType.getWidth - 1,
+    0
+  )
+
+  val mulResult = mul.io.output.bits.result
+
+  val div = Module(new DivUnit())
+
+  div.io.input.valid := exuState === InstructionProcessingState.sWaitUnit && iduSkidBuffer.funcType === FuncType.DIV.asUInt
+  div.io.output.ready := exuState === InstructionProcessingState.sWaitUnit && iduSkidBuffer.funcType === FuncType.DIV.asUInt
+
+  div.io.input.bits.operand1 := iduSkidBuffer.data1
+  div.io.input.bits.operand2 := iduSkidBuffer.data2
+  div.io.input.bits.operation := iduSkidBuffer.funcOpType(
+    DIVOpType.getWidth - 1,
+    0
+  )
+
+  val divResult = div.io.output.bits.result
+
+  unitDone := exuState === InstructionProcessingState.sWaitUnit && (
+    io.fromLSU.fire ||
+      mul.io.output.fire ||
+      div.io.output.fire ||
+      clint.io.clintChosen
+  )
 
   io.toDelivery.bits.prevPC := iduSkidBuffer.currentPC
   io.toDelivery.bits.nextPC := MuxLookup(
@@ -139,18 +175,20 @@ class InstructionProcessing(implicit config: FMConfig) extends FMModule {
   )
 
   registerFile.io.fromProcessing.bits.writeData := MuxLookup(
-    iduSkidBuffer.registerWriteType,
+    iduSkidBuffer.funcType,
     0.U(32.W)
   )(
     Seq(
-      RegWriteDataType.RESULT.asUInt -> result,
-      RegWriteDataType.NEXTPC.asUInt -> (iduSkidBuffer.currentPC + 4.U),
-      RegWriteDataType.MEMREAD.asUInt -> Mux(
+      FuncType.ALU.asUInt -> aluResult,
+      FuncType.BJU.asUInt -> (iduSkidBuffer.currentPC + 4.U),
+      FuncType.MUL.asUInt -> mulResult,
+      FuncType.DIV.asUInt -> divResult,
+      FuncType.MEM.asUInt -> Mux(
         clint.io.clintChosen,
         clint.io.outputMTime,
         lsuReadData
       ),
-      RegWriteDataType.CSRDATA.asUInt -> csr.io.toProcessing.bits.readData
+      FuncType.CSR.asUInt -> csr.io.toProcessing.bits.readData
     )
   )
 
@@ -166,12 +204,12 @@ class InstructionProcessing(implicit config: FMConfig) extends FMModule {
   )
   PreSiliconPerformanceCounter(
     "memoryDoneCounter",
-    exuState === InstructionProcessingState.sLS && lsDone,
+    exuState === InstructionProcessingState.sWaitUnit && unitDone && iduSkidBuffer.funcType === FuncType.MEM.asUInt,
     32
   )
   PreSiliconPerformanceCounter(
     "memoryStallCycleCounter",
-    exuState === InstructionProcessingState.sLS,
+    exuState === InstructionProcessingState.sWaitUnit && iduSkidBuffer.funcType === FuncType.MEM.asUInt,
     32
   )
 
@@ -182,12 +220,12 @@ class InstructionProcessing(implicit config: FMConfig) extends FMModule {
       }
     }
     is(InstructionProcessingState.sWork) {
-      when(io.fromDelivery.fire && switchToLSU) {
-        exuState := InstructionProcessingState.sLS
+      when(io.fromDelivery.fire && blockByUnit) {
+        exuState := InstructionProcessingState.sWaitUnit
       }
     }
-    is(InstructionProcessingState.sLS) {
-      when(lsDone) {
+    is(InstructionProcessingState.sWaitUnit) {
+      when(unitDone) {
         exuState := InstructionProcessingState.sWork
       }
     }

@@ -86,7 +86,7 @@ object Main extends App {
     gen = new FecundMare(FMConfig(xlen = 32, physicalVersion = true)),
     args = Array("--target-dir", "out/sta"),
     firtoolOpts = Array(
-      "--lowering-options=disallowLocalVariables,disallowExpressionInliningInPorts",
+      "--lowering-options=disallowLocalVariables,disallowExpressionInliningInPorts,disallowPackedArrays",
       "-disable-layers=Verification,PerformanceCounterLayer"
     )
   )
