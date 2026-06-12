@@ -83,7 +83,7 @@ formal: sv
 perf: clean sta
     #!/usr/bin/env nu
     cd ($env.NPC_CHISEL + /../am-kernels/benchmarks/microbench)
-    make ARCH=riscv32e-ysyxsoc run mainargs=train
+    make ARCH=riscv32im-ysyxsoc run mainargs=train
 
 show-perf-result:
     #!/usr/bin/env nu
