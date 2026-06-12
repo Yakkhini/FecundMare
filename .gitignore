@@ -11,5 +11,6 @@ build
 compile_commands.json
 
 rvdecoderdb
+arithmetic
 
 rtl-sim/config/config.h

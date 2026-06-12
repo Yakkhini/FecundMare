@@ -18,6 +18,15 @@ There is an automatic performance evaluation on CI, which would be triggered on 
 
 Check out the `perf-results` branch to find archived CI output.
 
+## Acknowledgements
+
+Besides the whole awesome open source community, FecundMare is directly depending on following libraries:
+
+* [chipsalliance/rvdecoderdb, Apache-2.0, Jiuyang Liu](https://github.com/chipsalliance/rvdecoderdb)
+* [sequencer/arithmetic, MIT, Jiuyang Liu](https://github.com/sequencer/arithmetic)
+
+Thanks to their excellent work.
+
 ## License
 
 This repository is licensed on Mulan Permissive Software License, Version 2.

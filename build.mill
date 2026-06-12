@@ -19,10 +19,11 @@ import mill.bsp._
 object rvdecoderdb extends ScalaModule {
   override def scalaVersion = "2.13.16"
 
-  override def millSourcePath: os.Path = super.millSourcePath / "rvdecoderdb"
-
   override def sources: T[Seq[PathRef]] = T.sources {
-    super.sources() ++ Seq(PathRef(millSourcePath / "jvm" / "src"))
+    Seq(
+      PathRef(moduleDir / "rvdecoderdb" / "src"),
+      PathRef(moduleDir / "rvdecoderdb" / "jvm" / "src")
+    )
   }
 
   override def ivyDeps = Agg(
@@ -31,10 +32,29 @@ object rvdecoderdb extends ScalaModule {
   )
 }
 
+object arithmetic extends ScalaModule {
+  override def scalaVersion = "2.13.16"
+
+  override def sources: T[Seq[PathRef]] = T.sources {
+    Seq(PathRef(moduleDir / "arithmetic" / "src"))
+  }
+
+  override def ivyDeps = Agg(
+    ivy"org.chipsalliance::chisel:7.6.0",
+    ivy"org.typelevel::spire:0.18.0",
+    ivy"com.lihaoyi::os-lib:0.9.1",
+    ivy"com.lihaoyi::upickle:3.3.1"
+  )
+
+  override def scalacPluginIvyDeps = Agg(
+    ivy"org.chipsalliance:::chisel-plugin:7.6.0"
+  )
+}
+
 object fecundmare extends ScalaModule with ScalafmtModule { m =>
   override def scalaVersion = "2.13.16"
 
-  override def moduleDeps = super.moduleDeps ++ Seq(rvdecoderdb)
+  override def moduleDeps = super.moduleDeps ++ Seq(rvdecoderdb, arithmetic)
 
   override def scalacOptions = Seq(
     "-language:reflectiveCalls",

@@ -53,6 +53,13 @@ jobs:
           path: env/npc-chisel/rvdecoderdb/riscv-opcodes
           fetch-depth: 1
 
+      - name: Checkout sequencer/arithmetic
+        uses: actions/checkout@v6
+        with:
+          repository: sequencer/arithmetic
+          path: env/npc-chisel/arithmetic
+          fetch-depth: 1
+
       - name: Checkout yosys-sta
         uses: actions/checkout@v6
         with:
