@@ -203,6 +203,33 @@ class InstructionProcessing(implicit config: FMConfig) extends FMModule {
     32
   )
   PreSiliconPerformanceCounter(
+    "branchJumpDoneCounter",
+    registerFile.io.fromProcessing.valid &&
+      registerFile.io.fromProcessing.bits.writeEnable &&
+      iduSkidBuffer.funcType === FuncType.BJU.asUInt,
+    32
+  )
+  PreSiliconPerformanceCounter(
+    "mulDoneCounter",
+    mul.io.output.fire,
+    32
+  )
+  PreSiliconPerformanceCounter(
+    "mulStallCycleCounter",
+    exuState === InstructionProcessingState.sWaitUnit && iduSkidBuffer.funcType === FuncType.MUL.asUInt,
+    32
+  )
+  PreSiliconPerformanceCounter(
+    "divDoneCounter",
+    div.io.output.fire,
+    32
+  )
+  PreSiliconPerformanceCounter(
+    "divStallCycleCounter",
+    exuState === InstructionProcessingState.sWaitUnit && iduSkidBuffer.funcType === FuncType.DIV.asUInt,
+    32
+  )
+  PreSiliconPerformanceCounter(
     "memoryDoneCounter",
     exuState === InstructionProcessingState.sWaitUnit && unitDone && iduSkidBuffer.funcType === FuncType.MEM.asUInt,
     32

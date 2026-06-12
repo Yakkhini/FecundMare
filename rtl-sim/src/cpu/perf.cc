@@ -132,9 +132,23 @@ void perf_counter_stat(core_symbol_t *cpu_symbol) {
       cpu_symbol->instructionDelivery->idu->storeInstCounter;
   uint32_t idu_arith_inst_count =
       cpu_symbol->instructionDelivery->idu->arithInstCounter;
+  uint32_t idu_mul_inst_count =
+      cpu_symbol->instructionDelivery->idu->mulInstCounter;
+  uint32_t idu_div_inst_count =
+      cpu_symbol->instructionDelivery->idu->divInstCounter;
 
   uint32_t exu_arith_done_count =
       cpu_symbol->instructionProcessing->arithmeticDoneCounter;
+  uint32_t exu_branchjump_done_count =
+      cpu_symbol->instructionProcessing->branchJumpDoneCounter;
+  uint32_t exu_mul_done_count =
+      cpu_symbol->instructionProcessing->mulDoneCounter;
+  uint32_t exu_mul_stall_cycle_count =
+      cpu_symbol->instructionProcessing->mulStallCycleCounter;
+  uint32_t exu_div_done_count =
+      cpu_symbol->instructionProcessing->divDoneCounter;
+  uint32_t exu_div_stall_cycle_count =
+      cpu_symbol->instructionProcessing->divStallCycleCounter;
   uint32_t exu_memory_done_count =
       cpu_symbol->instructionProcessing->memoryDoneCounter;
   uint32_t exu_memory_stall_cycle_count =
@@ -178,6 +192,12 @@ void perf_counter_stat(core_symbol_t *cpu_symbol) {
                   {"Branch Inst Count", idu_branch_inst_count},
                   {"Branch Inst Percentage",
                    (double)idu_branch_inst_count / (double)cpu.iCount * 100.0},
+                  {"Mul Inst Count", idu_mul_inst_count},
+                  {"Mul Inst Percentage",
+                   (double)idu_mul_inst_count / (double)cpu.iCount * 100.0},
+                  {"Div Inst Count", idu_div_inst_count},
+                  {"Div Inst Percentage",
+                   (double)idu_div_inst_count / (double)cpu.iCount * 100.0},
                   {"Load Inst Count", idu_load_inst_count},
                   {"Load Inst Percentage",
                    (double)idu_load_inst_count / (double)cpu.iCount * 100.0},
@@ -190,6 +210,11 @@ void perf_counter_stat(core_symbol_t *cpu_symbol) {
 
   auto exu_table = toml::table{
       {"arithmeticDoneCounter", exu_arith_done_count},
+      {"branchJumpDoneCounter", exu_branchjump_done_count},
+      {"Mul Stall",
+       perf_stall_table(exu_mul_done_count, exu_mul_stall_cycle_count)},
+      {"Div Stall",
+       perf_stall_table(exu_div_done_count, exu_div_stall_cycle_count)},
       {"Memory Stall",
        perf_stall_table(exu_memory_done_count, exu_memory_stall_cycle_count)}};
 

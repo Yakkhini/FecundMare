@@ -155,6 +155,9 @@ class InstDecodeUnit extends Module {
   val isJumpInst = isBranchJumpInst && isJumpOpType
   val isBranchInst = isBranchJumpInst && !isJumpOpType
 
+  val isMulInst = decodeResult(FuncTypeField) === FuncType.MUL.asUInt
+  val isDivInst = decodeResult(FuncTypeField) === FuncType.DIV.asUInt
+
   val isLoadInst = io.toProcessing.bits.lsuReadEnable
   val isStoreInst = io.toProcessing.bits.lsuWriteEnable
 
@@ -171,6 +174,16 @@ class InstDecodeUnit extends Module {
   PreSiliconPerformanceCounter(
     "branchInstCounter",
     io.toProcessing.fire && isBranchInst,
+    32
+  )
+  PreSiliconPerformanceCounter(
+    "mulInstCounter",
+    io.toProcessing.fire && isMulInst,
+    32
+  )
+  PreSiliconPerformanceCounter(
+    "divInstCounter",
+    io.toProcessing.fire && isDivInst,
     32
   )
   PreSiliconPerformanceCounter(
