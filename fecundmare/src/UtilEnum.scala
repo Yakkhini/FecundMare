@@ -30,12 +30,27 @@ object BJUOpType extends ChiselEnum {
   val EQ, NE, LT, GE, LTU, GEU, JUMP = Value
 }
 
+object MULOpType extends ChiselEnum {
+  val MUL, MULH, MULHSU, MULHU = Value
+}
+
+object DIVOpType extends ChiselEnum {
+  val DIV, DIVU, REM, REMU = Value
+}
+
 object FuncOpType {
-  val width: Int = Seq(ALUOpType.getWidth, BJUOpType.getWidth).max
+  val width: Int = Seq(
+    ALUOpType.getWidth,
+    BJUOpType.getWidth,
+    MULOpType.getWidth,
+    DIVOpType.getWidth
+  ).max
   def apply(): UInt = UInt(width.W)
 
   def fromALU(op: ALUOpType.Type): UInt = op.asUInt.pad(width)
   def fromBJU(op: BJUOpType.Type): UInt = op.asUInt.pad(width)
+  def fromMUL(op: MULOpType.Type): UInt = op.asUInt.pad(width)
+  def fromDIV(op: DIVOpType.Type): UInt = op.asUInt.pad(width)
 }
 
 object Data1Type extends ChiselEnum {

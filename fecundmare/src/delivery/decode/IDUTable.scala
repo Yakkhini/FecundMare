@@ -54,6 +54,10 @@ object FuncTypeField extends DecodeField[InstructionPattern, UInt] {
         FuncType.ALU
       case "jal" | "jalr" | "beq" | "bne" | "blt" | "bge" | "bltu" | "bgeu" =>
         FuncType.BJU
+      case "mul" | "mulh" | "mulhsu" | "mulhu" =>
+        FuncType.MUL
+      case "div" | "divu" | "rem" | "remu" =>
+        FuncType.DIV
       case "lb" | "lh" | "lw" | "lbu" | "lhu" | "sb" | "sh" | "sw" =>
         FuncType.MEM
       case "csrrw" | "csrrs" | "ecall" | "mret" =>
@@ -87,6 +91,14 @@ object FuncOpTypeField extends DecodeField[InstructionPattern, UInt] {
       case "bge"                            => BJUOpType.GE.litValue
       case "bltu"                           => BJUOpType.LTU.litValue
       case "bgeu"                           => BJUOpType.GEU.litValue
+      case "mul"                            => MULOpType.MUL.litValue
+      case "mulh"                           => MULOpType.MULH.litValue
+      case "mulhsu"                         => MULOpType.MULHSU.litValue
+      case "mulhu"                          => MULOpType.MULHU.litValue
+      case "div"                            => DIVOpType.DIV.litValue
+      case "divu"                           => DIVOpType.DIVU.litValue
+      case "rem"                            => DIVOpType.REM.litValue
+      case "remu"                           => DIVOpType.REMU.litValue
       case _ => return BitPat.dontCare(FuncOpType.width)
     }
     BitPat(opType.U(FuncOpType.width.W))
@@ -261,6 +273,8 @@ object RVDecoderDBSource {
   private val riscvOpcodesPath = os.pwd / "rvdecoderdb" / "riscv-opcodes"
 
   private val rv32ShiftImmediate = Set("slli", "srli", "srai")
+  private val supportedM =
+    Set("mul", "mulh", "mulhsu", "mulhu", "div", "divu", "rem", "remu")
   private val supportedCSR = Set("csrrw", "csrrs")
   private val supportedSystem = Set("mret")
 
@@ -283,6 +297,7 @@ object RVDecoderDBSource {
         instruction.instructionSet.name match {
           case "rv_i" =>
             instruction.pseudoFrom.isEmpty && instruction.name != "fence"
+          case "rv_m"     => supportedM.contains(instruction.name)
           case "rv32_i"   => rv32ShiftImmediate.contains(instruction.name)
           case "rv_zicsr" =>
             instruction.pseudoFrom.isEmpty && supportedCSR.contains(
