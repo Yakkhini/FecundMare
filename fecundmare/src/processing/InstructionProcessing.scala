@@ -199,7 +199,7 @@ class InstructionProcessing(implicit config: FMConfig) extends FMModule {
     "arithmeticDoneCounter",
     registerFile.io.fromProcessing.valid &&
       registerFile.io.fromProcessing.bits.writeEnable &&
-      iduSkidBuffer.registerWriteType === RegWriteDataType.RESULT.asUInt,
+      iduSkidBuffer.funcType === FuncType.ALU.asUInt,
     32
   )
   PreSiliconPerformanceCounter(

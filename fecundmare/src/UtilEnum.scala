@@ -61,10 +61,6 @@ object Data2Type extends ChiselEnum {
   val IMM, RS2 = Value
 }
 
-object RegWriteDataType extends ChiselEnum {
-  val RESULT, NEXTPC, MEMREAD, CSRDATA = Value
-}
-
 object NextPCDataType extends ChiselEnum {
   val BRANCHJUMP, CSRDATA, NORMAL = Value
 }

@@ -130,9 +130,6 @@ class InstDecodeUnit extends Module {
 
   io.toProcessing.bits.registerWriteAddr := inst(11, 7)
 
-  io.toProcessing.bits.registerWriteType := decodeResult(
-    RegWriteDataTypeField
-  )
   io.toProcessing.bits.registerWriteEnable := decodeResult(RegWriteEnableField)
   io.toProcessing.bits.nextPCType := decodeResult(NextPCDataTypeField)
   io.toProcessing.bits.lsuLength := decodeResult(MemLenField)

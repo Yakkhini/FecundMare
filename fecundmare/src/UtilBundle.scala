@@ -33,7 +33,6 @@ class IDUToProcessingBundle extends Bundle {
   val data1 = UInt(32.W)
   val data2 = UInt(32.W)
   val registerWriteAddr = UInt(5.W)
-  val registerWriteType = UInt(RegWriteDataType.getWidth.W)
   val registerWriteEnable = Bool()
   val csrAddress = UInt(12.W)
   val csrOperation = UInt(CSROPType.getWidth.W)

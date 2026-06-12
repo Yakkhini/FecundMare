@@ -174,23 +174,6 @@ object Data2Field extends DecodeField[InstructionPattern, UInt] {
 
 }
 
-object RegWriteDataTypeField extends DecodeField[InstructionPattern, UInt] {
-  def name: String = "regWriteDataType"
-  def chiselType = UInt(RegWriteDataType.getWidth.W)
-  def genTable(op: InstructionPattern): BitPat = {
-    if (!op.hasArg("rd")) return BitPat.dontCare(RegWriteDataType.getWidth)
-
-    val regWriteType = op.name match {
-      case "jal" | "jalr"                     => RegWriteDataType.NEXTPC
-      case "lb" | "lh" | "lw" | "lbu" | "lhu" => RegWriteDataType.MEMREAD
-      case "csrrw" | "csrrs"                  => RegWriteDataType.CSRDATA
-      case _                                  => RegWriteDataType.RESULT
-    }
-
-    BitPat(regWriteType.litValue.U(RegWriteDataType.getWidth.W))
-  }
-}
-
 object RegWriteEnableField extends BoolDecodeField[InstructionPattern] {
   def name: String = "regWriteEnable"
   def genTable(op: InstructionPattern): BitPat = BitPat(op.hasArg("rd").B)
@@ -325,7 +308,6 @@ object IDUTable {
     ImmField,
     Data1Field,
     Data2Field,
-    RegWriteDataTypeField,
     RegWriteEnableField,
     NextPCDataTypeField,
     MemLenField,
