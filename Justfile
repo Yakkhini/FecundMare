@@ -28,7 +28,7 @@ _compile target:
     mkdir -p {{BUILD_DIR}}/bin
     mkdir -p {{BUILD_DIR}}/verilator
     VSRC=`find {{BUILD_DIR}}/verilog -name '*.sv' | tr '\n' ' '` # we use echo command latter cause dollar var will cause error
-    CSRC=`find $NPC_CHISEL -name '*.cc' | tr '\n' ' '` # we use echo command latter cause dollar var will cause error
+    CSRC=`find $NPC_CHISEL/rtl-sim -name '*.cc' | tr '\n' ' '` # we use echo command latter cause dollar var will cause error
     VLTRC=`find $NPC_CHISEL -name '*.vlt' | tr '\n' ' '` # we use echo command latter cause dollar var will cause error
     PERIP_SRC=`find {{PERIP_DIR}} -name '*.v' | tr '\n' ' '` # we use echo command latter cause dollar var will cause error
     verilator --cc -Mdir {{BUILD_DIR}}/verilator/{{target}} \
@@ -40,7 +40,6 @@ _compile target:
     -Dlayer\$PerformanceCounterLayer \
     `echo $VLTRC` `echo $CSRC` `echo $VSRC` `echo $PERIP_SRC` $YSYX_SOC_HOME/build/ysyxSoCFull {{NVBOARD_ARCHIVE}} \
     -I{{PERIP_DIR}}/uart16550/rtl -I{{PERIP_DIR}}/spi/rtl \
-    -I{{BUILD_DIR}}/verilog/verification \
     -CFLAGS -I{{BUILD_DIR}}/verilator -CFLAGS -I{{INC_DIR}} -CFLAGS -I{{CONFIG_DIR}} -CFLAGS -g \
     -CFLAGS -O3 -CFLAGS -flto -LDFLAGS -flto \
     -CFLAGS -DCONFIG_TARGET_{{target}} \

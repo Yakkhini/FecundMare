@@ -76,7 +76,10 @@ object Main extends App {
   ChiselStage.emitSystemVerilogFile(
     gen = new FecundMare(FMConfig(xlen = 32, physicalVersion = false)),
     args = Array("--target-dir", "out/verilog"),
-    firtoolOpts = Array("-preserve-aggregate=1d-vec")
+    firtoolOpts = Array(
+      "-preserve-aggregate=1d-vec",
+      "-disable-layers=Verification"
+    )
   )
 
   ChiselStage.emitSystemVerilogFile(
