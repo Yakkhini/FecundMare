@@ -31,7 +31,7 @@ class MULBundle(implicit config: FMConfig) extends FMBundle {
 }
 
 object MulUnitState extends ChiselEnum {
-  val sIdle, sBusy = Value
+  val sIdle, sBusy, sSend = Value
 }
 
 class MulUnit(implicit config: FMConfig) extends FMModule {
@@ -43,7 +43,7 @@ class MulUnit(implicit config: FMConfig) extends FMModule {
   val state = RegInit(MulUnitState.sIdle)
 
   val cycleCounter = RegInit(0.U(2.W))
-  cycleCounter := Mux(state === MulUnitState.sIdle, 0.U, cycleCounter + 1.U)
+  cycleCounter := Mux(state === MulUnitState.sBusy, cycleCounter + 1.U, 0.U)
 
   val calculationDone = state === MulUnitState.sBusy && cycleCounter === 3.U
 
@@ -64,10 +64,10 @@ class MulUnit(implicit config: FMConfig) extends FMModule {
     io.input.bits.operand2
   ).asSInt
 
-  io.output.valid := calculationDone
+  val result = Reg(UInt(XLEN.W))
 
   val product = wallace.z.asUInt
-  io.output.bits.result := MuxLookup(io.input.bits.operation, product(31, 0))(
+  val resultInput = MuxLookup(io.input.bits.operation, product(31, 0))(
     Seq(
       MULOpType.MUL.asUInt -> product(31, 0),
       MULOpType.MULH.asUInt -> product(63, 32),
@@ -75,6 +75,10 @@ class MulUnit(implicit config: FMConfig) extends FMModule {
       MULOpType.MULHU.asUInt -> product(63, 32)
     )
   )
+
+  result := Mux(calculationDone, resultInput, result)
+  io.output.valid := state === MulUnitState.sSend
+  io.output.bits.result := result
 
   switch(state) {
     is(MulUnitState.sIdle) {
@@ -84,6 +88,11 @@ class MulUnit(implicit config: FMConfig) extends FMModule {
     }
     is(MulUnitState.sBusy) {
       when(calculationDone) {
+        state := MulUnitState.sSend
+      }
+    }
+    is(MulUnitState.sSend) {
+      when(io.output.fire) {
         state := MulUnitState.sIdle
       }
     }
