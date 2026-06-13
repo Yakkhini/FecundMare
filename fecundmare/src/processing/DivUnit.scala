@@ -45,26 +45,56 @@ class DivUnit(implicit config: FMConfig) extends FMModule {
 
   val srt = Module(
     new division.srt.SRT(
-      dividendWidth = 32,
-      dividerWidth = 32,
-      n = 32
+      dividendWidth = XLEN,
+      dividerWidth = XLEN,
+      n = XLEN
     )
   )
 
-  val dividend = Reg(UInt(XLEN.W))
-  val divider = Reg(UInt(XLEN.W))
+  val dividendAbs = Reg(UInt(XLEN.W))
+  val dividerAbs = Reg(UInt(XLEN.W))
   val operation = Reg(UInt(DIVOpType.getWidth.W))
 
+  val dividendNegative = Reg(Bool())
+  val dividerNegative = Reg(Bool())
+
+  val inputSigned =
+    io.input.bits.operation === DIVOpType.DIV.asUInt || io.input.bits.operation === DIVOpType.REM.asUInt
+
   io.input.ready := state === DivUnitState.sIdle
-  dividend := Mux(io.input.fire, io.input.bits.operand1, dividend)
-  divider := Mux(io.input.fire, io.input.bits.operand2, divider)
+  dividendAbs := Mux(
+    io.input.fire,
+    Mux(
+      inputSigned,
+      io.input.bits.operand1.asSInt.abs.asUInt,
+      io.input.bits.operand1
+    ),
+    dividendAbs
+  )
+  dividerAbs := Mux(
+    io.input.fire,
+    Mux(
+      inputSigned,
+      io.input.bits.operand2.asSInt.abs.asUInt,
+      io.input.bits.operand2
+    ),
+    dividerAbs
+  )
   operation := Mux(io.input.fire, io.input.bits.operation, operation)
 
-  val signed =
-    operation === DIVOpType.DIV.asUInt || operation === DIVOpType.REM.asUInt
+  dividendNegative := Mux(
+    io.input.fire,
+    inputSigned && io.input.bits.operand1(XLEN - 1),
+    dividendNegative
+  )
+  dividerNegative := Mux(
+    io.input.fire,
+    inputSigned && io.input.bits.operand2(XLEN - 1),
+    dividerNegative
+  )
 
-  val dividendZoroHeadNum = PriorityEncoder(Reverse(dividend))
-  val dividerZoroHeadNum = PriorityEncoder(Reverse(divider))
+  val dividendZoroHeadNum = PriorityEncoder(Reverse(dividendAbs))
+  val dividerZoroHeadNum = PriorityEncoder(Reverse(dividerAbs))
 
   val needWidth =
     dividerZoroHeadNum - dividendZoroHeadNum + 2.U // SRT4 1 + radixLog2 - 1
@@ -74,8 +104,8 @@ class DivUnit(implicit config: FMConfig) extends FMModule {
   val dividendShift = dividendZoroHeadNum + 1.U - guardWidth
   val dividerShift = dividerZoroHeadNum
 
-  val dividendNorm = dividend << dividendShift
-  val dividerNorm = divider << dividerShift
+  val dividendNorm = dividendAbs << dividendShift
+  val dividerNorm = dividerAbs << dividerShift
 
   srt.input.valid := state === DivUnitState.sNorm
   srt.input.bits.dividend := dividendNorm
@@ -85,10 +115,28 @@ class DivUnit(implicit config: FMConfig) extends FMModule {
   val quitient = Reg(UInt(XLEN.W))
   val reminder = Reg(UInt(XLEN.W))
 
-  quitient := Mux(srt.output.valid, srt.output.bits.quotient, quitient)
+  val signedQuitient = Mux(
+    dividendNegative ^ dividerNegative,
+    ~srt.output.bits.quotient + 1.U,
+    srt.output.bits.quotient
+  )
+  val signedReminder = Mux(
+    dividendNegative,
+    ~(srt.output.bits.reminder >> dividerShift) + 1.U,
+    srt.output.bits.reminder >> dividerShift
+  )
+
+  val outputSigned =
+    operation === DIVOpType.DIV.asUInt || operation === DIVOpType.REM.asUInt
+
+  quitient := Mux(
+    srt.output.valid,
+    Mux(outputSigned, signedQuitient, srt.output.bits.quotient),
+    quitient
+  )
   reminder := Mux(
     srt.output.valid,
-    srt.output.bits.reminder >> dividerShift,
+    Mux(outputSigned, signedReminder, srt.output.bits.reminder >> dividerShift),
     reminder
   )
 
