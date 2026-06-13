@@ -119,12 +119,8 @@ class LSU extends Module {
   // State 4
   //
   // It should align with the bus width in AXI4 transaction
-  io.toProcessing.valid := lsuState === LSUState.sSend || (lsuState === LSUState.sIdle && !currentWriteEnable && !currentReadEnable) || (lsuState === LSUState.sWait && io.axi4.r.fire)
-  io.toProcessing.bits.readData := Mux(
-    io.axi4.r.fire,
-    io.axi4.r.bits.data,
-    readData
-  ) >> (currentAddress(1, 0) << 3)
+  io.toProcessing.valid := lsuState === LSUState.sSend || (lsuState === LSUState.sIdle && !currentWriteEnable && !currentReadEnable)
+  io.toProcessing.bits.readData := readData >> (address(1, 0) << 3)
 
   // Performance Counter
   PreSiliconPerformanceCounter("loadDataValidCounter", io.axi4.r.fire, 32)
@@ -156,7 +152,7 @@ class LSU extends Module {
     }
     is(LSUState.sWait) {
       when(io.axi4.r.fire || io.axi4.b.fire) {
-        lsuState := Mux(io.toProcessing.fire, LSUState.sIdle, LSUState.sSend)
+        lsuState := LSUState.sSend
       }
     }
     is(LSUState.sSend) {
