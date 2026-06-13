@@ -140,13 +140,24 @@ class DivUnit(implicit config: FMConfig) extends FMModule {
     reminder
   )
 
+  val dividerGreaterThanDividend = dividerAbs > dividendAbs
+  val signedDividend = Mux(dividendNegative, ~dividendAbs + 1.U, dividendAbs)
+
   io.output.valid := state === DivUnitState.sDone
   io.output.bits.result := MuxLookup(operation, quitient)(
     Seq(
-      DIVOpType.DIV.asUInt -> quitient,
-      DIVOpType.DIVU.asUInt -> quitient,
-      DIVOpType.REM.asUInt -> reminder,
-      DIVOpType.REMU.asUInt -> reminder
+      DIVOpType.DIV.asUInt -> Mux(dividerGreaterThanDividend, 0.U, quitient),
+      DIVOpType.DIVU.asUInt -> Mux(dividerGreaterThanDividend, 0.U, quitient),
+      DIVOpType.REM.asUInt -> Mux(
+        dividerGreaterThanDividend,
+        signedDividend,
+        reminder
+      ),
+      DIVOpType.REMU.asUInt -> Mux(
+        dividerGreaterThanDividend,
+        dividendAbs,
+        reminder
+      )
     )
   )
 
