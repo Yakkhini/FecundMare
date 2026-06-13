@@ -1,0 +1,60 @@
+[FecundMare]
+CPI = 5.0283758898142024
+IPC = 0.19887136958588628
+'Total Cycle' = 991131008
+'Total Instructions' = 197107581
+'area(um^2)' = 46862.480000000003
+commit = 'f563e3e1'
+'freq(MHz)' = 602.98400000000004
+message = '[idu, instproc, csr] remove none operation in csr'
+time = '2026-06-13 15:21:22'
+
+    [FecundMare.'AXI Arbiter']
+    ifuAXIWaitingCycleCounter = 233161152
+    ifuArbiterWaitingCycleCounter = 0
+    lsuAXILoadWaitingCycleCounter = 232544661
+    lsuAXIStoreWaitingCycleCounter = 232205641
+    lsuArbiterLoadWaitingCycleCounter = 161807
+    lsuArbiterStoreWaitingCycleCounter = 0
+
+    [FecundMare.EXU]
+    arithmeticDoneCounter = 251161644
+
+        [FecundMare.EXU.'Memory Stall']
+        'Average Penalty' = 14.760669160321807
+        'Cycle Count' = 363278696
+        'Cycle Percentage' = 36.652944269502662
+        'Event Count' = 24611262
+
+    [FecundMare.IDU]
+    'Arithmetic Inst Count' = 115276480
+    'Arithmetic Inst Percentage' = 58.484041768033265
+    'Branch Inst Count' = 53051497
+    'Branch Inst Percentage' = 26.914995725101004
+    'Jump Inst Count' = 4168342
+    'Jump Inst Percentage' = 2.1147547845965398
+    'Load Inst Count' = 16240581
+    'Load Inst Percentage' = 8.2394502117095136
+    'Store Inst Count' = 8370681
+    'Store Inst Percentage' = 4.2467575105596778
+
+    [FecundMare.IFU]
+    'Cache AMAT' = 1.5783619961324573
+    'Cache AMP' = 41.701247847143186
+    'Cache Hit' = 189821913
+    'Cache Miss' = 7285668
+    'Cache TMT' = 303821447
+    'Cache Wait Cycle Percentage' = 31.389101187317507
+    fetchInstNumCounter = 197107581
+    fetchWaitingCycleCounter = 311107115
+
+        [FecundMare.IFU.'Control Hazard Stall']
+        'Average Penalty' = 3.8880004033565978
+        'Cycle Count' = 222470761
+        'Cycle Percentage' = 22.446150832161234
+        'Event Count' = 57219840
+
+    [FecundMare.LSU]
+    loadDataValidCounter = 16240535
+    loadWaitingCycleCounter = 232706468
+    storeWaitingCycleCounter = 232205641
