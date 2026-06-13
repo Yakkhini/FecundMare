@@ -35,7 +35,7 @@ class DIVBundle(implicit config: FMConfig) extends FMBundle {
 }
 
 object DivUnitState extends ChiselEnum {
-  val sIdle, sNorm, sRun, sDone = Value
+  val sIdle, sNorm, sRun, sDeNorm, sDone = Value
 }
 
 class DivUnit(implicit config: FMConfig) extends FMModule {
@@ -112,35 +112,51 @@ class DivUnit(implicit config: FMConfig) extends FMModule {
   srt.input.bits.divider := dividerNorm
   srt.input.bits.counter := counter
 
+  val srtQuntientResult = Reg(UInt(XLEN.W))
+  val srtReminderResult = Reg(UInt(XLEN.W))
+
+  srtQuntientResult := Mux(
+    srt.output.valid,
+    srt.output.bits.quotient,
+    srtQuntientResult
+  )
+  srtReminderResult := Mux(
+    srt.output.valid,
+    srt.output.bits.reminder,
+    srtReminderResult
+  )
+
   val quitient = Reg(UInt(XLEN.W))
   val reminder = Reg(UInt(XLEN.W))
 
   val signedQuitient = Mux(
     dividendNegative ^ dividerNegative,
-    ~srt.output.bits.quotient + 1.U,
-    srt.output.bits.quotient
+    ~srtQuntientResult + 1.U,
+    srtQuntientResult
   )
   val signedReminder = Mux(
     dividendNegative,
-    ~(srt.output.bits.reminder >> dividerShift) + 1.U,
-    srt.output.bits.reminder >> dividerShift
+    ~(srtReminderResult >> dividerShift) + 1.U,
+    srtReminderResult >> dividerShift
   )
 
   val outputSigned =
     operation === DIVOpType.DIV.asUInt || operation === DIVOpType.REM.asUInt
 
   quitient := Mux(
-    srt.output.valid,
-    Mux(outputSigned, signedQuitient, srt.output.bits.quotient),
+    state === DivUnitState.sDeNorm,
+    Mux(outputSigned, signedQuitient, srtQuntientResult),
     quitient
   )
   reminder := Mux(
-    srt.output.valid,
-    Mux(outputSigned, signedReminder, srt.output.bits.reminder >> dividerShift),
+    state === DivUnitState.sDeNorm,
+    Mux(outputSigned, signedReminder, srtReminderResult >> dividerShift),
     reminder
   )
 
-  val dividerGreaterThanDividend = dividerAbs > dividendAbs
+  val dividerGreaterThanDividend = Reg(Bool())
+  dividerGreaterThanDividend := dividerAbs > dividendAbs
+
   val signedDividend = Mux(dividendNegative, ~dividendAbs + 1.U, dividendAbs)
 
   io.output.valid := state === DivUnitState.sDone
@@ -174,8 +190,11 @@ class DivUnit(implicit config: FMConfig) extends FMModule {
     }
     is(DivUnitState.sRun) {
       when(srt.output.valid) {
-        state := DivUnitState.sDone
+        state := DivUnitState.sDeNorm
       }
+    }
+    is(DivUnitState.sDeNorm) {
+      state := DivUnitState.sDone
     }
     is(DivUnitState.sDone) {
       when(io.output.fire) {
