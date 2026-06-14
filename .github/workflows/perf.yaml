@@ -26,7 +26,7 @@ jobs:
         with:
           repository: Yakkhini/YSYXWorkBench
           token: ${{ secrets.PRIVATE_REPO_PAT }}
-          ref: rv-m-support-npc
+          ref: master
           path: env
           fetch-depth: 1
           persist-credentials: false
